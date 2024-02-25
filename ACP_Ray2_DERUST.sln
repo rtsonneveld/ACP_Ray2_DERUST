@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ACP_Ray2_DERUST", "ACP_Ray2_DERUST.vcxproj", "{5867CC87-F090-4E8C-8C21-B4FE17E60CC7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5867CC87-F090-4E8C-8C21-B4FE17E60CC7}.Debug|x86.ActiveCfg = Debug|Win32
+		{5867CC87-F090-4E8C-8C21-B4FE17E60CC7}.Debug|x86.Build.0 = Debug|Win32
+		{5867CC87-F090-4E8C-8C21-B4FE17E60CC7}.Release|x86.ActiveCfg = Release|Win32
+		{5867CC87-F090-4E8C-8C21-B4FE17E60CC7}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C56DBB80-B56F-4E00-BC19-CE80412604EF}
+	EndGlobalSection
+EndGlobal
