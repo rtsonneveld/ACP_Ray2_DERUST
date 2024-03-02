@@ -21,7 +21,7 @@
     <ClInclude Include="cpa_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="_3dDataUtil.h">
+    <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

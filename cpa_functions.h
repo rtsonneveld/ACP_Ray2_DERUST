@@ -2,10 +2,10 @@
 #include <apidef.h>
 #include <HIE/HIE.h>
 #include <POS/POS.h>
-#include "_3dDataUtil.h"
 #include <assert.h>
 
-#define Std_C_MiscFlag_Always 0x10
+#define Std_C_MiscFlag_Always	0x10
+#define GLI_C_lIsNotGrided		8
 #define MTH3D_M_vNullVector( VectDest)    { (VectDest)->x=(VectDest)->y=(VectDest)->z=0.0f; }
 
 //void* (*fnp_vGameMallocInHLM) (unsigned long ulSize) = OFFSET(0x4077E0);
@@ -14,6 +14,8 @@ SCT_tdstSectInfo* (*fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject) = OF
 void (*fn_v3dDataInitValueSAI) (GAM_tdst3dData* h_3dData) = OFFSET(0x4186B0);
 void (*fn_v3dDataInit) (HIE_tdstEngineObject* p_stObject, AI_tdeObjectTreeInit eObjectInit) = OFFSET(0x418340);
 char* (*AI_fn_p_vTrueAlloc) (unsigned int size) = OFFSET(0x466860);
+void (*PLA_fn_vUpdateTransparencyForModules) (HIE_tdstSuperObject* superObject) = OFFSET(0x40F260);
+BOOL (*PLA_fn_bSetNewState)(HIE_tdstSuperObject* p_stSuperObject, HIE_tdstState* h_WantedState, BOOL _bForce, BOOL _bHandleSkippedEventsIfRelevant) = OFFSET(0x40FAA0);
 
 void* fnp_vGameMallocInHLM(unsigned long ulSize) {
 	void* ptr = malloc(ulSize);
@@ -39,78 +41,6 @@ HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType)
 	return(NULL);
 }
 
-long fn_ul3dDataSizeOf() {
-	return sizeof(GAM_tdst3dData);
-}
-
-GAM_tdst3dData * MOD_GAM_fn_h_3dDataRealAlloc() {
-
-	GAM_tdst3dData* h_3dData;
-
-	h_3dData = (GAM_tdst3dData*)fnp_vGameMallocInHLM(fn_ul3dDataSizeOf());
-	POS_fn_vSetIdentityMatrix(fn_p_st3dDataGetMatrix(h_3dData));
-
-	fn_v3dDataSetFlagEndState(h_3dData, FALSE);
-	fn_v3dDataSetFlagEndOfAnim(h_3dData, FALSE);
-	fn_v3dDataSetFlagModifState(h_3dData, FALSE);
-	fn_v3dDataSetForcedFrame(h_3dData, 0);
-
-	(&h_3dData->stFrame3d)->p_stArrayOfElts3d = NULL;
-	fn_v3dDataSetSizeOfArrayOfElts3d(h_3dData, 0);
-	h_3dData->hMorphChannelList = NULL;
-
-	fn_v3dDataSetStateInLastFrame(h_3dData, NULL);
-	fn_v3dDataSetWantedState(h_3dData, NULL);
-	fn_v3dDataSetCurrentState(h_3dData, NULL);
-
-	fn_v3dDataSetCurrentObjectsTable(h_3dData, NULL);
-	fn_v3dDataSetInitialObjectsTable(h_3dData, NULL);
-
-	h_3dData->ulStartTime = GAM_g_stEngineStructure->stEngineTimer.ulCurrentTimerCount;
-	h_3dData->bSkipCurrentFrame = FALSE;
-	h_3dData->ulTimeDelay = 0;
-	h_3dData->sLastFrame = -1;
-	h_3dData->bStateJustModified = FALSE;
-	h_3dData->uwNbEngineFrameSinceLastMechEvent = 65535; //LME_INVALID;
-	h_3dData->ucFrameRate = 0;
-
-	h_3dData->lDrawMask = GLI_C_lAllIsEnable;
-	h_3dData->lDrawMaskInit = GLI_C_lAllIsEnable;
-
-	fn_v3dDataSetShadowScaleX(h_3dData, 1.0f);
-	fn_v3dDataSetShadowScaleY(h_3dData, 1.0f);
-
-	fn_v3dDataSetShadowQuality(h_3dData, 2);
-	fn_v3dDataSetShadowTexture(h_3dData, NULL);
-	fn_v3dDataSetShadowMaterial(h_3dData, NULL);
-
-	MTH3D_M_vNullVector(fn_p_st3dDataGetSHWDeformationVector(h_3dData));
-	*(&(h_3dData->xSHWHeight)) = 0.2f;
-
-	h_3dData->ucBrainComputationFrequency = 1;
-	h_3dData->cBrainCounter = -1;
-
-	h_3dData->uwBrainMainCounter = 1; // (unsigned short)RND_fn_lGetLongRandomValue(0, 1, (long)17);
-	h_3dData->uwBrainMainCounter = 1;
-	h_3dData->ucLightComputationFrequency = 1;
-	h_3dData->cLightCounter = -1;
-
-	h_3dData->ucTransparency = 255;
-
-	return(h_3dData);
-}
-
-// TODO: figure out why this function doesn't work when hooked
-void MOD_GAM_fn_v3dDataAlloc(HIE_tdstEngineObject* p_stObject)
-{
-	assert(p_stObject != NULL);
-	assert(p_stObject->h3dData == NULL);
-
-	p_stObject->h3dData = MOD_GAM_fn_h_3dDataRealAlloc();
-	fn_v3dDataInitValueSAI(p_stObject->h3dData);
-}
-
-
 AI_tdstAIModel* fn_p_stAllocAIModel()
 {
 	AI_tdstAIModel* p_stAIModel = NULL;
@@ -130,7 +60,7 @@ struct tdstEngineObject_* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjec
 	p_stTempObject = (HIE_tdstEngineObject*)fnp_vGameMallocInHLM(sizeof(HIE_tdstEngineObject));
 
 	GAM_fn_vStdGameAlloc(p_stTempObject);
-	MOD_GAM_fn_v3dDataAlloc(p_stTempObject);
+	GAM_fn_v3dDataAlloc(p_stTempObject);
 	AI_fn_vBrainAlloc(p_stTempObject);
 
 	p_stTempObject->hStandardGame->lObjectFamilyType = otObjectFamilyType;

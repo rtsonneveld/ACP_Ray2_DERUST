@@ -103,7 +103,7 @@ Ray2x.exe -level:learn_31</Command>
   <ItemGroup>
     <ClInclude Include="cpa_functions.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="_3dDataUtil.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.c" />

@@ -1,8 +1,9 @@
 #include "framework.h"
 #include "cpa_functions.h"
+#include "util.h"
 #define VERSION "0.0.1"
 
-HIE_tdstSuperObject* spo_rayman = NULL;
+HIE_tdstSuperObject* rayman_spo = NULL;
 
 void CALLBACK MyTextCallback(SPTXT_tdstTextInfo* p_stString)
 {
@@ -15,14 +16,14 @@ void CALLBACK MyTextCallback(SPTXT_tdstTextInfo* p_stString)
 	SPTXT_vPrintFmtLine("DERUST v" VERSION);
 }
 
-void CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
+HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
 
 	POS_tdstCompletePosition stMatrix;
 	POS_fn_vSetIdentityMatrix(&stMatrix);
 	POS_fn_vSetTranslationVector(&stMatrix, position);
 
-	HIE_tdstSuperObject* p_SuperObjPersoGenerated = fn_p_stAllocateAlways(
+	return fn_p_stAllocateAlways(
 		modelType, 
 		*GAM_g_p_stDynamicWorld, 
 		HIE_M_hGetMainActor(), 
@@ -30,44 +31,53 @@ void CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 		&stMatrix);
 }
 
-HIE_tdstEngineObject* myOwnSpecialEngineObject;
-long myOwnSpecialObjectType = 69420;
+HIE_tdstEngineObject* always_rayman_obj;
+long alwaysRaymanObjectType = 1000;
+HIE_tdstSuperObject* spawned_rayman;
+
+void CreateAlwaysRaymanObject() {
+	
+	if (always_rayman_obj != NULL) return;
+	if (rayman_spo == NULL) return;
+
+	always_rayman_obj = fn_p_stAllocateAlwaysEngineObject(
+		rayman_spo->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
+		alwaysRaymanObjectType,
+		C_AlwaysObjectType);
+
+	always_rayman_obj->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
+	fn_vSectInfoAlloc(always_rayman_obj);
+
+	// Set the object table to the family's default
+
+	always_rayman_obj->h3dData->h_CurrentObjectsTable =
+		always_rayman_obj->h3dData->h_InitialObjectsTable = always_rayman_obj->h3dData->h_Family->hDefaultObjectsTable;
+	always_rayman_obj->h3dData->h_InitialState = always_rayman_obj->h3dData->h_Family->stForStateArray.hFirstElementSta;
+	always_rayman_obj->h3dData->ulNumberOfChannels = always_rayman_obj->h3dData->h_Family->ulNumberOfChannels;
+
+	fn_vAddAnAlwaysModel(always_rayman_obj);
+}
 
 void MOD_fn_vEngine()
 {
 	GAM_fn_vEngine();
 
-	if (spo_rayman == NULL)
-		spo_rayman = HIE_fn_p_stFindObjectByName("rayman");
+	if (rayman_spo == NULL)
+		rayman_spo = HIE_fn_p_stFindObjectByName("rayman");
 
-	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_TransePolochus))
-	{
-		myOwnSpecialEngineObject = fn_p_stAllocateAlwaysEngineObject(
-			spo_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType, 
-			myOwnSpecialObjectType,
-			C_AlwaysObjectType);
-
-		myOwnSpecialEngineObject->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
-		fn_vSectInfoAlloc(myOwnSpecialEngineObject);
-
-		// Set the object table to the family's default
-
-		myOwnSpecialEngineObject->h3dData->h_CurrentObjectsTable =
-			myOwnSpecialEngineObject->h3dData->h_InitialObjectsTable = myOwnSpecialEngineObject->h3dData->h_Family->hDefaultObjectsTable;
-		myOwnSpecialEngineObject->h3dData->h_InitialState = myOwnSpecialEngineObject->h3dData->h_Family->stForStateArray.hFirstElementSta;
-		myOwnSpecialEngineObject->h3dData->ulNumberOfChannels = myOwnSpecialEngineObject->h3dData->h_Family->ulNumberOfChannels;
-	}
+	CreateAlwaysRaymanObject();
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{
-		fn_vAddAnAlwaysModel(myOwnSpecialEngineObject);
-		//fn_vAddAnAlwaysModel(spo_rayman->hLinkedObject.p_stActor);
+		spawned_rayman = CreateObject(&rayman_spo->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
-	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Affiche_Jauge))
-	{
-		CreateObject(&spo_rayman->p_stGlobalMatrix->stPos, myOwnSpecialObjectType);
-		//CreateObject(&spo_rayman->p_stGlobalMatrix->stPos, spo_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectPersonalType);
+	if (spawned_rayman != NULL) {
+		if (SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != rayman_spo->hLinkedObject.p_stActor->h3dData->h_CurrentState) {
+			PLA_fn_bSetNewState(spawned_rayman, rayman_spo->hLinkedObject.p_stActor->h3dData->h_CurrentState, TRUE, FALSE);
+
+			SPO_SetTransparency(spawned_rayman, 0.5f);
+		}
 	}
 }
 
