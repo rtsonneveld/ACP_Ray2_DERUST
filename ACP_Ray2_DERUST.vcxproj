@@ -70,7 +70,7 @@
       <Command>taskkill /f /im Rayman2.exe
 xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
 cd "D:\Drive\Games\Rayman 2\"
-Ray2x.exe -level:learn_31</Command>
+Ray2x.exe -level:learn_31 -debug</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,12 +101,18 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cpa_functions.h" />
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="util.h" />
+    <ClInclude Include="src\cpa_functions.h" />
+    <ClInclude Include="src\framework.h" />
+    <ClInclude Include="src\features\features.h" />
+    <ClInclude Include="src\util.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.c" />
+    <ClCompile Include="src\dllmain.c" />
+    <ClCompile Include="src\features\features.c" />
+    <ClCompile Include="src\features\feature_ghostreplay.c" />
+    <ClCompile Include="src\features\feature_none.c" />
+    <ClCompile Include="src\features\feature_rollboostdisplay.c" />
+    <ClCompile Include="src\features\feature_speedometer.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

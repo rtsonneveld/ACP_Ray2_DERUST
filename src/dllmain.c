@@ -1,9 +1,10 @@
 #include "framework.h"
 #include "cpa_functions.h"
 #include "util.h"
+#include "features/features.h"
 #define VERSION "0.0.1"
 
-HIE_tdstSuperObject* rayman_spo = NULL;
+HIE_tdstSuperObject* rayman = NULL;
 
 void CALLBACK MyTextCallback(SPTXT_tdstTextInfo* p_stString)
 {
@@ -31,54 +32,67 @@ HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType model
 		&stMatrix);
 }
 
-HIE_tdstEngineObject* always_rayman_obj;
+HIE_tdstEngineObject* alw_rayman;
 long alwaysRaymanObjectType = 1000;
 HIE_tdstSuperObject* spawned_rayman;
 
 void CreateAlwaysRaymanObject() {
 	
-	if (always_rayman_obj != NULL) return;
-	if (rayman_spo == NULL) return;
+	if (alw_rayman != NULL) return;
+	if (rayman == NULL) return;
 
-	always_rayman_obj = fn_p_stAllocateAlwaysEngineObject(
-		rayman_spo->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
+	alw_rayman = fn_p_stAllocateAlwaysEngineObject(
+		rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
 		alwaysRaymanObjectType,
 		C_AlwaysObjectType);
 
-	always_rayman_obj->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
-	fn_vSectInfoAlloc(always_rayman_obj);
+	alw_rayman->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
+	fn_vSectInfoAlloc(alw_rayman);
 
 	// Set the object table to the family's default
 
-	always_rayman_obj->h3dData->h_CurrentObjectsTable =
-		always_rayman_obj->h3dData->h_InitialObjectsTable = always_rayman_obj->h3dData->h_Family->hDefaultObjectsTable;
-	always_rayman_obj->h3dData->h_InitialState = always_rayman_obj->h3dData->h_Family->stForStateArray.hFirstElementSta;
-	always_rayman_obj->h3dData->ulNumberOfChannels = always_rayman_obj->h3dData->h_Family->ulNumberOfChannels;
+	alw_rayman->h3dData->h_CurrentObjectsTable =
+		alw_rayman->h3dData->h_InitialObjectsTable = alw_rayman->h3dData->h_Family->hDefaultObjectsTable;
+	alw_rayman->h3dData->h_InitialState = alw_rayman->h3dData->h_Family->stForStateArray.hFirstElementSta;
+	alw_rayman->h3dData->ulNumberOfChannels = alw_rayman->h3dData->h_Family->ulNumberOfChannels;
 
-	fn_vAddAnAlwaysModel(always_rayman_obj);
+	fn_vAddAnAlwaysModel(alw_rayman);
 }
 
 void MOD_fn_vEngine()
 {
 	GAM_fn_vEngine();
 
-	if (rayman_spo == NULL)
-		rayman_spo = HIE_fn_p_stFindObjectByName("rayman");
+	if (rayman == NULL)
+		rayman = HIE_fn_p_stFindObjectByName("rayman");
 
 	CreateAlwaysRaymanObject();
 
+
+	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Affiche_Jauge))
+	{
+		GAM_g_stEngineStructure->bEngineFrozen = TRUE;
+	}
+	if (IPT_M_bActionJustInvalidated(IPT_E_Entry_Action_Affiche_Jauge))
+	{
+		GAM_g_stEngineStructure->bEngineFrozen = FALSE;
+	}
+
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{
-		spawned_rayman = CreateObject(&rayman_spo->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
 	if (spawned_rayman != NULL) {
-		if (SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != rayman_spo->hLinkedObject.p_stActor->h3dData->h_CurrentState) {
-			PLA_fn_bSetNewState(spawned_rayman, rayman_spo->hLinkedObject.p_stActor->h3dData->h_CurrentState, TRUE, FALSE);
+
+		if (SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(rayman)->h3dData->h_CurrentState) {
+			PLA_fn_bSetNewState(spawned_rayman, SPO_Actor(rayman)->h3dData->h_CurrentState, TRUE, FALSE);
 
 			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}
 	}
+
+	DR_Features_Update();
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
@@ -89,7 +103,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 
 			SPTXT_vInit();
-			SPTXT_vAddTextCallback(MyTextCallback);
+
+			DR_Features_Init();
 
 			break;
 

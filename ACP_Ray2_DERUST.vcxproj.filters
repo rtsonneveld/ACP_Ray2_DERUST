@@ -15,18 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
+    <ClInclude Include="src\framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cpa_functions.h">
+    <ClInclude Include="src\cpa_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util.h">
+    <ClInclude Include="src\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\features.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.c">
+    <ClCompile Include="src\dllmain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\features.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_ghostreplay.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_none.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_rollboostdisplay.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_speedometer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

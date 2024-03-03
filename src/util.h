@@ -2,7 +2,7 @@
 
 #include "cpa_functions.h"
 
-HIE_tdstEngineObject* SPO_Actor(HIE_tdstSuperObject* obj) {
+HIE_tdstEngineObject * SPO_Actor(HIE_tdstSuperObject* obj) {
 	return obj->hLinkedObject.p_stActor;
 }
 
