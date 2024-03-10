@@ -2,20 +2,9 @@
 #include "cpa_functions.h"
 #include "util.h"
 #include "features/features.h"
-#define VERSION "0.0.1"
+#include "derust.h"
 
 HIE_tdstSuperObject* rayman = NULL;
-
-void CALLBACK MyTextCallback(SPTXT_tdstTextInfo* p_stString)
-{
-	p_stString->X = 30;
-	p_stString->Y = 30;
-	p_stString->xSize = 10.0f;
-	p_stString->ucAlpha = 255;
-	p_stString->bFrame = TRUE;
-
-	SPTXT_vPrintFmtLine("DERUST v" VERSION);
-}
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {

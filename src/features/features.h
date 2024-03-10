@@ -1,4 +1,5 @@
 #pragma once
+#include "../derust.h"
 #include "../framework.h"
 #include "options.h"
 #include "feature_derustsettings.h"

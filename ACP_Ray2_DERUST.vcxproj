@@ -102,6 +102,7 @@ Ray2x.exe -level:learn_31</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\cpa_functions.h" />
+    <ClInclude Include="src\derust.h" />
     <ClInclude Include="src\features\feature_derustsettings.h" />
     <ClInclude Include="src\features\feature_ghostreplay.h" />
     <ClInclude Include="src\features\feature_rollboostdisplay.h" />

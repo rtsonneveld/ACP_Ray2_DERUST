@@ -32,7 +32,7 @@ void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString, float xOffset, float al
 	p_stString->ucAlpha = 255 * alphaMult;
 	p_stString->bFrame = TRUE;
 
-	SPTXT_vPrintFmtLine(TXT_Seq_Red "Select a feature" TXT_Seq_Reset);
+	SPTXT_vPrintFmtLine(TXT_Seq_Reset "Select a feature" TXT_Seq_Reset);
 
 	DR_FEATURE_ForEach(i, feature)
 	{
@@ -42,13 +42,10 @@ void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString, float xOffset, float al
 		p_stString->ucAlpha = (i == DR_SelectedFeature ? 255 : 127) * alphaMult;
 		p_stString->bFrame = TRUE;
 
-		if (i != DR_SelectedFeature) {
-
-			SPTXT_vPrintFmtLine(feature.name);
-			continue;
-		}
-		
-		SPTXT_vPrintFmtLine("%s%s%s", TXT_Seq_Red, feature.name, TXT_Seq_Reset);
+		if (i != DR_E_Feature_DerustSettings)
+			SPTXT_vPrintFmtLine(TXT_Seq_Reset"%s %s%s"TXT_Seq_Reset, feature.name, feature.isActive?TXT_Seq_Yellow:TXT_Seq_Red, feature.isActive ? "on" : "off");
+		else
+			SPTXT_vPrintFmtLine(TXT_Seq_Reset"%s"TXT_Seq_Reset, feature.name);
 	}
 }
 
@@ -62,7 +59,7 @@ void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString, float xOffset, float alp
 	p_stString->ucAlpha = 255 * alphaMult;
 	p_stString->bFrame = TRUE;
 
-	SPTXT_vPrintFmtLine(TXT_Seq_Red "%s Options" TXT_Seq_Reset, feature.name);
+	SPTXT_vPrintFmtLine(TXT_Seq_Reset "%s Options" TXT_Seq_Reset, feature.name);
 
 	DR_FEATURE_OPTION_ForEach(feature.options, j, option)
 	{
@@ -77,10 +74,10 @@ void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString, float xOffset, float alp
 		p_stString->bFrame = TRUE;
 		if (DR_MenuMode == DR_E_MenuMode_SelectOption && j == DR_SelectedOption) {
 			p_stString->ucAlpha = 255;
-			SPTXT_vPrintFmtLine("%s%s%s", TXT_Seq_Red, option.name, TXT_Seq_Reset);
+			SPTXT_vPrintFmtLine(TXT_Seq_Red"%s"TXT_Seq_Reset, option.name);
 		}
 		else {
-			SPTXT_vPrintFmtLine("%s%s%s", TXT_Seq_Red, option.name, TXT_Seq_Reset);
+			SPTXT_vPrintFmtLine(TXT_Seq_Red"%s"TXT_Seq_Reset, option.name);
 		}
 	}
 }
@@ -99,6 +96,14 @@ void CALLBACK MenuDisplay(SPTXT_tdstTextInfo* p_stString)
 	float display_alpha_mult_features = clamp(1.0f - (display_offset_x / -DISPLAY_SHIFT), 0, 1);
 	float display_alpha_mult_options = clamp(1.0f - display_alpha_mult_features, 0, 1);
 
+	p_stString->X = 20;
+	p_stString->Y = 20;
+	p_stString->xSize = 5.0f;
+	p_stString->ucAlpha = 127;
+	p_stString->bFrame = FALSE;
+
+	SPTXT_vPrintLine(TXT_Seq_Reset "DERUST " DERUST_VERSION TXT_Seq_Reset);
+
 	if (!DR_MenuActive) return;
 
 	MenuDisplayFeatures(p_stString, display_offset_x, display_alpha_mult_features);
@@ -113,8 +118,16 @@ void DR_Features_Init() {
 	SPTXT_vAddTextCallback(MenuDisplay);
 }
 
-#define MENU_CONFIRM IPT_M_bActionJustValidated(IPT_E_Entry_Action_Sauter)
-#define MENU_CANCEL IPT_M_bActionJustValidated(IPT_E_Entry_Action_Tirer)
+#define MENU_ACTION_MASTER IPT_E_Entry_Action_Affiche_Jauge
+#define MENU_TRIG_ACTIVATE IPT_M_bActionJustInvalidated(MENU_ACTION_MASTER)
+#define MENU_TRIG_DEACTIVATE IPT_M_bActionJustInvalidated(MENU_ACTION_MASTER)
+
+#define MENU_TRIG_VALIDATE IPT_M_bActionJustValidated(IPT_E_Entry_Action_Menu_Valider)
+
+#define MENU_TRIG_RIGHT IPT_M_bActionJustValidated(IPT_E_Entry_Action_Clavier_Droite)
+#define MENU_TRIG_LEFT IPT_M_bActionJustValidated(IPT_E_Entry_Action_Clavier_Gauche)
+#define MENU_TRIG_UP IPT_M_bActionJustValidated(IPT_E_Entry_Action_Clavier_Haut)
+#define MENU_TRIG_DOWN IPT_M_bActionJustValidated(IPT_E_Entry_Action_Clavier_Bas)
 
 void DR_Features_Update_SelectFeature()
 {
@@ -127,7 +140,13 @@ void DR_Features_Update_SelectFeature()
 
 	CLAMP_ENUM(DR_SelectedFeature, DR_E_Feature_LENGTH);
 
-	if (MENU_CONFIRM) {
+	if (MENU_TRIG_VALIDATE) {
+		if (DR_SelectedFeature != DR_E_Feature_DerustSettings) {
+			DR_Features[DR_SelectedFeature].isActive ^= 1;
+		}
+	}
+
+	if (MENU_TRIG_RIGHT) {
 		DR_MenuMode = DR_E_MenuMode_SelectOption;
 	}
 }
@@ -151,18 +170,18 @@ void DR_Features_Update_SelectOption()
 		}
 	}
 
-	if (MENU_CONFIRM) {
+	if (MENU_TRIG_RIGHT) {
 		DR_MenuMode = DR_E_MenuMode_EditOption;
 	}
 
-	if (MENU_CANCEL) {
+	if (MENU_TRIG_LEFT) {
 		DR_MenuMode = DR_E_MenuMode_SelectFeature;
 	}
 }
 
 void DR_Features_Update_EditOption()
 {
-	if (MENU_CANCEL) {
+	if (MENU_TRIG_LEFT) {
 		DR_MenuMode = DR_E_MenuMode_SelectOption;
 	}
 }
@@ -171,7 +190,7 @@ void DR_Features_Update() {
 
 	DR_FEATURE_ForEach(i, feature) {
 
-		if (DR_Features[i].isActive) {
+		if (DR_Features[i].isActive || i == DR_E_Feature_DerustSettings) {
 
 			if (!DR_MenuActive) {
 				feature.updateFunc(DR_Features[i]);
@@ -194,7 +213,7 @@ void DR_Features_Update() {
 void DR_Features_ManageMenuActivation()
 {
 	if (!GAM_g_stEngineStructure->bEngineFrozen && !GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineHasInPaused) {
-		if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Affiche_Jauge))
+		if (MENU_TRIG_ACTIVATE)
 		{
 			GAM_g_stEngineStructure->bEngineFrozen = TRUE;
 			GAM_g_stEngineStructure->bEngineIsInPaused = TRUE;
@@ -202,7 +221,7 @@ void DR_Features_ManageMenuActivation()
 			DR_MenuActive = TRUE;
 		}
 	} else if (DR_MenuActive) {
-		if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Affiche_Jauge))
+		if (MENU_TRIG_DEACTIVATE)
 		{
 			GAM_g_stEngineStructure->bEngineFrozen = FALSE;
 			GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
