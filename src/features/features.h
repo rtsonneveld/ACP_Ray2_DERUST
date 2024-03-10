@@ -1,17 +1,35 @@
 #pragma once
 #include "../framework.h"
+#include "options.h"
+#include "feature_derustsettings.h"
+#include "feature_ghostreplay.h"
+#include "feature_rollboostdisplay.h"
+#include "feature_speedometer.h"
 
 // === Add new features to this list === //
 
 #define DR_FEATURE_LIST \
-    X(None, "DERUST") \
-    X(GhostReplay, "Ghost Replay") \
-    X(Speedometer, "Speedometer") \
-    X(RollBoostDisplay, "Roll Boost Display")
+    X_FEATURE(DerustSettings, "DERUST") \
+    X_FEATURE(GhostReplay, "Ghost Replay") \
+    X_FEATURE(Speedometer, "Speedometer") \
+    X_FEATURE(RollBoostDisplay, "Roll Boost Display")
 
 // ======= End of feature list ======= //
+#define CLAMP_ENUM(x, length) x = (x < 0) ? (length - 1) : ((x >= length) ? 0 : x);
 
-#define X(feature, name) DR_E_Feature_##feature,
+#define DEFINE_OPTIONS(feature) \
+	typedef enum DR_E_OptionID_##feature { \
+		DR_FEATURE_OPTIONS_LIST_##feature \
+	} DR_E_OptionID_##feature
+
+typedef enum DR_E_MenuMode {
+	DR_E_MenuMode_SelectFeature,
+	DR_E_MenuMode_SelectOption,
+	DR_E_MenuMode_EditOption,
+	DR_E_MenuMode_LENGTH
+} DR_E_MenuMode;
+
+#define X_FEATURE(feature, name) DR_E_Feature_##feature,
 typedef enum DR_E_Feature {
 	DR_FEATURE_LIST
 	DR_E_Feature_LENGTH
@@ -27,28 +45,37 @@ typedef enum DR_E_Feature {
 	DR_##feature##_Update, \
 	DR_##feature##_Display \
 
-#define DR_FEATURE_DECLARE_FUNCTIONS(feature) \
-    void DR_##feature##_OnActivate(); \
-    void DR_##feature##_OnDeactivate(); \
-    void DR_##feature##_Update(); \
-	void DR_##feature##_Display(); \
+struct DR_Feature;
 
-#define X(feature, name) DR_FEATURE_DECLARE_FUNCTIONS(feature)
+#define DR_FEATURE_DECLARE_FUNCTIONS(feature) \
+    void DR_##feature##_OnActivate(DR_Feature); \
+    void DR_##feature##_OnDeactivate(DR_Feature); \
+    void DR_##feature##_Update(DR_Feature); \
+	void DR_##feature##_Display(DR_Feature); \
+
+#define X_FEATURE(feature, name) DR_FEATURE_DECLARE_FUNCTIONS(feature)
 DR_FEATURE_LIST
 
-#define DR_FEATURE_FUNC_OnActivate(feature) void DR_##feature##_OnActivate()
-#define DR_FEATURE_FUNC_OnDeactivate(feature) void DR_##feature##_OnDeactivate()
-#define DR_FEATURE_FUNC_Update(feature) void DR_##feature##_Update()
-#define DR_FEATURE_FUNC_Display(feature) void DR_##feature##_Display()
+#define DR_FEATURE_FUNC_OnActivate(featureName, feature) void DR_##featureName##_OnActivate(DR_Feature feature)
+#define DR_FEATURE_FUNC_OnDeactivate(featureName, feature) void DR_##featureName##_OnDeactivate(DR_Feature feature)
+#define DR_FEATURE_FUNC_Update(featureName, feature) void DR_##featureName##_Update(DR_Feature feature)
+#define DR_FEATURE_FUNC_Display(featureName, feature) void DR_##featureName##_Display(DR_Feature feature)
 
 typedef struct DR_Feature {
 	DR_E_Feature id;
 	const char* name;
 	BOOL isActive;
-	void (*activateFunc)();
-	void (*deactivateFunc)();
-	void (*updateFunc)();
-	void (*displayFunc)();
+	DR_FeatureOption options[MAX_OPTION_COUNT];
+	void (*activateFunc)(DR_Feature);
+	void (*deactivateFunc)(DR_Feature);
+	void (*updateFunc)(DR_Feature);
+	void (*displayFunc)(DR_Feature);
 } DR_Feature;
 
-extern DR_E_Feature DR_DisplayedFeature;
+extern DR_E_Feature DR_SelectedFeature;
+
+void DR_Features_ManageMenuActivation();
+
+void DR_Features_Update_SelectFeature();
+
+void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString);

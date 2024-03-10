@@ -102,6 +102,11 @@ Ray2x.exe -level:learn_31</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\cpa_functions.h" />
+    <ClInclude Include="src\features\feature_derustsettings.h" />
+    <ClInclude Include="src\features\feature_ghostreplay.h" />
+    <ClInclude Include="src\features\feature_rollboostdisplay.h" />
+    <ClInclude Include="src\features\feature_speedometer.h" />
+    <ClInclude Include="src\features\options.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\features\features.h" />
     <ClInclude Include="src\util.h" />
@@ -110,9 +115,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\dllmain.c" />
     <ClCompile Include="src\features\features.c" />
     <ClCompile Include="src\features\feature_ghostreplay.c" />
-    <ClCompile Include="src\features\feature_none.c" />
     <ClCompile Include="src\features\feature_rollboostdisplay.c" />
     <ClCompile Include="src\features\feature_speedometer.c" />
+    <ClCompile Include="src\features\feature_derustsettings.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

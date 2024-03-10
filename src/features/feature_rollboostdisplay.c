@@ -1,17 +1,17 @@
-#include "features.h"
+#include "feature_rollboostdisplay.h"
 
-DR_FEATURE_FUNC_OnActivate(RollBoostDisplay) {
-
-}
-
-DR_FEATURE_FUNC_OnDeactivate(RollBoostDisplay) {
+DR_FEATURE_FUNC_OnActivate(RollBoostDisplay, feature) {
 
 }
 
-DR_FEATURE_FUNC_Update(RollBoostDisplay) {
+DR_FEATURE_FUNC_OnDeactivate(RollBoostDisplay, feature) {
 
 }
 
-DR_FEATURE_FUNC_Display(RollBoostDisplay) {
+DR_FEATURE_FUNC_Update(RollBoostDisplay, feature) {
+
+}
+
+DR_FEATURE_FUNC_Display(RollBoostDisplay, feature) {
 
 }

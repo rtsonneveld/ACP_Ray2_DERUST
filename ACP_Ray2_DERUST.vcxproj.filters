@@ -27,6 +27,21 @@
     <ClInclude Include="src\features\features.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\features\feature_derustsettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\feature_ghostreplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\feature_rollboostdisplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\feature_speedometer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -38,13 +53,13 @@
     <ClCompile Include="src\features\feature_ghostreplay.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\features\feature_none.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\features\feature_rollboostdisplay.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\features\feature_speedometer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_derustsettings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -68,16 +68,6 @@ void MOD_fn_vEngine()
 
 	CreateAlwaysRaymanObject();
 
-
-	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Affiche_Jauge))
-	{
-		GAM_g_stEngineStructure->bEngineFrozen = TRUE;
-	}
-	if (IPT_M_bActionJustInvalidated(IPT_E_Entry_Action_Affiche_Jauge))
-	{
-		GAM_g_stEngineStructure->bEngineFrozen = FALSE;
-	}
-
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{
 		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
