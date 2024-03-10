@@ -20,24 +20,26 @@ DR_E_MenuMode DR_MenuMode;
 
 // Public
 
-void CALLBACK MenuDisplay(SPTXT_tdstTextInfo* p_stString)
-{
-	if (!DR_MenuActive) return;
-	switch (DR_MenuMode) {
-		case DR_E_MenuMode_SelectFeature: MenuDisplayFeatures(p_stString); break;
-		case DR_E_MenuMode_SelectOption: MenuDisplayFeatures(p_stString); break;
-	}
-}
+#define DISPLAY_X 20
+#define DISPLAY_Y 600
+#define DISPLAY_SHIFT 400
 
-void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString)
+void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString, float xOffset, float alphaMult)
 {
+	p_stString->X = DISPLAY_X + xOffset;
+	p_stString->Y = DISPLAY_Y - 50;
+	p_stString->xSize = 10.0f;
+	p_stString->ucAlpha = 255 * alphaMult;
+	p_stString->bFrame = TRUE;
+
+	SPTXT_vPrintFmtLine(TXT_Seq_Red "Select a feature" TXT_Seq_Reset);
 
 	DR_FEATURE_ForEach(i, feature)
 	{
-		p_stString->X = 20;
-		p_stString->Y = 600 + i * 30;
+		p_stString->X = DISPLAY_X + xOffset;
+		p_stString->Y = DISPLAY_Y + i * 30;
 		p_stString->xSize = 10.0f;
-		p_stString->ucAlpha = i == DR_SelectedFeature ? 255 : 127;
+		p_stString->ucAlpha = (i == DR_SelectedFeature ? 255 : 127) * alphaMult;
 		p_stString->bFrame = TRUE;
 
 		if (i != DR_SelectedFeature) {
@@ -50,9 +52,17 @@ void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString)
 	}
 }
 
-void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString)
+void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString, float xOffset, float alphaMult)
 {
 	DR_Feature feature = DR_Features[DR_SelectedFeature];
+
+	p_stString->X = DISPLAY_X + xOffset;
+	p_stString->Y = DISPLAY_Y - 50;
+	p_stString->xSize = 10.0f;
+	p_stString->ucAlpha = 255 * alphaMult;
+	p_stString->bFrame = TRUE;
+
+	SPTXT_vPrintFmtLine(TXT_Seq_Red "%s Options" TXT_Seq_Reset, feature.name);
 
 	DR_FEATURE_OPTION_ForEach(feature.options, j, option)
 	{
@@ -60,10 +70,10 @@ void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString)
 			break;
 		}
 
-		p_stString->X = 20;
-		p_stString->Y = 600 + j * 30;
+		p_stString->X = DISPLAY_X + xOffset;
+		p_stString->Y = DISPLAY_Y + j * 30;
 		p_stString->xSize = 10.0f;
-		p_stString->ucAlpha = 127;
+		p_stString->ucAlpha = 127 * alphaMult;
 		p_stString->bFrame = TRUE;
 		if (DR_MenuMode == DR_E_MenuMode_SelectOption && j == DR_SelectedOption) {
 			p_stString->ucAlpha = 255;
@@ -75,6 +85,26 @@ void MenuDisplayOptions(SPTXT_tdstTextInfo* p_stString)
 	}
 }
 
+float display_offset_x = 0;
+
+float clamp(float d, float min, float max) {
+	const float t = d < min ? min : d;
+	return t > max ? max : t;
+}
+
+void CALLBACK MenuDisplay(SPTXT_tdstTextInfo* p_stString)
+{
+	float display_offset_x_target = DR_MenuMode == DR_E_MenuMode_SelectFeature ? 0 : -DISPLAY_SHIFT;
+	display_offset_x += (display_offset_x_target - display_offset_x) * 0.15f;
+	float display_alpha_mult_features = clamp(1.0f - (display_offset_x / -DISPLAY_SHIFT), 0, 1);
+	float display_alpha_mult_options = clamp(1.0f - display_alpha_mult_features, 0, 1);
+
+	if (!DR_MenuActive) return;
+
+	MenuDisplayFeatures(p_stString, display_offset_x, display_alpha_mult_features);
+	MenuDisplayOptions(p_stString, display_offset_x + DISPLAY_SHIFT, display_alpha_mult_options);
+}
+
 void DR_Features_Init() {
 	DR_SelectedFeature = DR_E_Feature_DerustSettings;
 	DR_MenuActive = FALSE;
@@ -82,6 +112,9 @@ void DR_Features_Init() {
 
 	SPTXT_vAddTextCallback(MenuDisplay);
 }
+
+#define MENU_CONFIRM IPT_M_bActionJustValidated(IPT_E_Entry_Action_Sauter)
+#define MENU_CANCEL IPT_M_bActionJustValidated(IPT_E_Entry_Action_Tirer)
 
 void DR_Features_Update_SelectFeature()
 {
@@ -93,6 +126,10 @@ void DR_Features_Update_SelectFeature()
 	}
 
 	CLAMP_ENUM(DR_SelectedFeature, DR_E_Feature_LENGTH);
+
+	if (MENU_CONFIRM) {
+		DR_MenuMode = DR_E_MenuMode_SelectOption;
+	}
 }
 
 void DR_Features_Update_SelectOption()
@@ -103,11 +140,31 @@ void DR_Features_Update_SelectOption()
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Clavier_Bas)) {
 		DR_SelectedOption++;
 	}
+
+	if (DR_SelectedOption >= MAX_OPTION_COUNT || DR_Features[DR_SelectedFeature].options[DR_SelectedOption].type == DR_E_OptionType_None) {
+		DR_SelectedOption = 0;
+	}
+	if (DR_SelectedOption < 0) {
+		DR_SelectedOption = MAX_OPTION_COUNT-1;
+		while (DR_Features[DR_SelectedFeature].options[DR_SelectedOption].type == DR_E_OptionType_None && DR_SelectedOption > 0) {
+			DR_SelectedOption--;
+		}
+	}
+
+	if (MENU_CONFIRM) {
+		DR_MenuMode = DR_E_MenuMode_EditOption;
+	}
+
+	if (MENU_CANCEL) {
+		DR_MenuMode = DR_E_MenuMode_SelectFeature;
+	}
 }
 
 void DR_Features_Update_EditOption()
 {
-	// TODO
+	if (MENU_CANCEL) {
+		DR_MenuMode = DR_E_MenuMode_SelectOption;
+	}
 }
 
 void DR_Features_Update() {
