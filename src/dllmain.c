@@ -59,7 +59,7 @@ void MOD_fn_vEngine()
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{
-		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+		//spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
 	if (spawned_rayman != NULL) {

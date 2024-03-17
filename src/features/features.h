@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../derust.h"
 #include "../framework.h"
 #include "options.h"
@@ -11,12 +12,13 @@
 
 #define DR_FEATURE_LIST \
     X_FEATURE(DerustSettings, "DERUST") \
-    X_FEATURE(GhostReplay, "Ghost Replay") \
+    X_FEATURE(GhostReplay, "Ghost:Replay") \
     X_FEATURE(Speedometer, "Speedometer") \
-    X_FEATURE(RollBoostDisplay, "Roll Boost Display")
+    X_FEATURE(RollBoostDisplay, "Roll:Boost:Display")
 
 // ======= End of feature list ======= //
 #define CLAMP_ENUM(x, length) x = (x < 0) ? (length - 1) : ((x >= length) ? 0 : x);
+#define MOD(x, y) ((x % y + y) % y)
 
 #define DEFINE_OPTIONS(feature) \
 	typedef enum DR_E_OptionID_##feature { \
@@ -24,7 +26,6 @@
 	} DR_E_OptionID_##feature
 
 typedef enum DR_E_MenuMode {
-	DR_E_MenuMode_SelectFeature,
 	DR_E_MenuMode_SelectOption,
 	DR_E_MenuMode_EditOption,
 	DR_E_MenuMode_LENGTH
@@ -80,3 +81,10 @@ void DR_Features_ManageMenuActivation();
 void DR_Features_Update_SelectFeature();
 
 void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString);
+
+DR_Feature* DR_Features_Get(DR_E_Feature featureType);
+
+void DR_Features_Activate(DR_E_Feature featureType);
+void DR_Features_Deactivate(DR_E_Feature featureType);
+
+extern DR_Feature DR_Features[];

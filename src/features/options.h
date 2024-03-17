@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_OPTION_COUNT 20
+#define MAX_OPTION_COUNT 50
 
 typedef enum DR_E_OptionType {
 	DR_E_OptionType_None,
@@ -26,4 +26,4 @@ typedef struct DR_FeatureOption {
 
 #define DR_FEATURE_OPTION_ForEach(options, i, option) \
 	DR_FeatureOption option = options[0]; \
-	for (int i = 0; i < DR_E_Feature_LENGTH; i++, option = options[i])
+	for (int i = 0; i < MAX_OPTION_COUNT && option.type != DR_E_OptionType_None; i++, option = options[i])
