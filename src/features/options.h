@@ -19,7 +19,7 @@ typedef struct DR_FeatureOption {
 		int asInt;
 		float asFloat;
 		BOOL asBool;
-		void* asAction;
+		void(*asAction)();
 	} value;
 
 } DR_FeatureOption;

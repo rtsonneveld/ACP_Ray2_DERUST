@@ -1,5 +1,6 @@
 #pragma once
 #include "features.h"
+#include "../util.h"
 
 // DEFINE OPTIONS HERE //
 #define DR_FEATURE_OPTIONS_LIST_Speedometer \

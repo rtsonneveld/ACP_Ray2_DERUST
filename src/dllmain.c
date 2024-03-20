@@ -55,7 +55,7 @@ void MOD_fn_vEngine()
 	if (rayman == NULL)
 		rayman = HIE_fn_p_stFindObjectByName("rayman");
 
-	CreateAlwaysRaymanObject();
+	//CreateAlwaysRaymanObject();
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{

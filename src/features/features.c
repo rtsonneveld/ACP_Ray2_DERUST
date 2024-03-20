@@ -1,6 +1,5 @@
 #include "features.h"
 #include "../mathutil.h"
-#include "features_bindings.h"
 
 // Macro for feature initialization
 
@@ -19,21 +18,6 @@ DR_E_Feature DR_SelectedFeature;
 int DR_SelectedOption;
 BOOL DR_MenuActive;
 DR_E_MenuMode DR_MenuMode;
-
-// Public
-
-#define DISPLAY_FEATURES_Y 200
-#define DISPLAY_OPTIONS_Y 300
-#define DISPLAY_FEATURES_FONTSIZE 7
-#define DISPLAY_FEATURES_FONTSIZE_SELECTED 9.9f
-#define DISPLAY_FEATURES_FONTALPHA 127
-#define DISPLAY_FEATURES_FONTALPHA_SELECTED 255
-#define DISPLAY_FEATURES_SPACING 25
-#define DISPLAY_OPTIONS_WIDTH 800
-#define DISPLAY_SIZE_X 1000
-#define DISPLAY_SIZE_Y 1000
-#define DISPLAY_CENTER_X (DISPLAY_SIZE_X/2)
-#define DISPLAY_CENTER_Y (DISPLAY_SIZE_Y/2)
 
 float scrollX = 0.0f;
 
@@ -218,12 +202,6 @@ void DR_Features_Update_SelectFeature()
 
 	CLAMP_ENUM(DR_SelectedFeature, DR_E_Feature_LENGTH);
 
-	if (DR_SelectedOption == -1 && MENU_TRIG_VALIDATE) {
-		if (DR_SelectedFeature != DR_E_Feature_DerustSettings) {
-			DR_Features[DR_SelectedFeature].isActive ^= 1;
-		}
-	}
-
 	if (MENU_TRIG_RIGHT) {
 		DR_MenuMode = DR_E_MenuMode_SelectOption;
 	}
@@ -236,7 +214,7 @@ DR_Feature* DR_Features_Get(DR_E_Feature featureType) {
 
 void DR_Features_Activate(DR_E_Feature featureType) {
 	DR_Feature* feature = DR_Features_Get(featureType);
-	if (feature == NULL) return;
+	if (feature == NULL || featureType == DR_E_Feature_DerustSettings) return;
 
 	if (!feature->isActive) {
 		feature->isActive = TRUE;
@@ -246,11 +224,11 @@ void DR_Features_Activate(DR_E_Feature featureType) {
 
 void DR_Features_Deactivate(DR_E_Feature featureType) {
 	DR_Feature* feature = DR_Features_Get(featureType);
-	if (feature == NULL) return;
+	if (feature == NULL || featureType == DR_E_Feature_DerustSettings) return;
 
-	if (!feature->isActive) {
-		feature->isActive = TRUE;
-		feature->activateFunc(feature);
+	if (feature->isActive) {
+		feature->isActive = FALSE;
+		feature->deactivateFunc(feature);
 	}
 }
 
@@ -262,6 +240,31 @@ void DR_Features_Update_SelectOption()
 		}
 		if (MENU_TRIG_DOWN) {
 			DR_SelectedOption++;
+		}
+	}
+
+
+	if (MENU_TRIG_VALIDATE) {
+		if (DR_SelectedOption == -1 && DR_SelectedFeature != DR_E_Feature_DerustSettings) {
+
+			if (DR_Features[DR_SelectedFeature].isActive) {
+				DR_Features_Deactivate(DR_SelectedFeature);
+			} else {
+				DR_Features_Activate(DR_SelectedFeature);
+			}
+		}
+
+		if (DR_SelectedOption >= 0 && DR_SelectedOption < MAX_OPTION_COUNT) {
+			DR_FeatureOption option = DR_Features[DR_SelectedFeature].options[DR_SelectedOption];
+
+			switch (option.type) {
+				case DR_E_OptionType_Action: option.value.asAction(); break;
+				case DR_E_OptionType_Boolean: break;
+				case DR_E_OptionType_Enum: break;
+				case DR_E_OptionType_Float: break;
+				case DR_E_OptionType_Integer: break;
+				default: break;
+			}
 		}
 	}
 
@@ -289,9 +292,9 @@ void DR_Features_Update() {
 		if (DR_Features[i].isActive || i == DR_E_Feature_DerustSettings) {
 
 			if (!DR_MenuActive) {
-				feature.updateFunc(DR_Features[i]);
+				feature.updateFunc(&DR_Features[i]);
 			}
-			feature.displayFunc(DR_Features[i]);
+			feature.displayFunc(&DR_Features[i]);
 		}
 	}
 

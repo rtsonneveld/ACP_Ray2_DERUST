@@ -48,6 +48,9 @@
     <ClInclude Include="src\features\features_bindings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\features\features_constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -69,6 +72,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mathutil.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpa_functions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

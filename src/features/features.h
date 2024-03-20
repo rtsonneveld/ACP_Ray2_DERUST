@@ -3,6 +3,9 @@
 #include "../derust.h"
 #include "../framework.h"
 #include "options.h"
+#include "features_constants.h"
+#include "features_bindings.h"
+
 #include "feature_derustsettings.h"
 #include "feature_ghostreplay.h"
 #include "feature_rollboostdisplay.h"
@@ -47,31 +50,31 @@ typedef enum DR_E_Feature {
 	DR_##feature##_Update, \
 	DR_##feature##_Display \
 
-struct DR_Feature;
+typedef struct DR_Feature DR_Feature;
 
 #define DR_FEATURE_DECLARE_FUNCTIONS(feature) \
-    void DR_##feature##_OnActivate(DR_Feature); \
-    void DR_##feature##_OnDeactivate(DR_Feature); \
-    void DR_##feature##_Update(DR_Feature); \
-	void DR_##feature##_Display(DR_Feature); \
+    void DR_##feature##_OnActivate(DR_Feature*); \
+    void DR_##feature##_OnDeactivate(DR_Feature*); \
+    void DR_##feature##_Update(DR_Feature*); \
+	void DR_##feature##_Display(DR_Feature*); \
 
 #define X_FEATURE(feature, name) DR_FEATURE_DECLARE_FUNCTIONS(feature)
 DR_FEATURE_LIST
 
-#define DR_FEATURE_FUNC_OnActivate(featureName, feature) void DR_##featureName##_OnActivate(DR_Feature feature)
-#define DR_FEATURE_FUNC_OnDeactivate(featureName, feature) void DR_##featureName##_OnDeactivate(DR_Feature feature)
-#define DR_FEATURE_FUNC_Update(featureName, feature) void DR_##featureName##_Update(DR_Feature feature)
-#define DR_FEATURE_FUNC_Display(featureName, feature) void DR_##featureName##_Display(DR_Feature feature)
+#define DR_FEATURE_FUNC_OnActivate(featureName, feature) void DR_##featureName##_OnActivate(DR_Feature* feature)
+#define DR_FEATURE_FUNC_OnDeactivate(featureName, feature) void DR_##featureName##_OnDeactivate(DR_Feature* feature)
+#define DR_FEATURE_FUNC_Update(featureName, feature) void DR_##featureName##_Update(DR_Feature* feature)
+#define DR_FEATURE_FUNC_Display(featureName, feature) void DR_##featureName##_Display(DR_Feature* feature)
 
 typedef struct DR_Feature {
 	DR_E_Feature id;
 	const char* name;
 	BOOL isActive;
 	DR_FeatureOption options[MAX_OPTION_COUNT];
-	void (*activateFunc)(DR_Feature);
-	void (*deactivateFunc)(DR_Feature);
-	void (*updateFunc)(DR_Feature);
-	void (*displayFunc)(DR_Feature);
+	void (*activateFunc)(DR_Feature*);
+	void (*deactivateFunc)(DR_Feature*);
+	void (*updateFunc)(DR_Feature*);
+	void (*displayFunc)(DR_Feature*);
 } DR_Feature;
 
 extern DR_E_Feature DR_SelectedFeature;
