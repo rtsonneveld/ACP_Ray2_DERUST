@@ -36,10 +36,9 @@ void CreateAlwaysRaymanObject() {
 		C_AlwaysObjectType);
 
 	alw_rayman->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
+	
 	fn_vSectInfoAlloc(alw_rayman);
-
-	// Set the object table to the family's default
-
+	
 	alw_rayman->h3dData->h_CurrentObjectsTable =
 		alw_rayman->h3dData->h_InitialObjectsTable = alw_rayman->h3dData->h_Family->hDefaultObjectsTable;
 	alw_rayman->h3dData->h_InitialState = alw_rayman->h3dData->h_Family->stForStateArray.hFirstElementSta;
@@ -55,11 +54,11 @@ void MOD_fn_vEngine()
 	if (rayman == NULL)
 		rayman = HIE_fn_p_stFindObjectByName("rayman");
 
-	//CreateAlwaysRaymanObject();
+	CreateAlwaysRaymanObject();
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
 	{
-		//spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
 	if (spawned_rayman != NULL) {

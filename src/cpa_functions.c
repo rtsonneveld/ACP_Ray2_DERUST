@@ -4,6 +4,7 @@ SCT_tdstSectInfo* (*fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject) = OF
 void (*fn_v3dDataInitValueSAI) (GAM_tdst3dData* h_3dData) = OFFSET(0x4186B0);
 void (*fn_v3dDataInit) (HIE_tdstEngineObject* p_stObject, AI_tdeObjectTreeInit eObjectInit) = OFFSET(0x418340);
 char* (*AI_fn_p_vTrueAlloc) (unsigned int size) = OFFSET(0x466860);
+char* (*fnp_vGameMallocInHLM) (unsigned int size) = OFFSET(0x4077E0);
 void (*PLA_fn_vUpdateTransparencyForModules) (HIE_tdstSuperObject* superObject) = OFFSET(0x40F260);
 BOOL(*PLA_fn_bSetNewState)(HIE_tdstSuperObject* p_stSuperObject, HIE_tdstState* h_WantedState, BOOL _bForce, BOOL _bHandleSkippedEventsIfRelevant) = OFFSET(0x40FAA0);
 
@@ -14,12 +15,12 @@ HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,
 	POS_tdstCompletePosition* p_stMatrix) = OFFSET(0x40BCC0);
 
 
-void* fnp_vGameMallocInHLM(unsigned long ulSize) {
+/*void* fnp_vGameMallocInHLM(unsigned long ulSize) {
 	void* ptr = malloc(ulSize);
 	memset(ptr, 0, ulSize);
 
 	return ptr;
-}
+}*/
 
 HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType)
 {
