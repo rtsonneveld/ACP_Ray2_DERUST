@@ -9,8 +9,8 @@ void UTIL_vDrawBar(float x, float y, float barWidth, float barHeight, GEO_tdstCo
     GLI_tdstMaterial stMaterial = { 0 };
     GLI_fn_vInitMaterialDefaults(&stMaterial);
     GLI_fn_vSetForcedColor(NULL);
-    //GLI_vSetGlobalAlpha((char)(color.xA * 255));
-    GLI_vSetGlobalAlpha(128.0f);
+	unsigned char alpha = (unsigned char)(color.xA * 255);
+	GLI_vSetGlobalAlpha(alpha > 254 ? 254 : alpha);
 
     stMaterial.stAmbient = color;
     GLI_vDraw2DSpriteWithPercent(&GAM_g_stEngineStructure->stFixViewportAttr, x, y, x + barWidth, y + barHeight, &stMaterial);

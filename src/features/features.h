@@ -83,7 +83,7 @@ void DR_Features_ManageMenuActivation();
 
 void DR_Features_Update_SelectFeature();
 
-void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString);
+void MenuDisplayFeatures(SPTXT_tdstTextInfo* p_stString, float xOffset, float alphaMult);
 
 DR_Feature* DR_Features_Get(DR_E_Feature featureType);
 

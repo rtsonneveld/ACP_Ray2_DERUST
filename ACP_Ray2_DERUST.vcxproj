@@ -58,6 +58,8 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(acplib)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
+      <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,6 +85,8 @@ Ray2x.exe -level:learn_31 -debug</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(acplib)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseFullPaths>false</UseFullPaths>
+      <CompileAs>CompileAsC</CompileAs>
+      <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -101,6 +105,7 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\dsgvarnames.h" />
     <ClInclude Include="src\cpa_functions.h" />
     <ClInclude Include="src\derust.h" />
     <ClInclude Include="src\features\features_bindings.h" />
