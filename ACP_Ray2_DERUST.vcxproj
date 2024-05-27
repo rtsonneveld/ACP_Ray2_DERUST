@@ -72,7 +72,7 @@
       <Command>taskkill /f /im Rayman2.exe
 xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
 cd "D:\Drive\Games\Rayman 2\"
-Ray2x.exe -level:learn_31 -debug</Command>
+Ray2x.exe -level:water_20 -debug</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,6 +114,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\features\feature_ghostreplay.h" />
     <ClInclude Include="src\features\feature_rollboostdisplay.h" />
     <ClInclude Include="src\features\feature_speedometer.h" />
+    <ClInclude Include="src\features\feature_triggerdisplay.h" />
     <ClInclude Include="src\features\options.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\features\features.h" />
@@ -127,6 +128,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\features\feature_rollboostdisplay.c" />
     <ClCompile Include="src\features\feature_speedometer.c" />
     <ClCompile Include="src\features\feature_derustsettings.c" />
+    <ClCompile Include="src\features\feature_triggerdisplay.c" />
     <ClCompile Include="src\mathutil.h" />
     <ClCompile Include="src\util.c" />
   </ItemGroup>

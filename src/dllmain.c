@@ -56,14 +56,14 @@ void MOD_fn_vEngine()
 
 	CreateAlwaysRaymanObject();
 
-	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger))
+	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger) && FALSE)
 	{
 		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
 	if (spawned_rayman != NULL) {
 
-		if (SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(rayman)->h3dData->h_CurrentState) {
+		if (SPO_Actor(spawned_rayman)->h3dData != NULL && SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(rayman)->h3dData->h_CurrentState) {
 			PLA_fn_bSetNewState(spawned_rayman, SPO_Actor(rayman)->h3dData->h_CurrentState, TRUE, FALSE);
 
 			SPO_SetTransparency(spawned_rayman, 0.5f);

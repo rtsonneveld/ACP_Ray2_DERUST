@@ -54,6 +54,9 @@
     <ClInclude Include="src\dsgvarnames.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\features\feature_triggerdisplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -81,6 +84,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\cpa_functions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\feature_triggerdisplay.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

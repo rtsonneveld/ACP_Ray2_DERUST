@@ -10,6 +10,7 @@
 #include "feature_ghostreplay.h"
 #include "feature_rollboostdisplay.h"
 #include "feature_speedometer.h"
+#include "feature_triggerdisplay.h"
 
 // === Add new features to this list === //
 
@@ -17,7 +18,8 @@
     X_FEATURE(DerustSettings, "DERUST") \
     X_FEATURE(GhostReplay, "Ghost:Replay") \
     X_FEATURE(Speedometer, "Speedometer") \
-    X_FEATURE(RollBoostDisplay, "Roll:Boost:Display")
+    X_FEATURE(RollBoostDisplay, "Roll:Boost:Display") \
+    X_FEATURE(TriggerDisplay, "Trigger:Display")
 
 // ======= End of feature list ======= //
 #define CLAMP_ENUM(x, length) x = (x < 0) ? (length - 1) : ((x >= length) ? 0 : x);
