@@ -90,7 +90,7 @@ void GLI_xLoadMatrix(POS_tdstCompletePosition* p_stMatrix)
 {
   *g_aDEF_stMatrixStack[*g_lNbMatrixInStack] = *p_stMatrix;
 
-  *g_p_stCurrentMatrix = g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+  *GLI_g_p_stCurrentMatrix = g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
 
   *g_lNbMatrixInStack = *g_lNbMatrixInStack+1;
 
@@ -104,7 +104,7 @@ void GLI_xPopMatrix(void)
 
 	*g_lNbMatrixInStack= *g_lNbMatrixInStack-1;
 
-	*g_p_stCurrentMatrix = &g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+	*GLI_g_p_stCurrentMatrix = &g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
 
 	return;
 }
@@ -173,8 +173,8 @@ void GLI_xDraw3DLine16(GLD_tdstViewportAttributes* p_stVpt, MTH3D_tdstVector* p_
 	GLI_DRV_vSetZClip((float)p_st3DAtributes->p_stCam->xNear, globals);
 
 	/*turn points*/
-	GLI_xSerialLinearOp(1, p_stFirstPoint, &a2_stVertex[0], *g_p_stCurrentMatrix);
-	GLI_xSerialLinearOp(1, p_stLastPoint, &a2_stVertex[1], *g_p_stCurrentMatrix);
+	GLI_xSerialLinearOp(1, p_stFirstPoint, &a2_stVertex[0], *GLI_g_p_stCurrentMatrix);
+	GLI_xSerialLinearOp(1, p_stLastPoint, &a2_stVertex[1], *GLI_g_p_stCurrentMatrix);
 
 	/* project points       */
 	GLI_xSerialProjection(p_st3DAtributes->p_stCam, 2, a2_stVertex, a2_st2DVertex);
@@ -188,7 +188,7 @@ void GLI_xDraw3DLine16(GLD_tdstViewportAttributes* p_stVpt, MTH3D_tdstVector* p_
 	globals->lCurrentDrawMask = 0xFFFFFFFF;
 	globals->lHierachDrawMask = 0xFFFFFFFF;
 	globals->hCurrentMaterial = NULL;
-	globals->gs_st_CurrentMatrix = *g_p_stCurrentMatrix;
+	globals->gs_st_CurrentMatrix = *GLI_g_p_stCurrentMatrix;
 	globals->gs_st_CameraMatrix = &p_st3DAtributes->p_stCam->stMatrix;
 	globals->p_stCurrentCamera = p_st3DAtributes->p_stCam;
 	GLI_DRV_vSetZClip((*GLI_BIG_GLOBALS)->p_stCurrentCamera->xNear, globals);
