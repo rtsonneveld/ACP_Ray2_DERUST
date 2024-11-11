@@ -85,6 +85,31 @@ void POS_fn_vGetTranslationVector(
 	MTH3D_M_vCopyVector(_p_stTrs, &(_hMatrix->stTranslationVector));
 }
 
+
+void GLI_xLoadMatrix(POS_tdstCompletePosition* p_stMatrix)
+{
+  *g_aDEF_stMatrixStack[*g_lNbMatrixInStack] = *p_stMatrix;
+
+  *g_p_stCurrentMatrix = g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+
+  *g_lNbMatrixInStack = *g_lNbMatrixInStack+1;
+
+  return;
+}
+
+void GLI_xPopMatrix(void)
+{
+	if (g_lNbMatrixInStack == 0)
+		return;
+
+	*g_lNbMatrixInStack= *g_lNbMatrixInStack-1;
+
+	*g_p_stCurrentMatrix = &g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+
+	return;
+}
+
+
 void GLI_xSerialLinearOp(long lNbOfVertex, MTH3D_tdstVector* p_stSource, GLI_tdstAligned3DVector* p_stDest, POS_tdstCompletePosition* p_stMatrix)
 {
 	/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -168,6 +193,36 @@ void GLI_xDraw3DLine16(GLD_tdstViewportAttributes* p_stVpt, MTH3D_tdstVector* p_
 	globals->p_stCurrentCamera = p_st3DAtributes->p_stCam;
 	GLI_DRV_vSetZClip((*GLI_BIG_GLOBALS)->p_stCurrentCamera->xNear, globals);
 
+	/* Clamp the coordinates to the 0,0,640,480 range */
+	/*
+	if (a2_st2DVertex[0].xX < 0.0f) {
+		a2_st2DVertex[0].xX = 0.0f;
+	}
+	if (a2_st2DVertex[0].xX > 640.0f) {
+		a2_st2DVertex[0].xX = 640.0f;
+	}
+	if (a2_st2DVertex[0].xY < 0.0f) {
+		a2_st2DVertex[0].xY = 0.0f;
+	}
+	if (a2_st2DVertex[0].xY > 480.0f) {
+		a2_st2DVertex[0].xY = 480.0f;
+	}
+
+	if (a2_st2DVertex[1].xX < 0.0f) {
+		a2_st2DVertex[1].xX = 0.0f;
+	}
+	if (a2_st2DVertex[1].xX > 640.0f) {
+		a2_st2DVertex[1].xX = 640.0f;
+	}
+	if (a2_st2DVertex[1].xY < 0.0f) {
+		a2_st2DVertex[1].xY = 0.0f;
+	}
+	if (a2_st2DVertex[1].xY > 480.0f) {
+		a2_st2DVertex[1].xY = 480.0f;
+	}
+	*/
+	/* END CLAMP */
+
 	(*GLI_DRV_vSendSingleLineToClip)
 	(
 		p_stVpt,
@@ -214,7 +269,14 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 
 		MTH3D_tdstVector avgPos = (MTH3D_tdstVector){ raymanPos.x + pos.x * 0.5f, raymanPos.y + pos.y * 0.5f, raymanPos.z + pos.z * 0.5f };
 
+		POS_tdstCompletePosition stMatrix;
+
+		GLI_xGetCameraMatrix(((GLI_tdstSpecificAttributesFor3D*)(GAM_g_stEngineStructure->stViewportAttr.p_vSpecificToXD))->p_stCam, &stMatrix);
+		GLI_xLoadMatrix(&stMatrix);
+
 		GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr), &raymanPos, &pos, 0xFFFFFFF);
+
+		GLI_xPopMatrix();
 
 		if (!p_stActor->hStandardGame->ulCustomBits & (Std_C_CustBit_NoAIWhenTooFar | Std_C_CustBit_NoAnimPlayerWhenTooFar | Std_C_CustBit_NoMecaWhenTooFar)) {
 			continue;
