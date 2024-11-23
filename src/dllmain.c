@@ -4,6 +4,8 @@
 #include "features/features.h"
 #include "derust.h"
 
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
+
 HIE_tdstSuperObject* rayman = NULL;
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
