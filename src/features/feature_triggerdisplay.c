@@ -9,8 +9,8 @@ GLI_tdstMaterial* stCircleRed;
 GLI_tdstMaterial* stCircleBlue;
 
 #define GLI_C_lIsTextured							1
-#define C_TooFarLimitMargin 5.0f
-#define C_TooFarLimitMargin 5.0f
+#define C_TooFarLimitMargin 10.0f
+#define C_TooFarLimitMargin 10.0f
 #define C_TooFarLimitParticleScale 0.5f
 #define C_lGouraudLineElement ((GLI_C_Mat_lIsSolid | GLI_C_Mat_lIsGouraud)- GLI_C_Mat_lIsNotWired)
 
@@ -88,23 +88,23 @@ void POS_fn_vGetTranslationVector(
 
 void GLI_xLoadMatrix(POS_tdstCompletePosition* p_stMatrix)
 {
-  *g_aDEF_stMatrixStack[*g_lNbMatrixInStack] = *p_stMatrix;
+  *GLI_g_aDEF_stMatrixStack[*GLI_g_lNbMatrixInStack] = *p_stMatrix;
 
-  *GLI_g_p_stCurrentMatrix = g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+  *GLI_g_p_stCurrentMatrix = GLI_g_aDEF_stMatrixStack[*GLI_g_lNbMatrixInStack];
 
-  *g_lNbMatrixInStack = *g_lNbMatrixInStack+1;
+  *GLI_g_lNbMatrixInStack = *GLI_g_lNbMatrixInStack+1;
 
   return;
 }
 
 void GLI_xPopMatrix(void)
 {
-	if (g_lNbMatrixInStack == 0)
+	if (GLI_g_lNbMatrixInStack == 0)
 		return;
 
-	*g_lNbMatrixInStack= *g_lNbMatrixInStack-1;
+	*GLI_g_lNbMatrixInStack= *GLI_g_lNbMatrixInStack-1;
 
-	*GLI_g_p_stCurrentMatrix = &g_aDEF_stMatrixStack[*g_lNbMatrixInStack];
+	*GLI_g_p_stCurrentMatrix = &GLI_g_aDEF_stMatrixStack[*GLI_g_lNbMatrixInStack];
 
 	return;
 }
@@ -193,37 +193,7 @@ void GLI_xDraw3DLine16(GLD_tdstViewportAttributes* p_stVpt, MTH3D_tdstVector* p_
 	globals->p_stCurrentCamera = p_st3DAtributes->p_stCam;
 	GLI_DRV_vSetZClip((*GLI_BIG_GLOBALS)->p_stCurrentCamera->xNear, globals);
 
-	/* Clamp the coordinates to the 0,0,640,480 range */
-	/*
-	if (a2_st2DVertex[0].xX < 0.0f) {
-		a2_st2DVertex[0].xX = 0.0f;
-	}
-	if (a2_st2DVertex[0].xX > 640.0f) {
-		a2_st2DVertex[0].xX = 640.0f;
-	}
-	if (a2_st2DVertex[0].xY < 0.0f) {
-		a2_st2DVertex[0].xY = 0.0f;
-	}
-	if (a2_st2DVertex[0].xY > 480.0f) {
-		a2_st2DVertex[0].xY = 480.0f;
-	}
-
-	if (a2_st2DVertex[1].xX < 0.0f) {
-		a2_st2DVertex[1].xX = 0.0f;
-	}
-	if (a2_st2DVertex[1].xX > 640.0f) {
-		a2_st2DVertex[1].xX = 640.0f;
-	}
-	if (a2_st2DVertex[1].xY < 0.0f) {
-		a2_st2DVertex[1].xY = 0.0f;
-	}
-	if (a2_st2DVertex[1].xY > 480.0f) {
-		a2_st2DVertex[1].xY = 480.0f;
-	}
-	*/
-	/* END CLAMP */
-
-	(*GLI_DRV_vSendSingleLineToClip)
+	(*GLI_DRV_vSendSingleLineToClip_)
 	(
 		p_stVpt,
 		&a2_stVertex[0],
@@ -252,6 +222,10 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 
 	HIE_tdstSuperObject* p_stSuperObj;
 
+	POS_tdstCompletePosition stMatrix;
+	GLI_xGetCameraMatrix(((GLI_tdstSpecificAttributesFor3D*)(GAM_g_stEngineStructure->stViewportAttr.p_vSpecificToXD))->p_stCam, &stMatrix);
+	GLI_xLoadMatrix(&stMatrix);
+
 	LST_M_DynamicForEach((*GAM_g_p_stDynamicWorld), p_stSuperObj)
 	{
 		if (p_stSuperObj == rayman) {
@@ -267,22 +241,11 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 		MTH3D_tdstVector raymanPos = rayman->p_stGlobalMatrix->stPos;
 		MTH3D_tdstVector pos = p_stSuperObj->p_stGlobalMatrix->stPos;
 
-		MTH3D_tdstVector avgPos = (MTH3D_tdstVector){ raymanPos.x + pos.x * 0.5f, raymanPos.y + pos.y * 0.5f, raymanPos.z + pos.z * 0.5f };
-
-		POS_tdstCompletePosition stMatrix;
-
-		GLI_xGetCameraMatrix(((GLI_tdstSpecificAttributesFor3D*)(GAM_g_stEngineStructure->stViewportAttr.p_vSpecificToXD))->p_stCam, &stMatrix);
-		GLI_xLoadMatrix(&stMatrix);
-
-		GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr), &raymanPos, &pos, 0xFFFFFFF);
-
-		GLI_xPopMatrix();
-
 		if (!p_stActor->hStandardGame->ulCustomBits & (Std_C_CustBit_NoAIWhenTooFar | Std_C_CustBit_NoAnimPlayerWhenTooFar | Std_C_CustBit_NoMecaWhenTooFar)) {
 			continue;
 		}
 
-		float tooFarLimit = (float)(p_stActor->hStandardGame->ucTooFarLimit) * 0.5f;
+		float tooFarLimit = (float)(p_stActor->hStandardGame->ucTooFarLimit);
 		if (tooFarLimit > 0) {
 
 
@@ -290,7 +253,7 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 			float deltaY = raymanPos.y - pos.y;
 			float deltaZ = raymanPos.z - pos.z;
 
-			float linearDist = (fabsf(deltaX) + fabsf(deltaY) + fabsf(deltaZ)) * 0.5f;
+			float linearDist = (fabsf(deltaX) + fabsf(deltaY) + fabsf(deltaZ));
 			float realDist = sqrtf(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 			float normalizedX = deltaX / realDist;
 			float normalizedY = deltaY / realDist;
@@ -298,19 +261,74 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 
 			if (linearDist < tooFarLimit + C_TooFarLimitMargin && linearDist > tooFarLimit - C_TooFarLimitMargin) {
 
-				float alpha = 1.0f - (fabsf(linearDist - tooFarLimit) / C_TooFarLimitMargin);
 				float dist = 1.0f / (fabsf(normalizedX) + fabsf(normalizedY) + fabsf(normalizedZ));
 
 				MTH3D_tdstVector diamondPos = (MTH3D_tdstVector){
-					pos.x + (normalizedX * 2.0f * tooFarLimit * dist),
-					pos.y + (normalizedY * 2.0f * tooFarLimit * dist),
-					pos.z + (normalizedZ * 2.0f * tooFarLimit * dist),
+					pos.x + (normalizedX * tooFarLimit * dist),
+					pos.y + (normalizedY * tooFarLimit * dist),
+					pos.z + (normalizedZ * tooFarLimit * dist),
 				};
 
-				AGO_vCreatePart(AGO_STILL | AGO_TIMELIMITED, &diamondPos, &MTH3D_C_ZeroVector, 0.02f, C_TooFarLimitParticleScale, C_TooFarLimitParticleScale, linearDist > tooFarLimit ? stCircleBlue : stCircleRed);
+				MTH3D_tdstVector vertexPositions[6] = {
+				{pos.x - tooFarLimit, pos.y, pos.z},
+				{pos.x, pos.y - tooFarLimit, pos.z},
+				{pos.x + tooFarLimit, pos.y, pos.z},
+				{pos.x, pos.y + tooFarLimit, pos.z},
+				{pos.x, pos.y, pos.z - tooFarLimit},
+				{pos.x, pos.y, pos.z + tooFarLimit},
+				};
+
+				// Draw the lines forming the base square
+				int baseEdges[4][2] = {
+						{0, 1}, {1, 2}, {2, 3}, {3, 0}
+				};
+
+				long color = linearDist < tooFarLimit ? 0x00FF00 : 0xFF0000;
+				
+				float originSize = 1.0f;
+
+				MTH3D_tdstVector vertexPositionsOrigin[6] = {
+					{pos.x - originSize, pos.y, pos.z},
+					{pos.x + originSize, pos.y, pos.z},
+					{pos.x, pos.y - originSize, pos.z},
+					{pos.x, pos.y + originSize, pos.z},
+					{pos.x, pos.y, pos.z - originSize},
+					{pos.x, pos.y, pos.z + originSize},
+				};
+
+				for (int i = 0; i < 4; i++) {
+					GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr),
+						&vertexPositions[baseEdges[i][0]],
+						&vertexPositions[baseEdges[i][1]], color);
+				}
+
+				// Connect the base vertices to the top and bottom points
+				for (int i = 0; i < 4; i++) {
+					GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr),
+						&vertexPositions[i], &vertexPositions[4], color); // Connect to bottom point
+					GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr),
+						&vertexPositions[i], &vertexPositions[5], color); // Connect to top point
+				}
+
+				int originEdges[4][2] = {
+						{0, 1}, {2, 3}, {4, 5}
+				};
+
+				for (int i = 0; i < 4; i++) {
+					GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr),
+						&vertexPositionsOrigin[originEdges[i][0]],
+						&vertexPositionsOrigin[originEdges[i][1]], color);
+				}
+
+
+				GLI_xDraw3DLine16(&(GAM_g_stEngineStructure->stViewportAttr),
+					&raymanPos, &diamondPos, color); // Connect to bottom point
+
 			}
 		}
 	}
+
+	GLI_xPopMatrix();
 
 	return NULL;
 }
