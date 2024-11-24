@@ -3,8 +3,7 @@
 #include "util.h"
 #include "features/features.h"
 #include "derust.h"
-
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
+#include "ui.h"
 
 HIE_tdstSuperObject* rayman = NULL;
 
@@ -51,6 +50,8 @@ void CreateAlwaysRaymanObject() {
 
 void MOD_fn_vEngine()
 {
+	DR_UI_Init();
+
 	GAM_fn_vEngine();
 
 	if (rayman == NULL)
@@ -80,6 +81,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 	switch ( dwReason )
 	{
 		case DLL_PROCESS_ATTACH: /* create function hooks here */
+
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 
 			SPTXT_vInit();
