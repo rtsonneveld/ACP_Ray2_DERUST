@@ -4,6 +4,7 @@
 #include "features/features.h"
 #include "derust.h"
 #include "ui.h"
+#include <Windows.h>
 
 HIE_tdstSuperObject* rayman = NULL;
 
@@ -50,7 +51,11 @@ void CreateAlwaysRaymanObject() {
 
 void MOD_fn_vEngine()
 {
-	DR_UI_Init();
+	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
+		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
+		exit();
+	}
+	DR_UI_Update();
 
 	GAM_fn_vEngine();
 
@@ -94,11 +99,13 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			SPTXT_vDeInit();
+			DR_UI_DeInit();
 
 			break;
 
 		case DLL_THREAD_ATTACH:
 		case DLL_THREAD_DETACH:
+
 			break;
 	}
 	return TRUE;

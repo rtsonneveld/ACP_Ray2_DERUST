@@ -107,8 +107,6 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cimgui\cimconfig.h" />
-    <ClInclude Include="cimgui\cimgui.h" />
     <ClInclude Include="imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
@@ -137,9 +135,6 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\util.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cimgui\cimgui.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
     <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
