@@ -27,6 +27,8 @@
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
+#include "dialogs/dialogs.h"
+
 #endif
 
 /* C API */

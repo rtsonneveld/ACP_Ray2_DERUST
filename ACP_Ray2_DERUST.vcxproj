@@ -118,6 +118,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="src\dialogs\menu.h" />
     <ClInclude Include="src\dsgvarnames.h" />
     <ClInclude Include="src\cpa_functions.h" />
     <ClInclude Include="src\derust.h" />
@@ -133,6 +134,8 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\features\features.h" />
     <ClInclude Include="src\ui.h" />
     <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\dialogs\hierarchy.h" />
+    <ClInclude Include="src\dialogs\dialogs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp">
@@ -163,6 +166,9 @@ Ray2x.exe -level:learn_31</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="src\cpa_functions.c" />
+    <ClCompile Include="src\dialogs\menu.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
     <ClCompile Include="src\dllmain.c" />
     <ClCompile Include="src\features\features.c" />
     <ClCompile Include="src\features\feature_ghostreplay.c" />
@@ -173,6 +179,12 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mathutil.h" />
     <ClCompile Include="src\util.c" />
     <ClCompile Include="src\ui.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="src\dialogs\hierarchy.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="src\dialogs\dialogs.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
   </ItemGroup>

@@ -49,29 +49,33 @@ int DR_UI_Init(HWND a_window_r2)
 #endif
 
   // Transparent window
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
+  glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
   // Create window with graphics context
   RECT rect;
   GetClientRect(a_window_r2, &rect);
-  int width = rect.right - rect.left;
-  int height = rect.bottom - rect.top;
 
-  window = glfwCreateWindow(width, height, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+  auto monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+  window = glfwCreateWindow(mode->width, mode->height, "My Title", NULL, NULL);
+  glfwSetWindowPos(window, 0, 0);
   if (window == nullptr)
     return 1;
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1); // Enable vsync
-
-  HWND hwnd = glfwGetWin32Window(window);
-  SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, NULL);
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   io = &ImGui::GetIO(); (void)io;
   io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;     // Multi viewports
+  io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Docking
+
+  auto vp = ImGui::GetMainViewport();
+  vp->Flags |= ImGuiViewportFlags_NoInputs; // No inputs on main viewport
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
@@ -86,12 +90,6 @@ int DR_UI_Init(HWND a_window_r2)
 
 void DR_UI_Update() {
 
-  // Poll and handle events (inputs, window resize, etc.)
-  // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-  // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-  // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-  // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-
   glfwPollEvents();
   if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
   {
@@ -99,41 +97,25 @@ void DR_UI_Update() {
     return;
   }
 
-  // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
+
+  auto vp = ImGui::GetMainViewport();
+
+  window->
+
+  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) {
+    vp->Flags &= ~ImGuiViewportFlags_NoInputs; // Allow inputs when an item is hovered
+  } else {
+    vp->Flags |= ImGuiViewportFlags_NoInputs; // No inputs on main viewport
+  }
+
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
+  
+  //ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+  DR_DLG_Draw();
 
-  {
-    static float f = 0.0f;
-    static int counter = 0;
-
-    ImGuiWindowClass windowClass;
-    windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
-    ImGui::SetNextWindowClass(&windowClass);
-    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-      counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
-    ImGui::End();
-  }
-
-  // Rendering
   ImGui::Render();
-
-  // Update and Render additional Platform Windows
-  if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-  {
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
-  }
 
   int display_w, display_h;
   glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -141,6 +123,12 @@ void DR_UI_Update() {
   glClearColor(0,0,0,0);
   glClear(GL_COLOR_BUFFER_BIT);
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+  {
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+  }
 
   glfwSwapBuffers(window);
 }
