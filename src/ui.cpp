@@ -49,9 +49,7 @@ int DR_UI_Init(HWND a_window_r2)
 #endif
 
   // Transparent window
-  glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-  glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
-  glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
   // Create window with graphics context
   RECT rect;
@@ -60,8 +58,7 @@ int DR_UI_Init(HWND a_window_r2)
   auto monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-  window = glfwCreateWindow(mode->width, mode->height, "My Title", NULL, NULL);
-  glfwSetWindowPos(window, 0, 0);
+  window = glfwCreateWindow(1, 1, "DERUST Main Window", NULL, NULL);
   if (window == nullptr)
     return 1;
   glfwMakeContextCurrent(window);
@@ -72,10 +69,7 @@ int DR_UI_Init(HWND a_window_r2)
   ImGui::CreateContext();
   io = &ImGui::GetIO(); (void)io;
   io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Docking
-
-  auto vp = ImGui::GetMainViewport();
-  vp->Flags |= ImGuiViewportFlags_NoInputs; // No inputs on main viewport
+  io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
@@ -90,6 +84,8 @@ int DR_UI_Init(HWND a_window_r2)
 
 void DR_UI_Update() {
 
+  ShowCursor(TRUE);
+
   glfwPollEvents();
   if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
   {
@@ -98,22 +94,10 @@ void DR_UI_Update() {
   }
 
   ImGui_ImplOpenGL3_NewFrame();
-
-  auto vp = ImGui::GetMainViewport();
-
-  window->
-
-  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) {
-    vp->Flags &= ~ImGuiViewportFlags_NoInputs; // Allow inputs when an item is hovered
-  } else {
-    vp->Flags |= ImGuiViewportFlags_NoInputs; // No inputs on main viewport
-  }
-
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
   
-  //ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-  DR_DLG_Draw();
+  DR_DLG_Draw(window_r2);
 
   ImGui::Render();
 
