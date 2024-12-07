@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <sstream>
 
+bool DR_DLG_Hierarchy_Enabled = FALSE;
+
 void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
   int childCount = LST_M_DynamicGetNbOfElements(spo);
 
@@ -87,6 +89,8 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
 
 void DR_DLG_Hierarchy_Draw() {
 
+  if (!DR_DLG_Hierarchy_Enabled) return;
+
   ImGuiWindowClass windowClass;
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
   ImGui::SetNextWindowClass(&windowClass);
@@ -94,9 +98,7 @@ void DR_DLG_Hierarchy_Draw() {
   ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_Once);
   ImGui::SetNextWindowSize(ImVec2(200, 500), ImGuiCond_Once);
 
-  bool open = true;
-  ImGui::Begin("Hierarchy");
-  {
+  if (ImGui::Begin("Hierarchy", &DR_DLG_Hierarchy_Enabled, ImGuiWindowFlags_NoCollapse)) {
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World");
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stInactiveDynamicWorld, "Inactive Dynamic World");
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stFatherSector, "Father Sector");

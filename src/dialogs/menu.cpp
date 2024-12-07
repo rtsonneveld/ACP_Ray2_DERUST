@@ -183,9 +183,9 @@ void DR_DLG_Menu_Draw(HWND window_r2) {
   ImGui::BeginMenuBar();
 
   if (ImGui::BeginMenu("Windows")) {
-    ImGui::MenuItem("Hierarchy");
-    ImGui::MenuItem("Scripts");
-    ImGui::MenuItem("Textures");
+    ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
+    ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
+    ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
     ImGui::EndMenu();
   }
 

@@ -120,6 +120,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="src\dialogs\menu.h" />
     <ClInclude Include="src\dialogs\playback.h" />
+    <ClInclude Include="src\dialogs\practicetools.h" />
     <ClInclude Include="src\state.h" />
     <ClInclude Include="src\dsgvarnames.h" />
     <ClInclude Include="src\cpa_functions.h" />
@@ -172,6 +173,9 @@ Ray2x.exe -level:learn_31</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="src\dialogs\playback.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="src\dialogs\practicetools.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="src\dllmain.c" />

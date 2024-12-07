@@ -3,7 +3,11 @@
 #include "state.h"
 #include <windows.h>
 
+bool DR_DLG_Playback_Enabled = FALSE;
+
 void DR_DLG_Playback_Draw() {
+
+  if (!DR_DLG_Playback_Enabled) return;
 
   ImGuiWindowClass windowClass;
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
@@ -13,8 +17,7 @@ void DR_DLG_Playback_Draw() {
   ImGui::SetNextWindowSize(ImVec2(200, 500), ImGuiCond_Once);
 
   bool open = true;
-  ImGui::Begin("Playback");
-  {
+  if (ImGui::Begin("Playback", &DR_DLG_Playback_Enabled, ImGuiWindowFlags_NoCollapse)) {
 
     if (IPT_M_bActionJustValidated(IPT_E_Entry_PulseStep)) { // F6
       g_DR_Playback.unpause = true;
