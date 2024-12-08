@@ -2,8 +2,7 @@
 #include "math.h"
 #include "../mathutil.h"
 #include "../dsgvarnames.h"
-
-extern HIE_tdstSuperObject* rayman;
+#include "derust.h"
 
 #define SPEED_HOVERING 5.01f
 #define SPEED_STRAFING 7.01f
@@ -88,10 +87,10 @@ void CALLBACK SpeedometerTextFunc(SPTXT_tdstTextInfo* p_stString) {
 	p_stString->bFrame = TRUE;
 
 	//MTH3D_tdstVector speed = rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics->stDynamicsBase.stPreviousSpeed;
-	DNM_tdstDynamicsBaseBlock base = rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics->stDynamicsBase;
+	DNM_tdstDynamicsBaseBlock base = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics->stDynamicsBase;
 
 	MTH3D_tdstVector* slideSpeed;
-	AI_fn_bGetDsgVar(rayman, (unsigned char)DV_RAY_INTERN_RaySlideSpeed, NULL, &slideSpeed);
+	AI_fn_bGetDsgVar(g_DR_rayman, (unsigned char)DV_RAY_INTERN_RaySlideSpeed, NULL, &slideSpeed);
 
 	MTH3D_tdstVector speed;
 	MTH3D_M_vSubVector(&speed, &base.stCurrentMatrix.stPos, &lastPosition);

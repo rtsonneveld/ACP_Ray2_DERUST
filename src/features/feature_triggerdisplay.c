@@ -228,7 +228,7 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 
 	LST_M_DynamicForEach((*GAM_g_p_stDynamicWorld), p_stSuperObj)
 	{
-		if (p_stSuperObj == rayman) {
+		if (p_stSuperObj == g_DR_rayman) {
 			continue;
 		}
 
@@ -238,7 +238,7 @@ DR_FEATURE_FUNC_Update(TriggerDisplay, feature) {
 
 		HIE_tdstEngineObject* p_stActor = HIE_M_hSuperObjectGetActor(p_stSuperObj);
 
-		MTH3D_tdstVector raymanPos = rayman->p_stGlobalMatrix->stPos;
+		MTH3D_tdstVector raymanPos = g_DR_rayman->p_stGlobalMatrix->stPos;
 		MTH3D_tdstVector pos = p_stSuperObj->p_stGlobalMatrix->stPos;
 
 		if (!p_stActor->hStandardGame->ulCustomBits & (Std_C_CustBit_NoAIWhenTooFar | Std_C_CustBit_NoAnimPlayerWhenTooFar | Std_C_CustBit_NoMecaWhenTooFar)) {

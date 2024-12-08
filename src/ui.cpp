@@ -1,5 +1,7 @@
 #include "ui.h"
 #include <iostream>
+#include <imgui_internal.h>
+#include <implot/implot.h>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -13,6 +15,9 @@ char ui_initialized = 0;
 GLFWwindow* window;
 ImGuiIO* io;
 HWND window_r2;
+
+ImVec2 lastCentralNodePos;
+ImVec2 lastCentralNodeSize;
 
 // Main code
 int DR_UI_Init(HWND a_window_r2)
@@ -49,16 +54,11 @@ int DR_UI_Init(HWND a_window_r2)
 #endif
 
   // Transparent window
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-
-  // Create window with graphics context
-  RECT rect;
-  GetClientRect(a_window_r2, &rect);
 
   auto monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-  window = glfwCreateWindow(1, 1, "DERUST Main Window", NULL, NULL);
+  window = glfwCreateWindow(1280, 1024, "DERUST Main Window", NULL, NULL);
   if (window == nullptr)
     return 1;
   glfwMakeContextCurrent(window);
@@ -67,9 +67,15 @@ int DR_UI_Init(HWND a_window_r2)
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+  ImPlot::CreateContext();
   io = &ImGui::GetIO(); (void)io;
   io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+  io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+  LONG lStyle = GetWindowLong(a_window_r2, GWL_STYLE);
+  lStyle &= ~(WS_BORDER | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX);
+  lStyle |= WS_CHILD;
+  SetWindowLong(a_window_r2, GWL_STYLE, lStyle);
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
@@ -97,6 +103,20 @@ void DR_UI_Update() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
   
+  ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
+  ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
+
+  ImGuiWindowClass centralAlways = {};
+  centralAlways.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe;
+  ImGui::SetNextWindowClass(&centralAlways);
+  ImGui::SetNextWindowDockID(node->ID, ImGuiCond_Always);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+  ImGui::Begin("GH-5921");
+  ImGui::PopStyleVar();
+  ImGui::Text("Central node: (%f, %f)..(%fx%f)", node->Pos.x, node->Pos.y, node->Size.x, node->Size.y);
+
+  ImGui::End();
+
   DR_DLG_Draw(window_r2);
 
   ImGui::Render();
@@ -122,6 +142,7 @@ void DR_UI_DeInit() {
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
+  ImPlot::DestroyContext();
   ImGui::DestroyContext();
 
   glfwDestroyWindow(window);

@@ -5,9 +5,10 @@
 #include "derust.h"
 #include "ui.h"
 #include "state.h"
+#include "dsgvarnames.h"
 #include <Windows.h>
 
-HIE_tdstSuperObject* rayman = NULL;
+HIE_tdstSuperObject* g_DR_rayman = NULL;
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
@@ -31,10 +32,10 @@ HIE_tdstSuperObject* spawned_rayman;
 void CreateAlwaysRaymanObject() {
 	
 	if (alw_rayman != NULL) return;
-	if (rayman == NULL) return;
+	if (g_DR_rayman == NULL) return;
 
 	alw_rayman = fn_p_stAllocateAlwaysEngineObject(
-		rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
+		g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
 		alwaysRaymanObjectType,
 		C_AlwaysObjectType);
 
@@ -68,6 +69,8 @@ void DR_RemoveLoadScreens() {
 
 	VirtualProtect(C_SegCodePtr, C_SegCodeSize, op, &np);
 }
+
+int timer = 0;
 
 LRESULT MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long lParam) {
 
@@ -119,20 +122,20 @@ void MOD_fn_vEngine()
 		}
 	}
 
-	if (rayman == NULL)
-		rayman = HIE_fn_p_stFindObjectByName("rayman");
+	if (g_DR_rayman == NULL)
+		g_DR_rayman = HIE_fn_p_stFindObjectByName("rayman");
 
 	CreateAlwaysRaymanObject();
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger) && FALSE)
 	{
-		spawned_rayman = CreateObject(&rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+		spawned_rayman = CreateObject(&g_DR_rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
 	}
 
 	if (spawned_rayman != NULL) {
 
-		if (SPO_Actor(spawned_rayman)->h3dData != NULL && SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(rayman)->h3dData->h_CurrentState) {
-			PLA_fn_bSetNewState(spawned_rayman, SPO_Actor(rayman)->h3dData->h_CurrentState, TRUE, FALSE);
+		if (SPO_Actor(spawned_rayman)->h3dData != NULL && SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(g_DR_rayman)->h3dData->h_CurrentState) {
+			PLA_fn_bSetNewState(spawned_rayman, SPO_Actor(g_DR_rayman)->h3dData->h_CurrentState, TRUE, FALSE);
 
 			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}

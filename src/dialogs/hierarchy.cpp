@@ -95,9 +95,6 @@ void DR_DLG_Hierarchy_Draw() {
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
   ImGui::SetNextWindowClass(&windowClass);
 
-  ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_Once);
-  ImGui::SetNextWindowSize(ImVec2(200, 500), ImGuiCond_Once);
-
   if (ImGui::Begin("Hierarchy", &DR_DLG_Hierarchy_Enabled, ImGuiWindowFlags_NoCollapse)) {
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World");
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stInactiveDynamicWorld, "Inactive Dynamic World");

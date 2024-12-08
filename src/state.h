@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-
-
 typedef struct {
   char pause;
   char unpause;
@@ -15,8 +13,6 @@ typedef struct {
 } DR_State_Playback;
 
 extern DR_State_Playback g_DR_Playback;
-
-
 
 #ifdef __cplusplus
 }

@@ -13,9 +13,6 @@ void DR_DLG_Playback_Draw() {
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
   ImGui::SetNextWindowClass(&windowClass);
 
-  ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_Once);
-  ImGui::SetNextWindowSize(ImVec2(200, 500), ImGuiCond_Once);
-
   bool open = true;
   if (ImGui::Begin("Playback", &DR_DLG_Playback_Enabled, ImGuiWindowFlags_NoCollapse)) {
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "features.h"
-
-extern HIE_tdstSuperObject* rayman;
+#include "derust.h"
 
 // DEFINE OPTIONS HERE //
 #define DR_FEATURE_OPTIONS_LIST_TriggerDisplay \

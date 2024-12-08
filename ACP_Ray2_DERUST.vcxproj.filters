@@ -111,6 +111,12 @@
     <ClInclude Include="src\dialogs\practicetools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="implot\implot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="implot\implot_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -189,6 +195,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\dialogs\practicetools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="implot\implot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="implot\implot_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="implot\implot_items.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

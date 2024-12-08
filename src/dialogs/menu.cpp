@@ -156,51 +156,35 @@ void DR_DLG_Menu_DrawLevelSelection() {
   #undef CREATE_MENU
 }
 
-void DR_DLG_Menu_Draw(HWND window_r2) {
+void DR_DLG_Menu_Draw() {
 
   ImGuiWindowClass windowClass;
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
-
-  RECT rect;
-  POINT topLeft = { 0, 0 };
-  GetClientRect(window_r2, &rect);
-  ClientToScreen(window_r2, &topLeft);
 
   ImGuiContext& g = *ImGui::GetCurrentContext();
   float menuBarHeight = g.FontSize + g.Style.FramePadding.y * 2.0f;
 
   menuBarHeight = 1;
 
-  ImGui::SetNextWindowPos(ImVec2(topLeft.x, topLeft.y));
-  ImGui::SetNextWindowSize(ImVec2(rect.right-rect.left, menuBarHeight));
+  if (ImGui::BeginMainMenuBar()) {
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
-  ImGui::SetNextWindowClass(&windowClass);
-  ImGui::SetNextWindowBgAlpha(0);
-  ImGui::Begin("Main Menu", nullptr, 
-    ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
-    | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
-  ImGui::BeginMenuBar();
-
-  if (ImGui::BeginMenu("Windows")) {
-    ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
-    ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
-    ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
-    ImGui::EndMenu();
-  }
-
-  if (ImGui::BeginMenu("Map")) {
-    if (ImGui::MenuItem("Reload")) {
-      GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), false);
+    if (ImGui::BeginMenu("Windows")) {
+      ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
+      ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
+      ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
+      ImGui::EndMenu();
     }
 
-    DR_DLG_Menu_DrawLevelSelection();
+    if (ImGui::BeginMenu("Map")) {
+      if (ImGui::MenuItem("Reload")) {
+        GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), false);
+      }
 
+      DR_DLG_Menu_DrawLevelSelection();
 
-    ImGui::EndMenu();
+      ImGui::EndMenu();
+    }
+
+    ImGui::EndMainMenuBar();
   }
-
-  ImGui::EndMenuBar();
-  ImGui::End();
-  ImGui::PopStyleVar();
 }
