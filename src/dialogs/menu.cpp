@@ -158,9 +158,6 @@ void DR_DLG_Menu_DrawLevelSelection() {
 
 void DR_DLG_Menu_Draw() {
 
-  ImGuiWindowClass windowClass;
-  windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
-
   ImGuiContext& g = *ImGui::GetCurrentContext();
   float menuBarHeight = g.FontSize + g.Style.FramePadding.y * 2.0f;
 
@@ -170,6 +167,7 @@ void DR_DLG_Menu_Draw() {
 
     if (ImGui::BeginMenu("Windows")) {
       ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
+      ImGui::MenuItem("Inspector", nullptr, &DR_DLG_Inspector_Enabled);
       ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
       ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
       ImGui::EndMenu();

@@ -106,17 +106,6 @@ void DR_UI_Update() {
   ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
   ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
 
-  ImGuiWindowClass centralAlways = {};
-  centralAlways.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe;
-  ImGui::SetNextWindowClass(&centralAlways);
-  ImGui::SetNextWindowDockID(node->ID, ImGuiCond_Always);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-  ImGui::Begin("GH-5921");
-  ImGui::PopStyleVar();
-  ImGui::Text("Central node: (%f, %f)..(%fx%f)", node->Pos.x, node->Pos.y, node->Size.x, node->Size.y);
-
-  ImGui::End();
-
   DR_DLG_Draw(window_r2);
 
   ImGui::Render();

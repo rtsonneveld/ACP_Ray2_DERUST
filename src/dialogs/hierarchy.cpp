@@ -1,10 +1,10 @@
 #include "hierarchy.h"
 #include <ImGui.h>
-#include <ACP_Ray2.h>
 #include <stdio.h>
 #include <sstream>
+#include <derust.h>
 
-bool DR_DLG_Hierarchy_Enabled = FALSE;
+bool DR_DLG_Hierarchy_Enabled = false;
 
 void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
   int childCount = LST_M_DynamicGetNbOfElements(spo);
@@ -18,12 +18,16 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
     flags |= ImGuiTreeNodeFlags_Leaf;
   }
 
-  /*bool isSelected = Editor.SelectedActorID == actor.ID;
+  // If the selected actor was an always and is destroyed
+  if (g_DR_selectedObject != NULL && g_DR_selectedObject->ulType == HIE_C_Type_Actor && g_DR_selectedObject->hLinkedObject.p_stActor->hStandardGame == NULL) {
+    g_DR_selectedObject = NULL;
+  }
+
+  bool isSelected = g_DR_selectedObject == spo;
 
   if (isSelected) {
     flags |= ImGuiTreeNodeFlags_Selected;
   }
-  #endregion*/
 
   ImGui::SetNextItemWidth(ImGui::GetWindowWidth());
 
@@ -70,8 +74,7 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
   bool focused = ImGui::IsItemFocused();
 
   if (ImGui::IsItemClicked()) {
-    //Editor.SelectedActor = actor;
-    //Editor.FocusSelectedActor();
+    g_DR_selectedObject = spo;
   }
 
   //CheckContextMenu(actor);
@@ -90,10 +93,6 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
 void DR_DLG_Hierarchy_Draw() {
 
   if (!DR_DLG_Hierarchy_Enabled) return;
-
-  ImGuiWindowClass windowClass;
-  windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
-  ImGui::SetNextWindowClass(&windowClass);
 
   if (ImGui::Begin("Hierarchy", &DR_DLG_Hierarchy_Enabled, ImGuiWindowFlags_NoCollapse)) {
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World");

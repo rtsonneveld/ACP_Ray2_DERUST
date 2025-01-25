@@ -9,6 +9,7 @@
 #include <Windows.h>
 
 HIE_tdstSuperObject* g_DR_rayman = NULL;
+HIE_tdstSuperObject* g_DR_selectedObject = NULL;
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
