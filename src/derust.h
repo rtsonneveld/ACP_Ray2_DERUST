@@ -4,6 +4,7 @@ extern "C" {
 #endif
 
 #include <ACP_Ray2.h>
+#include "dsgvarnames.h"
 #define DERUST_VERSION "0.0.1"
 
 extern HIE_tdstSuperObject * g_DR_rayman;

@@ -119,3 +119,5 @@ typedef enum DV_Rayman {
 	DV_RAY_INTERN_Tir_AccumulationADonf,
 	DV_RAY__COUNT,
 } DV_Rayman;
+
+extern const char* DV_STR_Rayman[];

@@ -194,6 +194,7 @@ Ray2x.exe -level:learn_31</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="src\dllmain.c" />
+    <ClCompile Include="src\dsgvarnames.c" />
     <ClCompile Include="src\features\features.c" />
     <ClCompile Include="src\features\feature_ghostreplay.c" />
     <ClCompile Include="src\features\feature_rollboostdisplay.c" />

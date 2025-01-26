@@ -117,6 +117,9 @@
     <ClInclude Include="implot\implot_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\dialogs\inspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -204,6 +207,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="implot\implot_items.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dialogs\inspector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsgvarnames.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
