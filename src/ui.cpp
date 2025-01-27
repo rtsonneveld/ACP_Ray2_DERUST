@@ -1,7 +1,5 @@
 #include "ui.h"
 #include <iostream>
-#include <imgui_internal.h>
-#include <implot/implot.h>
 
 static void glfw_error_callback(int error, const char* description)
 {

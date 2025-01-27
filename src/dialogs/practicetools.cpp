@@ -1,6 +1,6 @@
 #include "practicetools.h"
-#include <imgui.h>
-#include <ACP_Ray2.h>
+
+#include "ui.h"
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -8,9 +8,10 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <implot/implot.h>
 #include "util.h"
-#include <derust.h>
+
+// Include last
+#include "derust.h"
 
 #define MAX_POS_DELTA 50.0f
 

@@ -48,7 +48,7 @@ AI_tdstAIModel* fn_p_stAllocAIModel()
 	return(p_stAIModel);
 }
 
-struct tdstEngineObject_* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType)
+HIE_tdstEngineObject * fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType)
 {
 	HIE_tdstEngineObject* p_stTempObject;
 	p_stTempObject = (HIE_tdstEngineObject*)fnp_vGameMallocInHLM(sizeof(HIE_tdstEngineObject));

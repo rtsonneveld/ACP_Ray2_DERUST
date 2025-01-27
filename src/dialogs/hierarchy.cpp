@@ -1,8 +1,11 @@
 #include "hierarchy.h"
-#include <ImGui.h>
+
 #include <stdio.h>
 #include <sstream>
-#include <derust.h>
+#include "ui.h"
+#include "ui_util.h"
+// Include last
+#include "derust.h"
 
 bool DR_DLG_Hierarchy_Enabled = false;
 
@@ -43,31 +46,9 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
 
   if (name != nullptr) {
     label << name;
-  }
-
-  if (spo->ulType == HIE_C_Type_Actor) {
-
-    GAM_tdxObjectType lPersonalType = HIE_M_lActorGetPersonalType(HIE_M_hSuperObjectGetActor(spo));
-
-    if (lPersonalType == GAM_C_InvalidObjectType || lPersonalType >= GAM_C_AlwaysObjectType) {
-      label << "(Always) #" << (lPersonalType - GAM_C_AlwaysObjectType);
-    } else {
-      auto name = HIE_fn_szGetObjectPersonalName(spo);
-      if (name != nullptr) {
-        label << name;
-      } else {
-        label << "null";
-      }
-    }
   } else {
-    switch (spo->ulType) {
-      case HIE_C_Type_Sector: label << "Sector"; break;
-      case HIE_C_Type_IPO: label << "IPO"; break;
-      case HIE_C_Type_PO: label << "PO"; break;
-      case HIE_C_Type_Actor: label << "Actor"; break;
-    }
+    label << SPO_Name(spo);
   }
-
   label << "##tree_" << (int)spo;
   nodeOpen = ImGui::TreeNodeEx(label.str().c_str(), flags);
 

@@ -57,10 +57,9 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(acplib)\include;imgui;.;include;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsC</CompileAs>
       <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
+      <PreprocessToFile>false</PreprocessToFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -87,7 +86,6 @@ Ray2x.exe -level:water_20 -debug</Command>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(acplib)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseFullPaths>false</UseFullPaths>
-      <CompileAs>CompileAsC</CompileAs>
       <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
@@ -107,11 +105,8 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
@@ -120,7 +115,10 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="implot\implot.h" />
     <ClInclude Include="implot\implot_internal.h" />
+    <ClInclude Include="src\dialogs\dialogs.h" />
+    <ClInclude Include="src\dialogs\hierarchy.h" />
     <ClInclude Include="src\dialogs\inspector.h" />
+    <ClInclude Include="src\dialogs\inspector_actor.h" />
     <ClInclude Include="src\dialogs\menu.h" />
     <ClInclude Include="src\dialogs\playback.h" />
     <ClInclude Include="src\dialogs\practicetools.h" />
@@ -128,91 +126,41 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\dsgvarnames.h" />
     <ClInclude Include="src\cpa_functions.h" />
     <ClInclude Include="src\derust.h" />
-    <ClInclude Include="src\features\features_bindings.h" />
-    <ClInclude Include="src\features\features_constants.h" />
-    <ClInclude Include="src\features\feature_derustsettings.h" />
-    <ClInclude Include="src\features\feature_ghostreplay.h" />
-    <ClInclude Include="src\features\feature_rollboostdisplay.h" />
-    <ClInclude Include="src\features\feature_speedometer.h" />
-    <ClInclude Include="src\features\feature_triggerdisplay.h" />
-    <ClInclude Include="src\features\options.h" />
     <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\features\features.h" />
     <ClInclude Include="src\ui.h" />
+    <ClInclude Include="src\ui_util.h" />
     <ClInclude Include="src\util.h" />
-    <ClInclude Include="src\dialogs\hierarchy.h" />
-    <ClInclude Include="src\dialogs\dialogs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
+    <ClCompile Include="implot\implot.cpp" />
+    <ClCompile Include="implot\implot_demo.cpp" />
+    <ClCompile Include="implot\implot_items.cpp" />
+    <ClCompile Include="src\cpa_functions.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_win32.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_demo.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_draw.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_tables.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_widgets.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="implot\implot.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="implot\implot_demo.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="implot\implot_items.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\cpa_functions.c" />
-    <ClCompile Include="src\dialogs\inspector.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\dialogs\menu.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\dialogs\playback.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\dialogs\practicetools.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\dllmain.c" />
-    <ClCompile Include="src\dsgvarnames.c" />
-    <ClCompile Include="src\features\features.c" />
-    <ClCompile Include="src\features\feature_ghostreplay.c" />
-    <ClCompile Include="src\features\feature_rollboostdisplay.c" />
-    <ClCompile Include="src\features\feature_speedometer.c" />
-    <ClCompile Include="src\features\feature_derustsettings.c" />
-    <ClCompile Include="src\features\feature_triggerdisplay.c" />
-    <ClCompile Include="src\state.c" />
+    <ClCompile Include="src\dialogs\dialogs.cpp" />
+    <ClCompile Include="src\dialogs\hierarchy.cpp" />
+    <ClCompile Include="src\dialogs\inspector.cpp" />
+    <ClCompile Include="src\dialogs\inspector_actor.cpp" />
+    <ClCompile Include="src\dialogs\menu.cpp" />
+    <ClCompile Include="src\dialogs\playback.cpp" />
+    <ClCompile Include="src\dialogs\practicetools.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\dsgvarnames.cpp" />
+    <ClCompile Include="src\state.cpp" />
     <ClCompile Include="src\mathutil.h" />
-    <ClCompile Include="src\util.c" />
-    <ClCompile Include="src\ui.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    <ClCompile Include="src\ui_util.cpp" />
+    <ClCompile Include="src\util.cpp">
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ShowIncludes>
     </ClCompile>
-    <ClCompile Include="src\dialogs\hierarchy.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="src\dialogs\dialogs.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
+    <ClCompile Include="src\ui.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,9 @@
 #include "playback.h"
-#include <imgui.h>
 #include "state.h"
-#include <windows.h>
+#include "ui.h"
+
+// Include last
+#include "derust.h"
 
 bool DR_DLG_Playback_Enabled = FALSE;
 int colliderType = 52;

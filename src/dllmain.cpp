@@ -1,15 +1,12 @@
-#include "framework.h"
+#include <Windows.h>
 #include "cpa_functions.h"
 #include "util.h"
-#include "features/features.h"
-#include "derust.h"
-#include "ui.h"
 #include "state.h"
-#include "dsgvarnames.h"
-#include <Windows.h>
+#include "ui.h"
+#include "derust.h"
 
-HIE_tdstSuperObject* g_DR_rayman = NULL;
-HIE_tdstSuperObject* g_DR_selectedObject = NULL;
+HIE_tdstSuperObject* g_DR_rayman = nullptr;
+HIE_tdstSuperObject* g_DR_selectedObject = nullptr;
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
@@ -32,8 +29,8 @@ HIE_tdstSuperObject* spawned_rayman;
 
 void CreateAlwaysRaymanObject() {
 	
-	if (alw_rayman != NULL) return;
-	if (g_DR_rayman == NULL) return;
+	if (alw_rayman != nullptr) return;
+	if (g_DR_rayman == nullptr) return;
 
 	alw_rayman = fn_p_stAllocateAlwaysEngineObject(
 		g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
@@ -59,6 +56,7 @@ void DR_RemoveLoadScreens() {
 	#define C_SegCodePtr	((void*)0x401000)
 	#define C_SegCodeSize	0x9b000
 	/* disable load screens */
+
 	DWORD op, np = PAGE_EXECUTE_READWRITE;
 	VirtualProtect(C_SegCodePtr, C_SegCodeSize, np, &op);
 
@@ -94,8 +92,8 @@ LRESULT MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long
 void MOD_fn_vEngine()
 {
 	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
-		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
-		exit();
+		MessageBox(nullptr, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
+		exit(1);
 	}
 	DR_UI_Update();
 
@@ -141,15 +139,13 @@ void MOD_fn_vEngine()
 			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}
 	}
-
-	DR_Features_Update();
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
 	{
-		case DLL_PROCESS_ATTACH: /* create function hooks here */
+		case DLL_PROCESS_ATTACH:
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
@@ -158,11 +154,9 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 
 			SPTXT_vInit();
 
-			DR_Features_Init();
-
 			break;
 
-		case DLL_PROCESS_DETACH: /* destroy function hooks here*/
+		case DLL_PROCESS_DETACH: 
 			
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			SPTXT_vDeInit();

@@ -1,9 +1,6 @@
 #include "dialogs.h"
-#include "ACP_Ray2.h"
+// Include last
 #include "derust.h"
-#include "dsgvarnames.h"
-#include <sstream>
-#include "imgui.h"
 
 void DR_DLG_Draw(HWND window_r2) {
   

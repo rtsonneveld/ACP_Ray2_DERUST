@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "framework.h"
+#include "derust.h"
 #include <assert.h>
 
 #define Std_C_MiscFlag_Always	0x10
@@ -28,6 +33,10 @@ HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType);
 
 AI_tdstAIModel* fn_p_stAllocAIModel();
 
-struct tdstEngineObject_* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType);
+HIE_tdstEngineObject* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType);
 
 void fn_vAddAnAlwaysModel(HIE_tdstEngineObject* p_stAlwaysObject);
+
+#ifdef __cplusplus
+}
+#endif

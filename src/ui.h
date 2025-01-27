@@ -1,7 +1,7 @@
-#ifdef __cplusplus
-
 #pragma once
 #include "imgui.h"
+#include "imgui_internal.h"
+#include <implot/implot.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include <Windows.h>
@@ -29,17 +29,6 @@
 
 #include "dialogs/dialogs.h"
 
-#endif
-
-/* C API */
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC int DR_UI_Init(HWND p_r2Window);
-EXTERNC void DR_UI_Update();
-EXTERNC void DR_UI_DeInit();
-
-#undef EXTERNC
+int DR_UI_Init(HWND p_r2Window);
+void DR_UI_Update();
+void DR_UI_DeInit();

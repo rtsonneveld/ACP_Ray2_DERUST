@@ -24,15 +24,14 @@ void UTIL_vDrawBar(float x, float y, float barWidth, float barHeight, GEO_tdstCo
 /// <param name="spo">The SuperObject</param>
 /// <param name="alpha">Alpha where 0 is fully transparent and 1 is fully opaque</param>
 void SPO_SetTransparency(HIE_tdstSuperObject* spo, float alpha) {
-
-	spo->fTransparenceLevel = alpha * 255.0f;
-	if (alpha < 1.0f) {
-		spo->ulFlags = spo->ulFlags | HIE_C_Flag_ModuleTransparency;
-		spo->hLinkedObject.p_stActor->h3dData->lDrawMask &= ~GLI_C_lIsNotGrided;
-	}
-	else {
-		spo->ulFlags &= ~HIE_C_Flag_ModuleTransparency;
-		spo->hLinkedObject.p_stActor->h3dData->lDrawMask |= GLI_C_lIsNotGrided;
-	}
-	PLA_fn_vUpdateTransparencyForModules(spo);
+  spo->fTransparenceLevel = alpha * 255.0f;
+  if (alpha < 1.0f) {
+    spo->ulFlags = static_cast<HIE_tdeSpoFlags>(static_cast<int>(spo->ulFlags) | HIE_C_Flag_ModuleTransparency);
+    spo->hLinkedObject.p_stActor->h3dData->lDrawMask &= ~GLI_C_lIsNotGrided;
+  }
+  else {
+    spo->ulFlags = static_cast<HIE_tdeSpoFlags>(static_cast<int>(spo->ulFlags) & ~HIE_C_Flag_ModuleTransparency);
+    spo->hLinkedObject.p_stActor->h3dData->lDrawMask |= GLI_C_lIsNotGrided;
+  }
+  PLA_fn_vUpdateTransparencyForModules(spo);
 }
