@@ -1,7 +1,10 @@
 #pragma once
 
 #include "cpa_functions.h"
-#include "framework.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 HIE_tdstEngineObject* SPO_Actor(HIE_tdstSuperObject* obj);
 
@@ -16,3 +19,7 @@ void UTIL_vDrawBar(float x, float y, float barWidth, float barHeight, GEO_tdstCo
 /// <param name="spo">The SuperObject</param>
 /// <param name="alpha">Alpha where 0 is fully transparent and 1 is fully opaque</param>
 void SPO_SetTransparency(HIE_tdstSuperObject* spo, float alpha);
+
+#ifdef __cplusplus
+    }
+#endif

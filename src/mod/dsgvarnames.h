@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // DsgVar names for Rayman
 typedef enum DV_Rayman {
 	DV_RAY_POING_GrappinBis,
@@ -121,3 +125,7 @@ typedef enum DV_Rayman {
 } DV_Rayman;
 
 extern const char* DV_STR_Rayman[];
+
+#ifdef __cplusplus
+		}
+#endif

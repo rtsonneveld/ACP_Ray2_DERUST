@@ -1,9 +1,10 @@
-#include "playback.h"
-#include "state.h"
-#include "ui.h"
+#include "playback.hpp"
+#include "ui/ui.hpp"
 
-// Include last
-#include "derust.h"
+// C INCLUDE
+#include "mod/state.h"
+
+#include <ACP_Ray2.h>
 
 bool DR_DLG_Playback_Enabled = FALSE;
 int colliderType = 52;

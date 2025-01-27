@@ -1,4 +1,6 @@
-#include "ui_util.h"
+#include "ui_util.hpp"
+#include <sstream>
+#include <ACP_Ray2.h>
 
 std::string SPO_Name(HIE_tdstSuperObject* spo) {
 

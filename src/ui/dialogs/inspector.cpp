@@ -1,12 +1,14 @@
-#include "inspector.h"
-#include "inspector_actor.h"
+#include "inspector.hpp"
+#include "inspector_actor.hpp"
 
 #include <sstream>
-#include "ui.h"
-#include "ui_util.h"
+#include "ui/ui.hpp"
+#include "ui/ui_util.hpp"
 
-// Include last
-#include "derust.h"
+// C INCLUDE
+#include <mod/globals.h>
+
+#include <ACP_Ray2.h>
 
 bool DR_DLG_Inspector_Enabled = FALSE;
 

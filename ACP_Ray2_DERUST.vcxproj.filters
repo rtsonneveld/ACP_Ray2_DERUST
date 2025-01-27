@@ -15,28 +15,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\framework.h">
+    <ClInclude Include="src\mod\framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\cpa_functions.h">
+    <ClInclude Include="src\mod\cpa_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.h">
+    <ClInclude Include="src\mod\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\derust.h">
+    <ClInclude Include="src\mod\derust.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dsgvarnames.h">
+    <ClInclude Include="src\mod\dsgvarnames.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui.h">
+    <ClInclude Include="src\ui\ui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\state.h">
+    <ClInclude Include="src\mod\state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui_util.h">
+    <ClInclude Include="src\mod\ui_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imconfig.h">
@@ -69,51 +69,51 @@
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\playback.h">
+    <ClInclude Include="src\ui\dialogs\playback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\dialogs.h">
+    <ClInclude Include="src\ui\dialogs\dialogs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\hierarchy.h">
+    <ClInclude Include="src\ui\dialogs\hierarchy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\inspector.h">
+    <ClInclude Include="src\ui\dialogs\inspector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\inspector_actor.h">
+    <ClInclude Include="src\ui\dialogs\inspector_actor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\menu.h">
+    <ClInclude Include="src\ui\dialogs\menu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dialogs\practicetools.h">
+    <ClInclude Include="src\ui\dialogs\practicetools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\dllmain.cpp">
+    <ClCompile Include="src\dllmain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mathutil.h">
+    <ClCompile Include="src\mod\mathutil.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\util.cpp">
+    <ClCompile Include="src\mod\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\cpa_functions.c">
+    <ClCompile Include="src\mod\cpa_functions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui.cpp">
+    <ClCompile Include="src\ui\ui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\state.cpp">
+    <ClCompile Include="src\mod\state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dsgvarnames.cpp">
+    <ClCompile Include="src\mod\dsgvarnames.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui_util.cpp">
+    <ClCompile Include="src\mod\ui_util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
@@ -146,25 +146,25 @@
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\playback.cpp">
+    <ClCompile Include="src\ui\dialogs\playback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\dialogs.cpp">
+    <ClCompile Include="src\ui\dialogs\dialogs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\hierarchy.cpp">
+    <ClCompile Include="src\ui\dialogs\hierarchy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\inspector.cpp">
+    <ClCompile Include="src\ui\dialogs\inspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\inspector_actor.cpp">
+    <ClCompile Include="src\ui\dialogs\inspector_actor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\menu.cpp">
+    <ClCompile Include="src\ui\dialogs\menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dialogs\practicetools.cpp">
+    <ClCompile Include="src\ui\dialogs\practicetools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

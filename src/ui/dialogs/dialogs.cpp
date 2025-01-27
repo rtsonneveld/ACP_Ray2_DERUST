@@ -1,5 +1,5 @@
-#include "dialogs.h"
-#include "derust.h"
+#include "dialogs.hpp"
+#include <Windows.h>
 
 void DR_DLG_Draw(HWND window_r2) {
   

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "framework.h"
 #include "derust.h"
 #include <assert.h>
+#include <ACP_Ray2.h>
 
 #ifdef __cplusplus
 extern "C" {

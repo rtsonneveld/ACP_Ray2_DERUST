@@ -1,10 +1,12 @@
-#include "inspector_actor.h"
-#include "ui.h"
+#include "inspector_actor.hpp"
+#include "ui/ui.hpp"
 #include <sstream>
-#include "dsgvarnames.h"
 
-// Include last
-#include "derust.h"
+// C INCLUDE
+#include "mod/dsgvarnames.h"
+#include "mod/globals.h"
+
+#include <ACP_Ray2.h>
 
 // Function to render bitfield toggles
 void RenderCustomBitsEditor(const char* label, unsigned long* bitfield) {

@@ -116,21 +116,23 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="implot\implot.h" />
     <ClInclude Include="implot\implot_internal.h" />
-    <ClInclude Include="src\dialogs\dialogs.h" />
-    <ClInclude Include="src\dialogs\hierarchy.h" />
-    <ClInclude Include="src\dialogs\inspector.h" />
-    <ClInclude Include="src\dialogs\inspector_actor.h" />
-    <ClInclude Include="src\dialogs\menu.h" />
-    <ClInclude Include="src\dialogs\playback.h" />
-    <ClInclude Include="src\dialogs\practicetools.h" />
-    <ClInclude Include="src\state.h" />
-    <ClInclude Include="src\dsgvarnames.h" />
-    <ClInclude Include="src\cpa_functions.h" />
     <ClInclude Include="src\derust.h" />
-    <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\ui.h" />
-    <ClInclude Include="src\ui_util.h" />
-    <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\mod\globals.h" />
+    <ClInclude Include="src\mod\state.h" />
+    <ClInclude Include="src\mod\dsgvarnames.h" />
+    <ClInclude Include="src\mod\cpa_functions.h" />
+    <ClInclude Include="src\mod\derust.h" />
+    <ClInclude Include="src\ui\dialogs\dialogs.hpp" />
+    <ClInclude Include="src\ui\dialogs\hierarchy.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector_actor.hpp" />
+    <ClInclude Include="src\ui\dialogs\menu.hpp" />
+    <ClInclude Include="src\ui\dialogs\playback.hpp" />
+    <ClInclude Include="src\ui\dialogs\practicetools.hpp" />
+    <ClInclude Include="src\ui\ui.hpp" />
+    <ClInclude Include="src\ui\ui_bridge.h" />
+    <ClInclude Include="src\ui\ui_util.hpp" />
+    <ClInclude Include="src\mod\util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
@@ -143,25 +145,30 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="implot\implot.cpp" />
     <ClCompile Include="implot\implot_demo.cpp" />
     <ClCompile Include="implot\implot_items.cpp" />
-    <ClCompile Include="src\cpa_functions.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+    <ClCompile Include="src\mod\cpa_functions.c">
     </ClCompile>
-    <ClCompile Include="src\dialogs\dialogs.cpp" />
-    <ClCompile Include="src\dialogs\hierarchy.cpp" />
-    <ClCompile Include="src\dialogs\inspector.cpp" />
-    <ClCompile Include="src\dialogs\inspector_actor.cpp" />
-    <ClCompile Include="src\dialogs\menu.cpp" />
-    <ClCompile Include="src\dialogs\playback.cpp" />
-    <ClCompile Include="src\dialogs\practicetools.cpp" />
-    <ClCompile Include="src\dllmain.cpp" />
-    <ClCompile Include="src\dsgvarnames.cpp" />
-    <ClCompile Include="src\state.cpp" />
-    <ClCompile Include="src\mathutil.h" />
-    <ClCompile Include="src\ui_util.cpp" />
-    <ClCompile Include="src\util.cpp">
+    <ClCompile Include="src\mod\globals.c" />
+    <ClCompile Include="src\dllmain.c">
+    </ClCompile>
+    <ClCompile Include="src\mod\dsgvarnames.c">
+    </ClCompile>
+    <ClCompile Include="src\mod\state.c">
+    </ClCompile>
+    <ClCompile Include="src\mod\mathutil.h" />
+    <ClCompile Include="src\ui\dialogs\dialogs.cpp" />
+    <ClCompile Include="src\ui\dialogs\hierarchy.cpp" />
+    <ClCompile Include="src\ui\dialogs\inspector.cpp" />
+    <ClCompile Include="src\ui\dialogs\inspector_actor.cpp" />
+    <ClCompile Include="src\ui\dialogs\menu.cpp" />
+    <ClCompile Include="src\ui\dialogs\playback.cpp" />
+    <ClCompile Include="src\ui\dialogs\practicetools.cpp" />
+    <ClCompile Include="src\ui\ui_util.cpp">
+    </ClCompile>
+    <ClCompile Include="src\mod\util.c">
       <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ShowIncludes>
     </ClCompile>
-    <ClCompile Include="src\ui.cpp" />
+    <ClCompile Include="src\ui\ui.cpp">
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

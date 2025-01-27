@@ -1,17 +1,14 @@
-#include "practicetools.h"
+#include "practicetools.hpp"
+#include "ui/ui.hpp"
 
-#include "ui.h"
-#include <algorithm>
 #include <sstream>
-#include <iomanip>
 #include <map>
 #include <string>
 #include <vector>
 #include <functional>
-#include "util.h"
 
-// Include last
-#include "derust.h"
+// C Include
+#include "mod/globals.h"
 
 #define MAX_POS_DELTA 50.0f
 

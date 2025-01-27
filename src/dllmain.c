@@ -1,12 +1,13 @@
-#include <Windows.h>
-#include "cpa_functions.h"
-#include "util.h"
-#include "state.h"
-#include "ui.h"
-#include "derust.h"
+// All files inside mod are C
+// All files inside UI are C++
 
-HIE_tdstSuperObject* g_DR_rayman = nullptr;
-HIE_tdstSuperObject* g_DR_selectedObject = nullptr;
+#include <Windows.h>
+#include "mod/cpa_functions.h"
+#include "mod/util.h"
+#include "mod/state.h"
+#include "mod/globals.h"
+#include <ACP_Ray2.h>
+#include "ui/ui_bridge.h"
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
@@ -29,8 +30,8 @@ HIE_tdstSuperObject* spawned_rayman;
 
 void CreateAlwaysRaymanObject() {
 	
-	if (alw_rayman != nullptr) return;
-	if (g_DR_rayman == nullptr) return;
+	if (alw_rayman != NULL) return;
+	if (g_DR_rayman == NULL) return;
 
 	alw_rayman = fn_p_stAllocateAlwaysEngineObject(
 		g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
@@ -92,7 +93,7 @@ LRESULT MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long
 void MOD_fn_vEngine()
 {
 	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
-		MessageBox(nullptr, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
+		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
 	DR_UI_Update();

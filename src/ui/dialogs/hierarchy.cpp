@@ -1,11 +1,11 @@
-#include "hierarchy.h"
-
+#include "hierarchy.hpp"
 #include <stdio.h>
 #include <sstream>
-#include "ui.h"
-#include "ui_util.h"
-// Include last
-#include "derust.h"
+#include "ui/ui.hpp"
+#include "ui/ui_util.hpp"
+
+// C INCLUDE
+#include "mod/globals.h"
 
 bool DR_DLG_Hierarchy_Enabled = false;
 

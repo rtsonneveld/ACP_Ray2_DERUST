@@ -1,12 +1,13 @@
-#include "menu.h"
+#include "menu.hpp"
 
-#include "dialogs.h"
-#include "ui.h"
+#include "dialogs.hpp"
+
+#include "hierarchy.hpp"
+#include "ui/ui.hpp"
 #include <imgui_internal.h>
 #include "JSON.hpp"
 
-// Include last
-#include "derust.h"
+#include <ACP_Ray2.h>
 
 void DR_DLG_Menu_DrawLevelSelection() {
 

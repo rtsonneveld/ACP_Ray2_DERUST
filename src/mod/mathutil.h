@@ -1,3 +1,6 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 inline float MU_ClampF(float val, float minVal, float maxVal) {
 	return (val < minVal ? minVal : (val > maxVal ? maxVal : val));
@@ -20,3 +23,7 @@ inline float MU_RemapRange(float value, float oldMin, float oldMax, float newMin
 	factor = MU_ClampF01(factor);
 	return MU_LerpF(newMin, newMax, factor);
 }
+
+#ifdef __cplusplus
+}
+#endif

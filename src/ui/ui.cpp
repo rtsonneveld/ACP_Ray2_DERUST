@@ -1,6 +1,9 @@
-#include "dialogs/dialogs.h"
-#include "ui.h"
+#include "dialogs/dialogs.hpp"
+#include "ui/ui.hpp"
 #include <iostream>
+
+// C INCLUDE
+#include "ui/ui_bridge.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
