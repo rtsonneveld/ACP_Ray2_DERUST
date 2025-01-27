@@ -1,12 +1,12 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "framework.h"
 #include "derust.h"
 #include <assert.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define Std_C_MiscFlag_Always	0x10
 #define GLI_C_lIsNotGrided		8

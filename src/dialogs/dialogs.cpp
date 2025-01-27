@@ -1,5 +1,4 @@
 #include "dialogs.h"
-// Include last
 #include "derust.h"
 
 void DR_DLG_Draw(HWND window_r2) {

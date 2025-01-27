@@ -27,8 +27,6 @@
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
-#include "dialogs/dialogs.h"
-
 int DR_UI_Init(HWND p_r2Window);
 void DR_UI_Update();
 void DR_UI_DeInit();

@@ -1,3 +1,4 @@
+#include "dialogs/dialogs.h"
 #include "ui.h"
 #include <iostream>
 
