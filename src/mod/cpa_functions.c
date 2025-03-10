@@ -7,6 +7,7 @@ char* (*AI_fn_p_vTrueAlloc) (unsigned int size) = OFFSET(0x466860);
 char* (*fnp_vGameMallocInHLM) (unsigned int size) = OFFSET(0x4077E0);
 void (*PLA_fn_vUpdateTransparencyForModules) (HIE_tdstSuperObject* superObject) = OFFSET(0x40F260);
 BOOL(*PLA_fn_bSetNewState)(HIE_tdstSuperObject* p_stSuperObject, HIE_tdstState* h_WantedState, BOOL _bForce, BOOL _bHandleSkippedEventsIfRelevant) = OFFSET(0x40FAA0);
+void (*fn_vKillEngineObjectOrAlwaysByPointer)(HIE_tdstEngineObject* p_stObject) = OFFSET(0x4062a0);
 
 HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,
 	HIE_tdstSuperObject* p_stFatherSuperObject,
@@ -21,6 +22,20 @@ HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,
 
 	return ptr;
 }*/
+
+HIE_tdstSuperObject** fn_aGetChildActors(HIE_tdstSuperObject* parent, HIE_tdstSuperObject** array, int* index) {
+	if (!parent || !array || *index >= MAX_ACTORS) return array;
+
+	HIE_tdstSuperObject* child;
+	LST_M_DynamicForEach(parent, child) {
+		if (child->ulType == HIE_C_Type_Actor) {
+			array[(*index)++] = child;
+		}
+		fn_aGetChildActors(child, array, index);
+	}
+
+	return array;
+}
 
 HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType)
 {

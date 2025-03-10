@@ -122,6 +122,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\dsgvarnames.h" />
     <ClInclude Include="src\mod\cpa_functions.h" />
     <ClInclude Include="src\mod\derust.h" />
+    <ClInclude Include="src\ui\comportNames.hpp" />
     <ClInclude Include="src\ui\dialogs\dialogs.hpp" />
     <ClInclude Include="src\ui\dialogs\hierarchy.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector.hpp" />
@@ -155,6 +156,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mod\state.c">
     </ClCompile>
     <ClCompile Include="src\mod\mathutil.h" />
+    <ClCompile Include="src\ui\comportNames.cpp" />
     <ClCompile Include="src\ui\dialogs\dialogs.cpp" />
     <ClCompile Include="src\ui\dialogs\hierarchy.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector.cpp" />

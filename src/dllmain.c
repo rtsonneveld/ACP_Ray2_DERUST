@@ -90,6 +90,15 @@ LRESULT MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long
 	return lResult;
 }
 
+
+void MOD_fn_vChooseTheGoodDesInit() {
+	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
+		g_DR_selectedObject = NULL;
+	}
+
+	GAM_fn_vChooseTheGoodDesInit();
+}
+
 void MOD_fn_vEngine()
 {
 	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
@@ -150,6 +159,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 
 			DR_RemoveLoadScreens();
 
