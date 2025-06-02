@@ -22,9 +22,9 @@ inline MTH3D_tdstVector FromGLMVec(const glm::vec3& v)
 inline glm::mat3 ToGLMMat3(const MTH3D_tdstMatrix& m)
 {
   return glm::mat3(
-    glm::vec3(m.stCol_0.x, m.stCol_0.z, -m.stCol_0.y),
-    glm::vec3(m.stCol_1.x, m.stCol_1.z, -m.stCol_1.y),
-    glm::vec3(m.stCol_2.x, m.stCol_2.z, -m.stCol_2.y)
+    glm::vec3(m.stCol_0.x, m.stCol_0.y, m.stCol_0.z),
+    glm::vec3(m.stCol_1.x, m.stCol_1.y, m.stCol_1.z),
+    glm::vec3(m.stCol_2.x, m.stCol_2.y, m.stCol_2.z)
   );
 }
 
