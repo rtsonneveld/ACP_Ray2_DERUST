@@ -1,6 +1,7 @@
 #include "dialogs/dialogs.hpp"
 #include "ui/ui.hpp"
 #include <iostream>
+#include "rendering/scene.h"
 
 // C INCLUDE
 #include "ui/ui_bridge.h"
@@ -20,6 +21,9 @@ HWND window_r2;
 
 ImVec2 lastCentralNodePos;
 ImVec2 lastCentralNodeSize;
+
+// 3D Scene
+Scene scene;
 
 // Main code
 int DR_UI_Init(HWND a_window_r2)
@@ -86,6 +90,11 @@ int DR_UI_Init(HWND a_window_r2)
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
+  // Init OpenGL loader (GLAD)
+  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+  scene.init();
+
   ui_initialized = 1;
   return 0;
 }
@@ -117,6 +126,9 @@ void DR_UI_Update() {
   glViewport(0, 0, display_w, display_h);
   glClearColor(0,0,0,0);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  scene.render(display_w, display_h);
+
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

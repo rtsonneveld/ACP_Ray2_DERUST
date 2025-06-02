@@ -2,6 +2,7 @@
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/comportNames.hpp"
+#include "ui/custominputs.hpp"
 #include <sstream>
 
 // C INCLUDE
@@ -12,80 +13,9 @@
 #include <ACP_Ray2.h>
 #include <vector>
 
-// Function to render bitfield toggles
-void RenderCustomBitsEditor(const char* label, unsigned long* bitfield) {
-  // Define an array of labels and bit masks for the custom bits
-  static const char* customBitLabels[] = {
-      "UnseenFrozenAnimPlayer",       // 1
-      "NeedModuleMatrices",           // 2
-      "Movable",                      // 3
-      "Projectile",                   // 4
-      "RayHit",                       // 5
-      "Sightable",                    // 6
-      "CannotCrushPrincipalActor",    // 7
-      "Collectable",                  // 8
-      "ActorHasShadow",               // 9
-      "ShadowOnMe",                   // 10
-      "Prunable",                     // 11
-      "OutOfVisibility",              // 12
-      "UnseenFrozen",                 // 13
-      "NoAnimPlayer",                 // 14
-      "Fightable",                    // 15
-      "NoMechanic",                   // 16
-      "NoAI",                         // 17
-      "DestroyWhenAnimEnded",         // 18
-      "NoAnimPlayerWhenTooFar",       // 19
-      "NoAIWhenTooFar",               // 20
-      "Unfreezable",                  // 21
-      "UsesTransparencyZone",         // 22
-      "NoMecaWhenTooFar",             // 23
-      "SoundWhenInvisible",           // 24
-      "Protection",                   // 25
-      "CameraHit",                    // 26
-      "CustomBit_27",                 // 27
-      "AIUser1",                      // 28
-      "AIUser2",                      // 29
-      "AIUser3",                      // 30
-      "AIUser4",                      // 31
-      "Rayman"                        // 32
-  };
-
-  // Collapsible section for bitfield toggles
-  if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-
-    if (ImGui::BeginTable("BitfieldTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-      for (int i = 0; i < 32; i++) {
-        // Start a new row every 4 columns
-        if (i % 4 == 0) {
-          ImGui::TableNextRow();
-        }
-        ImGui::TableNextColumn();
-
-        unsigned long bitMask = 1UL << i; // Calculate bitmask on the fly
-        bool isSet = (*bitfield & bitMask) != 0;
-        if (ImGui::Checkbox(customBitLabels[i], &isSet)) {
-          if (isSet) {
-            *bitfield |= bitMask; // Set the bit
-          }
-          else {
-            *bitfield &= ~bitMask; // Clear the bit
-          }
-        }
-      }
-      ImGui::EndTable();
-    }
-  }
-}
-
 void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
 
   HIE_tdstSuperObject* spo = *p_data;
-  /*
-  HIE_tdstSuperObject* spo = nullptr;
-  if (p_data != nullptr && p_data->hStandardGame != nullptr) {
-    spo = p_data->hStandardGame->p_stSuperObject;
-  }
-  */
 
   if (ImGui::BeginCombo(label, (spo != nullptr ? SPO_Name(spo).c_str() : "null"), ImGuiComboFlags_WidthFitPreview)) {
 
@@ -341,6 +271,11 @@ void DR_DLG_Inspector_Draw_MS_Brain(HIE_tdstEngineObject* actor)
   }
 }
 
+bool forceOverwriteDynam = FALSE;
+DNM_tdstDynamicsBaseBlock dynamicsBase;
+DNM_tdstDynamicsAdvancedBlock dynamicsAdvanced;
+DNM_tdstDynamicsComplexBlock dynamicsComplex;
+
 void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
 {
   DNM_tdstDynam* dynam = actor->hDynam;
@@ -354,17 +289,37 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
   if (dynamics != nullptr) {
     if (ImGui::CollapsingHeader("Dynamics")) {
 
-      ImGui::Indent();
+      ImGui::Checkbox("Force overwrite", &forceOverwriteDynam);
 
-      DNM_tdstDynamicsBaseBlock dynamicsBase = dynamics->stDynamicsBase;
-      // TODO dynamicsBase.lObjectType (DNM_eMIC_Error = -1,DNM_eCamera, DNM_eBase)
-      // TODO dynamicsBase.pCurrentIdCard (DNM_tdstMecBaseIdCard*)
-      // TODO dynamicsBase.ulFlags -> look in dnmdynam.h
-      // TODO dynamicsBase.ulEndFlags -> look in dnmdynam.h
+      ImGui::Indent();
 
       if (ImGui::CollapsingHeader("Base")) {
 
         ImGui::Indent();
+
+        if (!forceOverwriteDynam) {
+          dynamicsBase = dynamics->stDynamicsBase;
+        }
+
+        // TODO dynamicsBase.lObjectType (DNM_eMIC_Error = -1,DNM_eCamera, DNM_eBase)
+        // TODO dynamicsBase.pCurrentIdCard (DNM_tdstMecBaseIdCard*)
+
+        if (ImGui::CollapsingHeader("pCurrentIdCard")) {
+          ImGui::Indent();
+
+          DNM_tdstMecBaseIdCard* idCard = dynamicsBase.pCurrentIdCard;
+
+          ImGui::InputScalar("xGravity", ImGuiDataType_Float, &idCard->m_xGravity);
+          /*ImGui::InputScalar("xSlopeLimit", ImGuiDataType_Float, &dynamicsBase.xSlopeLimit);
+          ImGui::InputScalar("xCosSlope", ImGuiDataType_Float, &dynamicsBase.xCosSlope);
+          ImGui::InputScalar("xSlide", ImGuiDataType_Float, &dynamicsBase.xSlide);
+          ImGui::InputScalar("xRebound", ImGuiDataType_Float, &dynamicsBase.xRebound);*/
+
+          ImGui::Unindent();
+        }
+
+        InputBitField("ulFlags", &dynamicsBase.ulFlags, BITFIELD_DYNAMICS_FLAGS);
+        InputBitField("ulEndFlags", &dynamicsBase.ulEndFlags, BITFIELD_DYNAMICS_ENDFLAGS);
 
         ImGui::InputScalar("xGravity", ImGuiDataType_Float, &dynamicsBase.xGravity);
         ImGui::InputScalar("xSlopeLimit", ImGuiDataType_Float, &dynamicsBase.xSlopeLimit);
@@ -395,8 +350,10 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
         if (ImGui::CollapsingHeader("Advanced")) {
 
           ImGui::Indent();
-
-          DNM_tdstDynamicsAdvancedBlock dynamicsAdvanced = dynamics->stDynamicsAdvanced;
+          
+          if (!forceOverwriteDynam) {
+            dynamicsAdvanced = dynamics->stDynamicsAdvanced;
+          }
 
           ImGui::InputScalar("xInertiaX", ImGuiDataType_Float, &dynamicsAdvanced.xInertiaX);
           ImGui::InputScalar("xInertiaY", ImGuiDataType_Float, &dynamicsAdvanced.xInertiaY);
@@ -432,7 +389,10 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
         if (ImGui::CollapsingHeader("Complex")) {
 
           ImGui::Indent();
-          DNM_tdstDynamicsComplexBlock dynamicsComplex = dynamics->stDynamicsComplex;
+          
+          if (!forceOverwriteDynam) {
+            dynamicsComplex = dynamics->stDynamicsComplex;
+          }
 
           ImGui::InputScalar("xTiltIntensity", ImGuiDataType_Float, &dynamicsComplex.xTiltIntensity);
           ImGui::InputScalar("xTiltInertia", ImGuiDataType_Float, &dynamicsComplex.xTiltInertia);
@@ -603,12 +563,12 @@ void DR_DLG_Inspector_Draw_MS_StandardGame(HIE_tdstEngineObject* actor)
   ImGui::InputScalar("ucHitPoints", ImGuiDataType_U8, &stdGame->ucHitPoints);
   ImGui::InputScalar("ucHitPointsMax", ImGuiDataType_U8, &stdGame->ucHitPointsMax);
   ImGui::InputScalar("ucHitPointsMaxMax", ImGuiDataType_U8, &stdGame->ucHitPointsMaxMax);
-  RenderCustomBitsEditor("ulCustomBits", &stdGame->ulCustomBits);
+  InputBitField("ulCustomBits", &stdGame->ulCustomBits, BITFIELD_CUSTOMBITS);
   ImGui::InputScalar("ucPlatformType", ImGuiDataType_U8, &stdGame->ucPlatformType);
   ImGui::InputScalar("ucMiscFlags", ImGuiDataType_U8, &stdGame->ucMiscFlags);
   ImGui::InputScalar("ucTransparencyZoneMin", ImGuiDataType_U8, &stdGame->ucTransparencyZoneMin);
   ImGui::InputScalar("ucTransparencyZoneMax", ImGuiDataType_U8, &stdGame->ucTransparencyZoneMax);
-  RenderCustomBitsEditor("ulSaveCustomBits", &stdGame->ulSaveCustomBits);
+  InputBitField("ulSaveCustomBits", &stdGame->ulSaveCustomBits, BITFIELD_CUSTOMBITS);
   ImGui::InputScalar("ucSaveHitPoints", ImGuiDataType_U8, &stdGame->ucSaveHitPoints);
   ImGui::InputScalar("ucSaveHitPointsMax", ImGuiDataType_U8, &stdGame->ucSaveHitPointsMax);
   ImGui::InputScalar("ucSaveMiscFlags", ImGuiDataType_U8, &stdGame->ucSaveMiscFlags);

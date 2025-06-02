@@ -35,6 +35,7 @@ std::map<std::string, std::function<float()>> valueProviders;
 
 bool isInitialized = false;
 MTH3D_tdstVector lastPositionHorizontalSpeed;
+MTH3D_tdstVector lastPositionVerticalSpeed;
 MTH3D_tdstVector lastPositionSpeed;
 
 MTH3D_tdstVector lastRaymanPos(0.0, 0.0, 0.0);
@@ -42,7 +43,7 @@ MTH3D_tdstVector currentRaymanPos(0.0, 0.0, 0.0);
 
 void ClearHistory() {
 
-  lastPositionHorizontalSpeed = lastPositionSpeed = currentRaymanPos;
+  lastPositionHorizontalSpeed = lastPositionVerticalSpeed = lastPositionSpeed = currentRaymanPos;
   for (auto& [key, data] : valueProviders) {
     PlotData plotData(historySizeSeconds * 60);
     std::fill(plotData.history.begin(), plotData.history.end(), valueProviders[key]());
@@ -68,6 +69,15 @@ void DR_DLG_PracticeTools_Init() {
     MTH3D_M_vMulVectorScalar(&speed, &speed, 60.0f); // 60 frames in one second
     lastPositionHorizontalSpeed = base.stCurrentMatrix.stPos;
     return sqrtf(speed.x * speed.x + speed.y * speed.y);
+    };
+  valueProviders["Vertical speed"] = []() {
+
+    DNM_tdstDynamicsBaseBlock base = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics->stDynamicsBase;
+    MTH3D_tdstVector speed;
+    MTH3D_M_vSubVector(&speed, &base.stCurrentMatrix.stPos, &lastPositionVerticalSpeed);
+    MTH3D_M_vMulVectorScalar(&speed, &speed, 60.0f); // 60 frames in one second
+    lastPositionVerticalSpeed = base.stCurrentMatrix.stPos;
+    return speed.z;
     };
   valueProviders["Speed"] = []() {
 
