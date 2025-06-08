@@ -21,11 +21,17 @@ inline MTH3D_tdstVector FromGLMVec(const glm::vec3& v)
 // Conversion from legacy 3x3 matrix to glm::mat3
 inline glm::mat3 ToGLMMat3(const MTH3D_tdstMatrix& m)
 {
-  return glm::mat3(
-    glm::vec3(m.stCol_0.x, m.stCol_0.y, m.stCol_0.z),
-    glm::vec3(m.stCol_1.x, m.stCol_1.y, m.stCol_1.z),
-    glm::vec3(m.stCol_2.x, m.stCol_2.y, m.stCol_2.z)
-  );
+    glm::mat3 rotateBack = glm::mat3(
+      glm::vec3(0, -1, 0),
+      glm::vec3(1, 0, 0),
+      glm::vec3(0, 0, 1)
+    );
+    
+    return glm::mat3(
+      glm::vec3(m.stCol_2.x, m.stCol_2.y, m.stCol_2.z),
+      glm::vec3(m.stCol_0.x, m.stCol_0.y, m.stCol_0.z),
+      glm::vec3(m.stCol_1.x, m.stCol_1.y, m.stCol_1.z)
+    ) * rotateBack;
 }
 
 // Conversion from glm::mat3 to legacy matrix
