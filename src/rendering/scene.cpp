@@ -1,4 +1,7 @@
 #include "scene.h"
+#include "po_mesh.h"
+#include <HIE/HIE_Const.h>
+#include <GLFW/glfw3.h>
 
 Scene::Scene() {
 
@@ -12,15 +15,27 @@ void Scene::init() {
 
 void Scene::renderSPO(HIE_tdstSuperObject* spo) {
 
-  auto matrix = spo->p_stGlobalMatrix;
-  auto position = matrix->stPos;
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(position.x, position.y, position.z));
-  model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+  glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
+  //model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 
   shader->setMat4("model", model);
 
   cube->draw();
+  if (spo->ulType & HIE_C_Type_IPO) {
+    auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
+
+    if (ipo != nullptr) {
+      PhysicalObjectMesh ipoMesh = *PhysicalObjectMesh::get(ipo->hPhysicalObject);
+      ipoMesh.draw();
+    }
+  } else if (spo->ulType & HIE_C_Type_PO) {
+    auto po = spo->hLinkedObject.p_stPhysicalObject;
+
+    if (po != nullptr) {
+      PhysicalObjectMesh poMesh = *PhysicalObjectMesh::get(po);
+      poMesh.draw();
+    }
+  }
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
@@ -36,13 +51,22 @@ void Scene::render(float display_w, float display_h) {
   shader->use();
 
   glm::mat4 model = glm::mat4(1.0f);
-  //glm::mat4 view = camera->getViewMatrix();
   
   auto cam = GAM_g_stEngineStructure->g_hStdCamCharacter;
-  auto camPos = ToGLMMat4(*cam->p_stGlobalMatrix);
+  auto camMatrix = ToGLMMat4(*cam->p_stLocalMatrix);
 
-  //glm::mat4 view = glm::lookAtLH(camPos, camPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0,0,1));
-  glm::mat4 view = glm::inverse(camPos);
+  //glm::mat4 view = glm::inverse(camMatrix);
+  
+  float time = glfwGetTime();
+  float camX = cos(time) * 10.0f;
+  float camY = sin(time) * 10.0f;
+
+  auto camVec = ToGLMVec(cam->p_stGlobalMatrix->stPos);
+  
+  glm::vec3 forward = -glm::vec3(camMatrix[1]); // Extract and negate the Z-axis
+
+  glm::mat4 view = glm::lookAtRH(camVec, camVec + forward, glm::vec3(camMatrix[2]));
+  
   glm::mat4 proj = glm::perspective(cam->hLinkedObject.p_stActor->hCineInfo->hCurrent->xFocal, (float)display_w / (float)display_h, 0.1f, 10000.0f);
  
   shader->setMat4("model", model);
