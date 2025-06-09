@@ -74,7 +74,7 @@
       <Command>taskkill /f /im Rayman2.exe
 xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
 cd "D:\Drive\Games\Rayman 2\"
-Ray2x.exe -level:raycap -debug</Command>
+Ray2x.exe -level:water_20 -debug</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
