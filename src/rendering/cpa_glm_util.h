@@ -54,13 +54,13 @@ inline MTH3D_tdstMatrix FromGLMMat3(const glm::mat3& m)
 // Convert POS_tdstCompletePosition to glm::mat4
 inline glm::mat4 ToGLMMat4(const POS_tdstCompletePosition& pos)
 {
-  glm::mat3 rot = ToGLMMat3(pos.stRotationMatrix);
+  glm::mat3 transform = ToGLMMat3(pos.stTransformMatrix);
   glm::vec3 trans = ToGLMVec(pos.stTranslationVector);
 
   glm::mat4 result(1.0f);
-  result[0] = glm::vec4(rot[0], 0.0f);
-  result[1] = glm::vec4(rot[1], 0.0f);
-  result[2] = glm::vec4(rot[2], 0.0f);
+  result[0] = glm::vec4(transform[0], 0.0f);
+  result[1] = glm::vec4(transform[1], 0.0f);
+  result[2] = glm::vec4(transform[2], 0.0f);
   result[3] = glm::vec4(trans, 1.0f);
 
   return result;

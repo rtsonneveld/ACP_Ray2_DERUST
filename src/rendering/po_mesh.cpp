@@ -56,21 +56,20 @@ PhysicalObjectMesh::PhysicalObjectMesh(PO_tdstPhysicalObject* po) {
 
       case GEO_C_xElementIndexedTriangles:
         elemTris = (GEO_tdstElementIndexedTriangles*)element;
-        
-        int curIndex = 0;
+      
+        for (int j = 0; j < geomObj->xNbPoints;j++) {
+          auto point = geomObj->d_stListOfPoints[j];
+          vertices.push_back(point.x);
+          vertices.push_back(point.y);
+          vertices.push_back(point.z);
+        }
 
         for (int idxFace = 0; idxFace < elemTris->xNbFaces;idxFace++) {
 
           for (int idxPoint = 0; idxPoint < 3;idxPoint++) {
             int idxInPointsList = elemTris->d_stListOfFacesTripled[idxFace].a3_xIndex[idxPoint];
-            
-            auto point = geomObj->d_stListOfPoints[idxInPointsList];
-            vertices.push_back(point.x);
-            vertices.push_back(point.y);
-            vertices.push_back(point.z);
 
-            indices.push_back(curIndex);
-            curIndex++;
+            indices.push_back(idxInPointsList);
           }
         }
 
