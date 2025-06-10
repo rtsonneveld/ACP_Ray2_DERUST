@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
+#include <glm/glm.hpp>
 
 class Mesh {
 public:
   Mesh() = default;
-  Mesh(std::vector<float> vertices, std::vector<int> indices);
+  Mesh(std::vector<float> vertices, std::vector<unsigned int> indices);
+  static Mesh createSphere(float radius = 1.0f, glm::vec3 offset = glm::vec3(0, 0, 0), int n_stacks = 16, int n_slices = 16);
   ~Mesh();
   void draw();
 private:

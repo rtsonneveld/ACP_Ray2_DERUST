@@ -1,4 +1,5 @@
-﻿#include "po_mesh.h"
+﻿#include "geo_mesh.h"
+#include "cpa_glm_util.h"
 
 /*
 typedef struct GEO_tdstElementIndexedTriangles
@@ -22,34 +23,29 @@ GEO_tdstElementIndexedTriangles;
 
 
 // Cache
-std::unordered_map<PO_tdstPhysicalObject*, std::shared_ptr<PhysicalObjectMesh>> PhysicalObjectMesh::cache;
+std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> GeometricObjectMesh::cache;
 
-std::shared_ptr<PhysicalObjectMesh> PhysicalObjectMesh::get(PO_tdstPhysicalObject* po) {
+std::shared_ptr<GeometricObjectMesh> GeometricObjectMesh::get(GEO_tdstGeometricObject* po) {
   auto it = cache.find(po);
   if (it != cache.end()) {
     return it->second;
   }
 
-  auto newMesh = std::make_shared<PhysicalObjectMesh>(po);
+  auto newMesh = std::make_shared<GeometricObjectMesh>(po);
   cache[po] = newMesh;
   return newMesh;
 }
 
-PhysicalObjectMesh::PhysicalObjectMesh(PO_tdstPhysicalObject* po) {
-
-  int nbLod = po->hVisualSet->xNbLodDefinitions;
-
-  if (nbLod <= 0) return;
-  // Only use the first LOD for now
-  auto geomObj = po->hVisualSet->d_p_stLodDefinitions[0];
+GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 
   for (int i = 0;i < geomObj->xNbElements;i++) {
     void* element = geomObj->d_hListOfElements[i];
 
     std::vector<float> vertices;
-    std::vector<int> indices;
+    std::vector<unsigned int> indices;
 
     GEO_tdstElementIndexedTriangles* elemTris;
+    GEO_tdstElementSpheres* elemSpheres;
 
     switch (geomObj->d_xListOfElementsTypes[i]) {
       case GEO_C_xElementNULL: break;
@@ -74,12 +70,24 @@ PhysicalObjectMesh::PhysicalObjectMesh(PO_tdstPhysicalObject* po) {
         }
 
         meshes.push_back(Mesh(vertices, indices));
-      break;
+        break;
+      case GEO_C_xElementSpheres:
+        elemSpheres = (GEO_tdstElementSpheres*)element;
+        for (int sphereIdx = 0;sphereIdx < elemSpheres->xNbSpheres; sphereIdx++) {
+            
+          auto sphere = elemSpheres->d_stListOfSpheres[sphereIdx];
+          
+          auto offset = geomObj->d_stListOfPoints[sphere.xCenterPoint];
+          auto radius = sphere.xRadius;
+
+          meshes.push_back(Mesh::createSphere(radius, ToGLMVec(offset)));
+        }
+        break;
     }
   }
 }
 
-void PhysicalObjectMesh::draw() {
+void GeometricObjectMesh::draw() {
   for (Mesh& mesh : meshes) {
     mesh.draw();
   }

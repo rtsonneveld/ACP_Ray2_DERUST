@@ -30,5 +30,10 @@ private:
   Mesh* cube;
 
   void renderSPO(HIE_tdstSuperObject* spo);
+  void renderPhysicalObject(PO_tdstPhysicalObject* po);
+  void renderActorCollSet(ZDX_tdstCollSet* collSet);
+  void renderZdxList(ZDX_tdstZdxList* list);
+  void renderPhysicalObjectVisual(PO_tdstPhysicalObject* po);
+  void renderPhysicalObjectCollision(PO_tdstPhysicalObject* po);
 
 };

@@ -6,8 +6,9 @@
 #include <glad/glad.h>
 #include <vector>
 #include <glm/glm.hpp>
+# define M_PI           3.14159265358979323846  /* pi */
 
-Mesh::Mesh(std::vector<float> vertices, std::vector<int> indices) {
+Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
   numIndices = indices.size();
 
   // Step 1: Prepare normal array (same number of vertices)
@@ -72,6 +73,79 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<int> indices) {
   // Normal attribute (location = 1)
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+}
+
+Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slices) {
+
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+
+  // Add top vertex (with radius and offset)
+  vertices.push_back(offset.x + 0.0f);
+  vertices.push_back(offset.y + radius);
+  vertices.push_back(offset.z + 0.0f);
+
+  // Add vertices for each stack/slice (excluding poles)
+  for (int i = 0; i < n_stacks - 1; i++)
+  {
+    double phi = M_PI * double(i + 1) / double(n_stacks);
+    for (int j = 0; j < n_slices; j++)
+    {
+      double theta = 2.0 * M_PI * double(j) / double(n_slices);
+      float x = radius * std::sin(phi) * std::cos(theta);
+      float y = radius * std::cos(phi);
+      float z = radius * std::sin(phi) * std::sin(theta);
+      vertices.push_back(offset.x + x);
+      vertices.push_back(offset.y + y);
+      vertices.push_back(offset.z + z);
+    }
+  }
+
+  // Add bottom vertex (with radius and offset)
+  vertices.push_back(offset.x + 0.0f);
+  vertices.push_back(offset.y - radius);
+  vertices.push_back(offset.z + 0.0f);
+
+  unsigned int top_index = 0;
+  unsigned int bottom_index = static_cast<unsigned int>(vertices.size() / 3 - 1);
+
+  // Top cap triangles
+  for (int i = 0; i < n_slices; ++i)
+  {
+    unsigned int i0 = i + 1;
+    unsigned int i1 = (i + 1) % n_slices + 1;
+    indices.insert(indices.end(), { top_index, i1, i0 });
+  }
+
+  // Bottom cap triangles
+  for (int i = 0; i < n_slices; ++i)
+  {
+    unsigned int i0 = i + n_slices * (n_stacks - 2) + 1;
+    unsigned int i1 = (i + 1) % n_slices + n_slices * (n_stacks - 2) + 1;
+    indices.insert(indices.end(), { bottom_index, i0, i1 });
+  }
+
+  // Quads (as two triangles per quad)
+  for (int j = 0; j < n_stacks - 2; j++)
+  {
+    unsigned int j0 = j * n_slices + 1;
+    unsigned int j1 = (j + 1) * n_slices + 1;
+
+    for (int i = 0; i < n_slices; i++)
+    {
+      unsigned int i0 = j0 + i;
+      unsigned int i1 = j0 + (i + 1) % n_slices;
+      unsigned int i2 = j1 + (i + 1) % n_slices;
+      unsigned int i3 = j1 + i;
+
+      // Triangle 1
+      indices.insert(indices.end(), { i0, i1, i2 });
+      // Triangle 2
+      indices.insert(indices.end(), { i0, i2, i3 });
+    }
+  }
+
+  return Mesh(vertices, indices);
 }
 
 

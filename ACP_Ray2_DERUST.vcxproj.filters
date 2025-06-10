@@ -990,7 +990,7 @@
     <ClInclude Include="src\rendering\cpa_glm_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\po_mesh.h">
+    <ClInclude Include="src\rendering\geo_mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1100,7 +1100,7 @@
     <ClCompile Include="src\rendering\scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\rendering\po_mesh.cpp">
+    <ClCompile Include="src\rendering\geo_mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

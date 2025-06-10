@@ -25,6 +25,10 @@ ImVec2 lastCentralNodeSize;
 // 3D Scene
 Scene scene;
 
+// DEBUG
+bool dbg_drawCollision = false;
+bool dbg_drawVisuals = true;
+
 // Main code
 int DR_UI_Init(HWND a_window_r2)
 {
@@ -118,6 +122,13 @@ void DR_UI_Update() {
   ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
 
   DR_DLG_Draw(window_r2);
+
+  ImGui::Checkbox("Draw visuals", &dbg_drawVisuals);
+  ImGui::Checkbox("Draw collision", &dbg_drawCollision);
+  if (ImGui::Button("Toggle")) {
+    dbg_drawVisuals = !dbg_drawVisuals;
+    dbg_drawCollision = !dbg_drawCollision;
+  }
 
   ImGui::Render();
 

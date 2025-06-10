@@ -1,7 +1,11 @@
 #include "scene.h"
-#include "po_mesh.h"
+#include "geo_mesh.h"
 #include <HIE/HIE_Const.h>
 #include <GLFW/glfw3.h>
+#include <LST.h>
+
+extern bool dbg_drawCollision;
+extern bool dbg_drawVisuals;
 
 Scene::Scene() {
 
@@ -13,10 +17,84 @@ void Scene::init() {
   cube = new Mesh();
 }
 
+void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po) {
+  if (dbg_drawCollision) {
+    renderPhysicalObjectCollision(po);
+  }
+
+  if (dbg_drawVisuals) {
+    renderPhysicalObjectVisual(po);
+  }
+}
+
+void Scene::renderActorCollSet(ZDX_tdstCollSet* collSet) {
+  if (collSet == nullptr) return;
+  if (!dbg_drawCollision) return;
+
+  renderZdxList(collSet->hZddList);
+  renderZdxList(collSet->hZdeList);
+  renderZdxList(collSet->hZdmList);
+  renderZdxList(collSet->hZdrList);
+}
+
+void Scene::renderZdxList(ZDX_tdstZdxList* list) {
+
+  if (list == nullptr) return;
+
+  auto hZdx = list->hGeoZdxList.hFirstElementSta;
+  while (hZdx != nullptr) {
+
+    if (hZdx->hGeoObj != nullptr) {
+      GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
+      geoMesh.draw();
+    }
+
+    hZdx = hZdx->hNextBrotherSta;
+  }
+}
+
+void Scene::renderPhysicalObjectVisual(PO_tdstPhysicalObject* po)
+{
+  int nbLod = po->hVisualSet->xNbLodDefinitions;
+
+  if (nbLod <= 0) return;
+  // Only use the first LOD for now
+  auto geomObj = po->hVisualSet->d_p_stLodDefinitions[0];
+
+  GeometricObjectMesh ipoMeshVisual = *GeometricObjectMesh::get(geomObj);
+  ipoMeshVisual.draw();
+}
+
+
+void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
+{
+  auto collSet = po->hCollideSet;
+  if (collSet == nullptr) return;
+
+  if (collSet->hZdd != nullptr) {
+    GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
+    ipoMeshCollision.draw();
+  }
+
+  if (collSet->hZde != nullptr) {
+    GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
+    ipoMeshCollision.draw();
+  }
+
+  if (collSet->hZdm != nullptr) {
+    GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
+    ipoMeshCollision.draw();
+  }
+
+  if (collSet->hZdr != nullptr) {
+    GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
+    ipoMeshCollision.draw();
+  }
+}
+
 void Scene::renderSPO(HIE_tdstSuperObject* spo) {
 
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
-  //model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 
   shader->setMat4("model", model);
 
@@ -25,15 +103,21 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
 
     if (ipo != nullptr) {
-      PhysicalObjectMesh ipoMesh = *PhysicalObjectMesh::get(ipo->hPhysicalObject);
-      ipoMesh.draw();
+      renderPhysicalObject(ipo->hPhysicalObject);
     }
   } else if (spo->ulType & HIE_C_Type_PO) {
     auto po = spo->hLinkedObject.p_stPhysicalObject;
 
     if (po != nullptr) {
-      PhysicalObjectMesh poMesh = *PhysicalObjectMesh::get(po);
-      poMesh.draw();
+      renderPhysicalObject(po);
+    }
+  }
+
+  if (spo->ulType & HIE_C_Type_Actor) {
+    auto actor = spo->hLinkedObject.p_stActor;
+
+    if (actor != nullptr && spo != GAM_g_stEngineStructure->g_hStdCamCharacter) {
+      renderActorCollSet(actor->hCollSet);
     }
   }
 

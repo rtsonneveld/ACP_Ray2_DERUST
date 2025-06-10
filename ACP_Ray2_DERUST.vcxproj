@@ -413,7 +413,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\camera.h" />
     <ClInclude Include="src\rendering\cpa_glm_util.h" />
     <ClInclude Include="src\rendering\cube_data.h" />
-    <ClInclude Include="src\rendering\po_mesh.h" />
+    <ClInclude Include="src\rendering\geo_mesh.h" />
     <ClInclude Include="src\rendering\mesh.h" />
     <ClInclude Include="src\rendering\scene.h" />
     <ClInclude Include="src\rendering\shader.h" />
@@ -458,7 +458,7 @@ Ray2x.exe -level:learn_31</Command>
     </ClCompile>
     <ClCompile Include="src\mod\mathutil.h" />
     <ClCompile Include="src\rendering\camera.cpp" />
-    <ClCompile Include="src\rendering\po_mesh.cpp" />
+    <ClCompile Include="src\rendering\geo_mesh.cpp" />
     <ClCompile Include="src\rendering\mesh.cpp" />
     <ClCompile Include="src\rendering\scene.cpp" />
     <ClCompile Include="src\rendering\shader.cpp" />
