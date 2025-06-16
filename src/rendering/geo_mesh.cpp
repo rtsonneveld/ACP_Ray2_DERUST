@@ -87,8 +87,8 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
   }
 }
 
-void GeometricObjectMesh::draw() {
+void GeometricObjectMesh::draw(Shader * shader) {
   for (Mesh& mesh : meshes) {
-    mesh.draw();
+    mesh.draw(shader);
   }
 }

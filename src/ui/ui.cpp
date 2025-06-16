@@ -105,8 +105,6 @@ int DR_UI_Init(HWND a_window_r2)
 
 void DR_UI_Update() {
 
-  ShowCursor(TRUE);
-
   glfwPollEvents();
   if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
   {
@@ -120,6 +118,16 @@ void DR_UI_Update() {
   
   ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
   ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
+
+  // Background text
+  {
+    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+
+    ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
+    ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
+    ImU32 color = IM_COL32(255, 255, 255, 255);
+    drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
+  }
 
   DR_DLG_Draw(window_r2);
 
@@ -137,9 +145,11 @@ void DR_UI_Update() {
   glViewport(0, 0, display_w, display_h);
   glClearColor(0,0,0,0);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  scene.render(display_w, display_h);
+  scene.render(window, display_w, display_h);
 
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

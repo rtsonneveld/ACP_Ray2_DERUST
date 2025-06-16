@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glad/glad.h>
 
+#include <GLFW/glfw3.h>
 #include "rendering/shader.h"
 #include "rendering/camera.h"
 #include "rendering/mesh.h"
@@ -19,15 +20,13 @@
 class Scene {
 public:
 
-  Scene();
   void init();
-  void render(float display_w, float display_h);
+  void render(GLFWwindow * window, float display_w, float display_h);
 
 private:
 
   Shader* shader;
   Camera* camera;
-  Mesh* cube;
 
   void renderSPO(HIE_tdstSuperObject* spo);
   void renderPhysicalObject(PO_tdstPhysicalObject* po);

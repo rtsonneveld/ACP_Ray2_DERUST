@@ -1,20 +1,24 @@
 #include "scene.h"
 #include "geo_mesh.h"
 #include <HIE/HIE_Const.h>
-#include <GLFW/glfw3.h>
 #include <LST.h>
+#include "mouselook.h"
+#include <imgui.h>
+#include "mod/globals.h"
 
 extern bool dbg_drawCollision;
 extern bool dbg_drawVisuals;
 
-Scene::Scene() {
+MouseLook mouseLook;
+bool useMouseLook = false;
+bool captureMouseLookInput = false;
+bool wasTeleporting = false;
 
-}
+float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
 void Scene::init() {
   shader = new Shader(vertexShader, fragmentShader);
   camera = new Camera(glm::vec3(1.5f, 1.5f, 1.5f));
-  cube = new Mesh();
 }
 
 void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po) {
@@ -46,7 +50,7 @@ void Scene::renderZdxList(ZDX_tdstZdxList* list) {
 
     if (hZdx->hGeoObj != nullptr) {
       GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
-      geoMesh.draw();
+      geoMesh.draw(shader);
     }
 
     hZdx = hZdx->hNextBrotherSta;
@@ -62,7 +66,7 @@ void Scene::renderPhysicalObjectVisual(PO_tdstPhysicalObject* po)
   auto geomObj = po->hVisualSet->d_p_stLodDefinitions[0];
 
   GeometricObjectMesh ipoMeshVisual = *GeometricObjectMesh::get(geomObj);
-  ipoMeshVisual.draw();
+  ipoMeshVisual.draw(shader);
 }
 
 
@@ -73,22 +77,22 @@ void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
 
   if (collSet->hZdd != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
-    ipoMeshCollision.draw();
+    ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZde != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
-    ipoMeshCollision.draw();
+    ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZdm != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
-    ipoMeshCollision.draw();
+    ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZdr != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
-    ipoMeshCollision.draw();
+    ipoMeshCollision.draw(shader);
   }
 }
 
@@ -96,9 +100,8 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo) {
 
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
 
-  shader->setMat4("model", model);
+  shader->setMat4("uModel", model);
 
-  cube->draw();
   if (spo->ulType & HIE_C_Type_IPO) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
 
@@ -127,35 +130,62 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo) {
   }
 }
 
-void Scene::render(float display_w, float display_h) {
+void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   assert(shader != nullptr);
   assert(camera != nullptr);
-  assert(cube != nullptr);
-
-  shader->use();
 
   glm::mat4 model = glm::mat4(1.0f);
   
   auto cam = GAM_g_stEngineStructure->g_hStdCamCharacter;
   auto camMatrix = ToGLMMat4(*cam->p_stLocalMatrix);
 
-  //glm::mat4 view = glm::inverse(camMatrix);
-  
-  float time = glfwGetTime();
-  float camX = cos(time) * 10.0f;
-  float camY = sin(time) * 10.0f;
+  captureMouseLookInput = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+  if (captureMouseLookInput) {
+    useMouseLook = true;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      useMouseLook = false;
+  }
 
-  auto camVec = ToGLMVec(cam->p_stGlobalMatrix->stPos);
-  
-  glm::vec3 forward = -glm::vec3(camMatrix[1]); // Extract and negate the Z-axis
+  glm::mat4 view;
+  if (useMouseLook) {
+    if (captureMouseLookInput) {
+      mouseLook.SetFromUser(window);
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  glm::mat4 view = glm::lookAtRH(camVec, camVec + forward, glm::vec3(camMatrix[2]));
-  
-  glm::mat4 proj = glm::perspective(cam->hLinkedObject.p_stActor->hCineInfo->hCurrent->xFocal, (float)display_w / (float)display_h, 0.1f, 10000.0f);
+      // Teleport with space
+      if (ImGui::IsKeyDown(ImGuiKey_Space)) {
+        auto newPos = FromGLMVec(mouseLook.position);
+        g_DR_rayman->p_stGlobalMatrix->stPos = newPos;
+        auto dynam = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics;
+        dynam->stDynamicsBase.stPreviousMatrix.stPos = newPos;
+        dynam->stDynamicsBase.stCurrentMatrix.stPos = newPos;
+        *GAM_g_ucIsEdInGhostMode = true;
+        wasTeleporting = true;
+      }
+    }
+    view = glm::lookAtRH(mouseLook.position, mouseLook.position + mouseLook.forward, glm::vec3(0,0,1));
+  } else {
+    mouseLook.SetFromGame(ToGLMVec(cam->p_stGlobalMatrix->stPos), -glm::vec3(camMatrix[1]));
+    view = glm::lookAtRH(mouseLook.position, mouseLook.position + mouseLook.forward, glm::vec3(camMatrix[2]));
+  }
+
+  if (!useMouseLook || !captureMouseLookInput) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    if (wasTeleporting) {
+      wasTeleporting = false;
+      *GAM_g_ucIsEdInGhostMode = false;
+    }
+  }
+
+  mouseLook.Update(window);
+
+  glm::mat4 proj = glm::perspective(1.0f / cam->hLinkedObject.p_stActor->hCineInfo->hCurrent->xFocal, (float)display_w / (float)display_h, 0.1f, 10000.0f);
  
-  shader->setMat4("model", model);
-  shader->setMat4("view", view);
-  shader->setMat4("projection", proj);
+  shader->setMat4("uModel", model);
+  shader->setMat4("uView", view);
+  shader->setMat4("uProjection", proj);
+  shader->use();
 
   renderSPO(*GAM_g_p_stFatherSector);
   renderSPO(*GAM_g_p_stDynamicWorld);

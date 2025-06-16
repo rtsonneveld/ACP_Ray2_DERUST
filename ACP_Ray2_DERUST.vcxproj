@@ -404,6 +404,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="include\glm\vec3.hpp" />
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
+    <ClInclude Include="src\rendering\mouselook.h" />
     <ClInclude Include="src\derust.h" />
     <ClInclude Include="src\mod\globals.h" />
     <ClInclude Include="src\mod\state.h" />
@@ -446,6 +447,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="implot\implot_items.cpp" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\glm\glm.cppm" />
+    <ClCompile Include="src\rendering\mouselook.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\mod\cpa_functions.c">
     </ClCompile>

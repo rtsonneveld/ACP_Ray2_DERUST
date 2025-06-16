@@ -105,6 +105,7 @@ void MOD_fn_vEngine()
 		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
+
 	DR_UI_Update();
 
 	GAM_fn_vEngine();
@@ -151,6 +152,11 @@ void MOD_fn_vEngine()
 	}
 }
 
+void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
+	SPTXT_vPrintFmtLine("DERUST %s - Press TAB", DERUST_VERSION);
+}
+
+
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
@@ -164,6 +170,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			DR_RemoveLoadScreens();
 
 			SPTXT_vInit();
+			SPTXT_vAddTextCallback(VersionDisplay);
 
 			break;
 
