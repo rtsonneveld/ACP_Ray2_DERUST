@@ -160,8 +160,6 @@ Mesh::~Mesh()
 
 void Mesh::draw(Shader * shader)
 {
-  //shader->setColor("uColor", color);
-
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, numVertices);
 }

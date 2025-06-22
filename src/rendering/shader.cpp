@@ -27,8 +27,12 @@ void Shader::use() {
   glUseProgram(ID);
 }
 
-void Shader::setColor(const std::string& name, const glm::vec4& color) const {
-  glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &color[0]);
+void Shader::setFloat(const std::string& name, const float value) const {
+  glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::setVec4(const std::string& name, const glm::vec4& vec4) const {
+  glUniform4f(glGetUniformLocation(ID, name.c_str()), vec4.x, vec4.y, vec4.z, vec4.w);
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {

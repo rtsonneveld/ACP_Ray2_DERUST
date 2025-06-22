@@ -16,6 +16,7 @@ uniform vec4 minBrightness = vec4(0.05, 0.05, 0.05, 1.0);
 uniform vec4 maxBrightness = vec4(1.1, 1.1, 1.1, 1.0);
 
 uniform vec4 uColor = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float uAlphaMult = 1.0;
 
 void main() {
     
@@ -27,10 +28,11 @@ void main() {
     FragColor = baseColorFloors;
 
     if (faceNorm.z < 0.707106781187) { // 1/sqrt(2)
-      FragColor = baseColorWalls;
+      //FragColor = baseColorWalls;
     }
     FragColor *= uColor;
     FragColor *= mix(minBrightness, maxBrightness, diff);
+    FragColor.a *= uAlphaMult;
 }
 
 )"""";

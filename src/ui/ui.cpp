@@ -142,12 +142,6 @@ void DR_UI_Update() {
 
   int display_w, display_h;
   glfwGetFramebufferSize(window, &display_w, &display_h);
-  glViewport(0, 0, display_w, display_h);
-  glClearColor(0,0,0,0);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   scene.render(window, display_w, display_h);
 

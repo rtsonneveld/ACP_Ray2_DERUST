@@ -8,7 +8,6 @@ public:
   Mesh() = default;
 
   Mesh(std::vector<float> vertices, std::vector<unsigned int> indices);
-  glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
   static Mesh createSphere(float radius = 1.0f, glm::vec3 offset = glm::vec3(0, 0, 0), int n_stacks = 16, int n_slices = 16);
   ~Mesh();
   void draw(Shader * shader);

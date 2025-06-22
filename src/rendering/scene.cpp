@@ -6,6 +6,12 @@
 #include <imgui.h>
 #include "mod/globals.h"
 
+#define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
+#define COLOR_ZDE glm::vec4(1.0f, 1.0f, 0.0f, 0.5f)
+#define COLOR_ZDM glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)
+#define COLOR_ZDR glm::vec4(0.75f, 0.75f, 1.0f, 1.0f)
+#define COLOR_DEFAULT glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+
 extern bool dbg_drawCollision;
 extern bool dbg_drawVisuals;
 
@@ -35,9 +41,16 @@ void Scene::renderActorCollSet(ZDX_tdstCollSet* collSet) {
   if (collSet == nullptr) return;
   if (!dbg_drawCollision) return;
 
+  shader->setVec4("uColor", COLOR_ZDD);
   renderZdxList(collSet->hZddList);
+
+  shader->setVec4("uColor", COLOR_ZDE);
   renderZdxList(collSet->hZdeList);
+
+  shader->setVec4("uColor", COLOR_ZDM);
   renderZdxList(collSet->hZdmList);
+
+  shader->setVec4("uColor", COLOR_ZDR);
   renderZdxList(collSet->hZdrList);
 }
 
@@ -66,6 +79,7 @@ void Scene::renderPhysicalObjectVisual(PO_tdstPhysicalObject* po)
   auto geomObj = po->hVisualSet->d_p_stLodDefinitions[0];
 
   GeometricObjectMesh ipoMeshVisual = *GeometricObjectMesh::get(geomObj);
+  shader->setVec4("uColor", COLOR_DEFAULT);
   ipoMeshVisual.draw(shader);
 }
 
@@ -77,30 +91,63 @@ void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
 
   if (collSet->hZdd != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
+    shader->setVec4("uColor", COLOR_ZDD);
     ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZde != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
+    shader->setVec4("uColor", COLOR_ZDE);
     ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZdm != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
+    shader->setVec4("uColor", COLOR_ZDM);
     ipoMeshCollision.draw(shader);
   }
 
   if (collSet->hZdr != nullptr) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
+    shader->setVec4("uColor", COLOR_ZDR);
     ipoMeshCollision.draw(shader);
   }
 }
 
-void Scene::renderSPO(HIE_tdstSuperObject* spo) {
+void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
 
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
 
   shader->setMat4("uModel", model);
+
+  bool mirrored = glm::determinant(model) < 0.0f;
+
+  if (mirrored) {
+    glFrontFace(GL_CW); // Clockwise is front-facing
+  }  else {
+    glFrontFace(GL_CCW); // Default: Counter-clockwise is front-facing
+  }
+
+  if (spo->ulType & HIE_C_Type_Sector) {
+
+    auto sector = spo->hLinkedObject.p_stSector;
+    auto currentSector = GAM_g_stEngineStructure->g_hMainActor->hLinkedObject.p_stActor->hSectInfo->hCurrentSector->hLinkedObject.p_stSector;
+
+    inActiveSector = false;
+    if (sector == currentSector) {
+      inActiveSector = true;
+    } else {
+      
+      auto iterSector = currentSector->stListOfSectorsInActivityInteraction.hFirstElementSta;
+      LST_M_StaticForEach(&currentSector->stListOfSectorsInActivityInteraction, iterSector) {
+        if (iterSector->hPointerOfSectorSO->hLinkedObject.p_stSector == sector) {
+          inActiveSector = true;
+        }
+      }
+    }
+  }
+
+  shader->setFloat("uAlphaMult", inActiveSector ? 1.0f : 0.5f);
 
   if (spo->ulType & HIE_C_Type_IPO) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
@@ -126,13 +173,24 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo) {
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
-    renderSPO(child);
+    renderSPO(child, inActiveSector);
   }
 }
 
 void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   assert(shader != nullptr);
   assert(camera != nullptr);
+
+  glViewport(0, 0, display_w, display_h);
+  glClearColor(0, 0, 0, 0);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
+  glFrontFace(GL_CCW);
+  glCullFace(GL_BACK);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
   glm::mat4 model = glm::mat4(1.0f);
   
@@ -156,7 +214,8 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
       // Teleport with space
       if (ImGui::IsKeyDown(ImGuiKey_Space)) {
         auto newPos = FromGLMVec(mouseLook.position);
-        g_DR_rayman->p_stGlobalMatrix->stPos = newPos;
+        g_DR_rayman->hFatherDyn = *GAM_g_p_stDynamicWorld;
+        g_DR_rayman->p_stLocalMatrix->stPos = newPos;
         auto dynam = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics;
         dynam->stDynamicsBase.stPreviousMatrix.stPos = newPos;
         dynam->stDynamicsBase.stCurrentMatrix.stPos = newPos;
@@ -185,9 +244,10 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   shader->setMat4("uModel", model);
   shader->setMat4("uView", view);
   shader->setMat4("uProjection", proj);
+  shader->setFloat("uAlphaMult", 1.0f);
   shader->use();
 
-  renderSPO(*GAM_g_p_stFatherSector);
-  renderSPO(*GAM_g_p_stDynamicWorld);
-  renderSPO(*GAM_g_p_stInactiveDynamicWorld);
+  renderSPO(*GAM_g_p_stFatherSector, true);
+  renderSPO(*GAM_g_p_stDynamicWorld, true);
+  renderSPO(*GAM_g_p_stInactiveDynamicWorld, false);
 }
