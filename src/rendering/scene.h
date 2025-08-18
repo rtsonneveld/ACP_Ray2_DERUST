@@ -10,8 +10,7 @@
 #include "rendering/shader.h"
 #include "rendering/camera.h"
 #include "rendering/mesh.h"
-#include "rendering/shaders/vertexShader.h"
-#include "rendering/shaders/fragmentShader.h"
+#include "rendering/shaders/basic.h"
 
 #include <ACP_Ray2.h>
 #include <GAM/GAM.h>

@@ -28,6 +28,10 @@ Scene scene;
 // DEBUG
 bool dbg_drawCollision = false;
 bool dbg_drawVisuals = true;
+bool dbg_drawZDD = true;
+bool dbg_drawZDE = true;
+bool dbg_drawZDM = true;
+bool dbg_drawZDR = true;
 
 // Main code
 int DR_UI_Init(HWND a_window_r2)
@@ -78,6 +82,8 @@ int DR_UI_Init(HWND a_window_r2)
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImPlot::CreateContext();
+  ImNodes::CreateContext();
+
   io = &ImGui::GetIO(); (void)io;
   io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -138,6 +144,13 @@ void DR_UI_Update() {
     dbg_drawCollision = !dbg_drawCollision;
   }
 
+  if (dbg_drawCollision) {
+    ImGui::Checkbox("ZDD (Detection Zones)",     &dbg_drawZDD);
+    ImGui::Checkbox("ZDE (Event Zones)",         &dbg_drawZDE);
+    ImGui::Checkbox("ZDM (Mechanics Zones)",     &dbg_drawZDM);
+    ImGui::Checkbox("ZDR (Repositioning Zones)", &dbg_drawZDR);
+  }
+
   ImGui::Render();
 
   int display_w, display_h;
@@ -163,6 +176,7 @@ void DR_UI_DeInit() {
   ImGui_ImplGlfw_Shutdown();
   ImPlot::DestroyContext();
   ImGui::DestroyContext();
+  ImNodes::DestroyContext();
 
   glfwDestroyWindow(window);
   glfwTerminate();

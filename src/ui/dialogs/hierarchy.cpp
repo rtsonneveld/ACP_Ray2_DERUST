@@ -7,7 +7,11 @@
 // C INCLUDE
 #include "mod/globals.h"
 
+#if _DEBUG
+bool DR_DLG_Hierarchy_Enabled = true;
+#else
 bool DR_DLG_Hierarchy_Enabled = false;
+#endif
 
 void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
   int childCount = LST_M_DynamicGetNbOfElements(spo);

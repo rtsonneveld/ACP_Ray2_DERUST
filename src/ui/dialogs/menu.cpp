@@ -173,6 +173,7 @@ void DR_DLG_Menu_Draw() {
     if (ImGui::BeginMenu("Windows")) {
       ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
       ImGui::MenuItem("Inspector", nullptr, &DR_DLG_Inspector_Enabled);
+      ImGui::MenuItem("AI Model", nullptr, &DR_DLG_AIModel_Enabled);
       ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
       ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
       ImGui::EndMenu();

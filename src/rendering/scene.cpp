@@ -5,6 +5,7 @@
 #include "mouselook.h"
 #include <imgui.h>
 #include "mod/globals.h"
+#include <ui/dialogs/inspector.hpp>
 
 #define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
 #define COLOR_ZDE glm::vec4(1.0f, 1.0f, 0.0f, 0.5f)
@@ -14,6 +15,10 @@
 
 extern bool dbg_drawCollision;
 extern bool dbg_drawVisuals;
+extern bool dbg_drawZDD;
+extern bool dbg_drawZDE;
+extern bool dbg_drawZDM;
+extern bool dbg_drawZDR;
 
 MouseLook mouseLook;
 bool useMouseLook = false;
@@ -22,9 +27,13 @@ bool wasTeleporting = false;
 
 float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
+Mesh sphere;
+
 void Scene::init() {
-  shader = new Shader(vertexShader, fragmentShader);
+  shader = new Shader(Shaders::Basic::Vertex, Shaders::Basic::Fragment);
   camera = new Camera(glm::vec3(1.5f, 1.5f, 1.5f));
+
+  sphere = Mesh::createSphere(1.0f);
 }
 
 void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po) {
@@ -41,17 +50,25 @@ void Scene::renderActorCollSet(ZDX_tdstCollSet* collSet) {
   if (collSet == nullptr) return;
   if (!dbg_drawCollision) return;
 
-  shader->setVec4("uColor", COLOR_ZDD);
-  renderZdxList(collSet->hZddList);
+  if (dbg_drawZDD) {
+    shader->setVec4("uColor", COLOR_ZDD);
+    renderZdxList(collSet->hZddList);
+  }
 
-  shader->setVec4("uColor", COLOR_ZDE);
-  renderZdxList(collSet->hZdeList);
+  if (dbg_drawZDE) {
+    shader->setVec4("uColor", COLOR_ZDE);
+    renderZdxList(collSet->hZdeList);
+  }
 
-  shader->setVec4("uColor", COLOR_ZDM);
-  renderZdxList(collSet->hZdmList);
+  if (dbg_drawZDM) {
+    shader->setVec4("uColor", COLOR_ZDM);
+    renderZdxList(collSet->hZdmList);
+  }
 
-  shader->setVec4("uColor", COLOR_ZDR);
-  renderZdxList(collSet->hZdrList);
+  if (dbg_drawZDR) {
+    shader->setVec4("uColor", COLOR_ZDR);
+    renderZdxList(collSet->hZdrList);
+  }
 }
 
 void Scene::renderZdxList(ZDX_tdstZdxList* list) {
@@ -89,25 +106,25 @@ void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
   auto collSet = po->hCollideSet;
   if (collSet == nullptr) return;
 
-  if (collSet->hZdd != nullptr) {
+  if (collSet->hZdd != nullptr && dbg_drawZDD) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
     shader->setVec4("uColor", COLOR_ZDD);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZde != nullptr) {
+  if (collSet->hZde != nullptr && dbg_drawZDE) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
     shader->setVec4("uColor", COLOR_ZDE);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZdm != nullptr) {
+  if (collSet->hZdm != nullptr && dbg_drawZDM) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
     shader->setVec4("uColor", COLOR_ZDM);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZdr != nullptr) {
+  if (collSet->hZdr != nullptr && dbg_drawZDR) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
     shader->setVec4("uColor", COLOR_ZDR);
     ipoMeshCollision.draw(shader);
@@ -169,6 +186,21 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
     if (actor != nullptr && spo != GAM_g_stEngineStructure->g_hStdCamCharacter) {
       renderActorCollSet(actor->hCollSet);
     }
+  }
+
+  if (spo == g_DR_selectedObject && DR_DLG_Inspector_DebugSphereEnabled) {
+
+    glm::vec3 position = glm::vec3(model[3]);  // last column is translation in GLM
+
+    // Your custom scale
+    glm::vec3 scale(DR_DLG_Inspector_DebugSphereRadius, DR_DLG_Inspector_DebugSphereRadius, DR_DLG_Inspector_DebugSphereRadius);
+
+    // Build a new matrix with only position and scale
+    glm::mat4 debugSphereModelMatrix = glm::translate(glm::mat4(1.0f), position);
+    debugSphereModelMatrix = glm::scale(debugSphereModelMatrix, scale);
+    shader->setMat4("uModel", debugSphereModelMatrix);
+    shader->setVec4("uColor", COLOR_DEFAULT);
+    sphere.draw(shader);
   }
 
   HIE_tdstSuperObject* child;

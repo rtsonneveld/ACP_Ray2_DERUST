@@ -106,6 +106,10 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="imgui\imnodes.h" />
+    <ClInclude Include="imgui\imnodes_internal.h" />
+    <ClInclude Include="src\mod\ai_strings.h" />
+    <ClInclude Include="src\ui\comportnodegraph.hpp" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -418,10 +422,10 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\mesh.h" />
     <ClInclude Include="src\rendering\scene.h" />
     <ClInclude Include="src\rendering\shader.h" />
-    <ClInclude Include="src\rendering\shaders\fragmentshader.h" />
-    <ClInclude Include="src\rendering\shaders\vertexshader.h" />
+    <ClInclude Include="src\rendering\shaders\basic.h" />
     <ClInclude Include="src\ui\comportNames.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
+    <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
     <ClInclude Include="src\ui\dialogs\dialogs.hpp" />
     <ClInclude Include="src\ui\dialogs\hierarchy.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector.hpp" />
@@ -435,6 +439,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="imgui\imnodes.cpp" />
+    <ClCompile Include="src\mod\ai_strings.c" />
+    <ClCompile Include="src\ui\comportnodegraph.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -466,6 +473,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\shader.cpp" />
     <ClCompile Include="src\ui\comportNames.cpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
+    <ClCompile Include="src\ui\dialogs\aimodel.cpp" />
     <ClCompile Include="src\ui\dialogs\dialogs.cpp" />
     <ClCompile Include="src\ui\dialogs\hierarchy.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector.cpp" />

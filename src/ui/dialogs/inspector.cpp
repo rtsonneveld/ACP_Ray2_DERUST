@@ -11,6 +11,8 @@
 #include <ACP_Ray2.h>
 
 bool DR_DLG_Inspector_Enabled = FALSE;
+bool DR_DLG_Inspector_DebugSphereEnabled = FALSE;
+float DR_DLG_Inspector_DebugSphereRadius = 1.0f;
 
 void DR_DLG_Inspector_Draw() {
 
@@ -23,6 +25,11 @@ void DR_DLG_Inspector_Draw() {
       HIE_tdstSuperObject* spo = g_DR_selectedObject; // Alias
 
       ImGui::Text(SPO_Name(spo).c_str());
+
+      ImGui::Checkbox("Debug Sphere", &DR_DLG_Inspector_DebugSphereEnabled);
+      if (DR_DLG_Inspector_DebugSphereEnabled) {
+        ImGui::InputFloat("Radius", &DR_DLG_Inspector_DebugSphereRadius);
+      }
 
       switch (spo->ulType) {
         case HIE_C_Type_Unknown: break;

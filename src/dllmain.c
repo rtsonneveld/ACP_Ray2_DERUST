@@ -132,8 +132,12 @@ void MOD_fn_vEngine()
 		}
 	}
 
-	if (g_DR_rayman == NULL)
+	if (g_DR_rayman == NULL) {
 		g_DR_rayman = HIE_fn_p_stFindObjectByName("rayman");
+#if _DEBUG
+		g_DR_selectedObject = g_DR_rayman;
+#endif
+	}
 
 	CreateAlwaysRaymanObject();
 
