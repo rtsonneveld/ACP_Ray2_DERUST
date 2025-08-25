@@ -23,54 +23,242 @@ const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
 bool selectedComportIsReflex = false;
 
+std::string AI_BuildExpression(const AI_tdstNodeInterpret* node,
+  const AI_tdstNodeInterpret* end,
+  unsigned char depth)
+{
+  std::string expr;
+
+  while (node < end && node->eType != AI_E_ti_EndTree && node->ucDepth >= depth)
+  {
+    if (node->ucDepth > depth) {
+      ++node;
+      continue; // deeper, already consumed by child builder
+    }
+
+    const char* text = AI_GetNodeString(node);
+
+    // ---- Handle by type ----
+    switch (node->eType)
+    {
+    case AI_E_ti_Condition: {
+      AI_tdeCondition cond = static_cast<AI_tdeCondition>(node->uParam.ulValue);
+      if (cond == AI_E_cond_Not) {
+        // Unary condition
+        std::string rhs = AI_BuildExpression(node + 1, end, depth + 1);
+        expr += "(!" + rhs + ")";
+      }
+      else {
+        // Binary condition
+        std::string lhs = AI_BuildExpression(node + 1, end, depth + 1);
+
+        // Find sibling at same depth for rhs
+        const AI_tdstNodeInterpret* next = node + 1;
+        while (next < end && next->eType != AI_E_ti_EndTree) {
+          if (next->ucDepth == depth + 1) break;
+          if (next->ucDepth <= depth) { next = nullptr; break; }
+          ++next;
+        }
+        std::string rhs = next ? AI_BuildExpression(next, end, depth + 1) : "";
+
+        expr += "(" + lhs + " " + std::string(text) + " " + rhs + ")";
+      }
+      ++node;
+      break;
+    }
+
+    case AI_E_ti_Operator: {
+      AI_tdeOperator op = static_cast<AI_tdeOperator>(node->uParam.ulValue);
+      if (op == AI_E_op_UnaryMinus || op == AI_E_op_VectorUnaryMinus) {
+        // Unary operator
+        std::string rhs = AI_BuildExpression(node + 1, end, depth + 1);
+        expr += "(-" + rhs + ")";
+      } else if (op == AI_E_op_Affect) {
+        // Binary operator
+        std::string lhs = AI_BuildExpression(node + 1, end, depth + 1);
+
+        const AI_tdstNodeInterpret* next = node + 1;
+        while (next < end && next->eType != AI_E_ti_EndTree) {
+          if (next->ucDepth == depth + 1) break;
+          if (next->ucDepth <= depth) { next = nullptr; break; }
+          ++next;
+        }
+        std::string rhs = next ? AI_BuildExpression(next, end, depth + 1) : "";
+
+        expr += lhs + " = " + rhs;
+      } else {
+        // Binary operator
+        std::string lhs = AI_BuildExpression(node + 1, end, depth + 1);
+
+        const AI_tdstNodeInterpret* next = node + 1;
+        while (next < end && next->eType != AI_E_ti_EndTree) {
+          if (next->ucDepth == depth + 1) break;
+          if (next->ucDepth <= depth) { next = nullptr; break; }
+          ++next;
+        }
+        std::string rhs = next ? AI_BuildExpression(next, end, depth + 1) : "";
+
+        expr += "(" + lhs + " " + std::string(text) + " " + rhs + ")";
+      }
+      ++node;
+      break;
+    }
+
+    case AI_E_ti_KeyWord: {
+      // Special forms like If/Then/Else
+      if (node->uParam.ulValue == AI_E_kw_If) {
+        std::string cond = AI_BuildExpression(node + 1, end, depth + 1);
+        expr += "if " + cond;
+      }
+      else if (node->uParam.ulValue == AI_E_kw_Then) {
+        std::string body = AI_BuildExpression(node + 1, end, depth + 1);
+        expr += " then " + body;
+      }
+      else if (node->uParam.ulValue == AI_E_kw_Else) {
+        std::string body = AI_BuildExpression(node + 1, end, depth + 1);
+        expr += " else " + body;
+      }
+      else {
+        expr += text;
+      }
+      ++node;
+      break;
+    }
+
+    default:
+      // Leaf
+      expr += text;
+      ++node;
+      break;
+    }
+  }
+
+  return expr;
+}
+
+// Builds expression for a single node (and consumes its subtree).
+// Returns <expr, nextNodeAfterThisSubtree>
+std::pair<std::string, const AI_tdstNodeInterpret*>
+AI_BuildNodeExpression(const AI_tdstNodeInterpret* node,
+  const AI_tdstNodeInterpret* end)
+{
+  if (node >= end || node->eType == AI_E_ti_EndTree)
+    return { "", node };
+
+  unsigned char depth = node->ucDepth;
+  const char* text = AI_GetNodeString(node);
+
+  std::string expr;
+
+  switch (node->eType)
+  {
+  case AI_E_ti_Condition: {
+    AI_tdeCondition cond = static_cast<AI_tdeCondition>(node->uParam.ulValue);
+    if (cond == AI_E_cond_Not) {
+      auto [rhs, after] = AI_BuildNodeExpression(node + 1, end);
+      expr = "(!" + rhs + ")";
+      return { expr, after };
+    }
+    else {
+      auto [lhs, afterL] = AI_BuildNodeExpression(node + 1, end);
+      auto [rhs, afterR] = AI_BuildNodeExpression(afterL, end);
+      expr = "(" + lhs + " " + std::string(text) + " " + rhs + ")";
+      return { expr, afterR };
+    }
+  }
+
+  case AI_E_ti_Operator: {
+    AI_tdeOperator op = static_cast<AI_tdeOperator>(node->uParam.ulValue);
+    if (op == AI_E_op_UnaryMinus || op == AI_E_op_VectorUnaryMinus) {
+      auto [rhs, after] = AI_BuildNodeExpression(node + 1, end);
+      expr = "(-" + rhs + ")";
+      return { expr, after };
+    }
+    else {
+      auto [lhs, afterL] = AI_BuildNodeExpression(node + 1, end);
+      auto [rhs, afterR] = AI_BuildNodeExpression(afterL, end);
+      expr = "(" + lhs + " " + std::string(text) + " " + rhs + ")";
+      return { expr, afterR };
+    }
+  }
+
+  case AI_E_ti_KeyWord: {
+    if (node->uParam.ulValue == AI_E_kw_If) {
+      auto [cond, after] = AI_BuildNodeExpression(node + 1, end);
+      expr = "if " + cond;
+      return { expr, after };
+    }
+    else if (node->uParam.ulValue == AI_E_kw_Then) {
+      auto [body, after] = AI_BuildNodeExpression(node + 1, end);
+      expr = "then " + body;
+      return { expr, after };
+    }
+    else if (node->uParam.ulValue == AI_E_kw_Else) {
+      auto [body, after] = AI_BuildNodeExpression(node + 1, end);
+      expr = "else " + body;
+      return { expr, after };
+    }
+    else {
+      return { std::string(text), node + 1 };
+    }
+  }
+
+  default:
+    // Leaf
+    return { std::string(text), node + 1 };
+  }
+}
+
+
 void DR_DLG_AIModel_Draw_Rule(const AI_tdstTreeInterpret& tree)
 {
   const AI_tdstNodeInterpret* node = &tree.p_stNodeInterpret[0];
-  int stackDepth = 1; // how many TreePush() we actually performed
+  int stackDepth = 1;
+  const AI_tdstNodeInterpret* end = node;
+  while (end->eType != AI_E_ti_EndTree) ++end;
 
-  for (;; ++node)
-  {
+  for (;; ++node) {
     if (node->eType == AI_E_ti_EndTree)
       break;
 
     const unsigned char depth = node->ucDepth;
 
-    // If we're under a closed parent, skip nodes until we come back up.
     if (depth > stackDepth)
       continue;
 
-    // Climb up to this node's parent depth.
     while (stackDepth > depth) {
       ImGui::TreePop();
       --stackDepth;
     }
 
-    // Peek the next node to know if this is a leaf.
     const AI_tdstNodeInterpret* next = node + 1;
     const bool has_next = (next->eType != AI_E_ti_EndTree);
     const bool has_children = has_next && (next->ucDepth > depth);
 
     if (!has_children) {
-      // Leaf: render without pushing.
       ImGui::TreeNodeEx((void*)node,
         ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen,
-        AI_GetNodeString(node), node->eType, depth);
-      // stackDepth unchanged
+        "%s", AI_GetNodeString(node));
     }
     else {
-      // Non-leaf: only push if actually open.
-      const bool open = ImGui::TreeNode((void*)node, AI_GetNodeString(node));
+      bool open = ImGui::TreeNode((void*)node, "%s", AI_GetNodeString(node));
       if (open) {
-        ++stackDepth; // We pushed; children will be processed.
+        ++stackDepth;
+      }
+      else {
+        auto [expr, after] = AI_BuildNodeExpression(node, end);
+        if (!expr.empty()) {
+          ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+          ImGui::TextDisabled("%s", expr.c_str());
+          ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+        }
       }
     }
   }
 
-  // Close any remaining open nodes.
   while (stackDepth-- > 1)
     ImGui::TreePop();
 }
-
 
 
 void DR_DLG_AIModel_Draw_Comport(AI_tdstComport comport) {
