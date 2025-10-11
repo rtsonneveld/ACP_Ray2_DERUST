@@ -26,6 +26,9 @@ void DR_DLG_Inspector_Draw() {
 
       ImGui::Text(SPO_Name(spo).c_str());
 
+      ImGui::DragFloat3("GlobalMatrix.Position", (float*)&spo->p_stGlobalMatrix->stPos);
+      ImGui::DragFloat3("LocalMatrix.Position",  (float*)&spo->p_stLocalMatrix->stPos);
+
       ImGui::Checkbox("Debug Sphere", &DR_DLG_Inspector_DebugSphereEnabled);
       if (DR_DLG_Inspector_DebugSphereEnabled) {
         ImGui::InputFloat("Radius", &DR_DLG_Inspector_DebugSphereRadius);

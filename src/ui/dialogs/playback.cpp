@@ -3,11 +3,18 @@
 
 // C INCLUDE
 #include "mod/state.h"
+#include "mod/savestates.h"
 
 #include <ACP_Ray2.h>
+#include <vector>
+#include <windows.h>
+#include <iostream>
+#include <psapi.h>
 
 bool DR_DLG_Playback_Enabled = FALSE;
 int colliderType = 52;
+
+//SS_Snapshot state;
 
 void DR_DLG_Playback_Draw() {
 
@@ -42,6 +49,15 @@ void DR_DLG_Playback_Draw() {
       pRayman->hCollSet->stColliderInfo.ucColliderType = colliderType;
       pRayman->hCollSet->stColliderInfo.ucColliderPriority = 255;
       pRayman->hStandardGame->ucHitPoints--;
+    }
+
+    if (ImGui::Button("Save State")) {
+
+      SS_SaveState();
+    }
+
+    if (ImGui::Button("Load State")) {
+      SS_LoadState();
     }
   }
   ImGui::End();

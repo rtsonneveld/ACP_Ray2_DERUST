@@ -61,9 +61,9 @@ std::string SPO_Name(HIE_tdstSuperObject* spo) {
       case HIE_C_Type_PO: label << "PO "; break;
       case HIE_C_Type_Actor: label << "Actor "; break;
     }
-    
-    label << "0x" << std::hex << std::uppercase << (void*)spo;
   }
+
+  label << " @0x" << std::hex << std::uppercase << (void*)spo;
 
   return label.str();
 }

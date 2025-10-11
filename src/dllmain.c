@@ -2,9 +2,11 @@
 // All files inside UI are C++
 
 #include <Windows.h>
+#include <stdio.h>
 #include "mod/cpa_functions.h"
 #include "mod/util.h"
 #include "mod/state.h"
+#include "mod/savestates.h"
 #include "mod/globals.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
@@ -99,6 +101,24 @@ void MOD_fn_vChooseTheGoodDesInit() {
 	GAM_fn_vChooseTheGoodDesInit();
 }
 
+LONG LogExceptionFilter(PEXCEPTION_POINTERS ep) {
+	if (!ep || !ep->ExceptionRecord) {
+		OutputDebugStringA("Filter: missing ep\n");
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+
+	char buf[256];
+	_snprintf_s(buf, sizeof(buf), _TRUNCATE,
+		"Filter: code=0x%08X addr=%p params=%u\n",
+		(unsigned)ep->ExceptionRecord->ExceptionCode,
+		ep->ExceptionRecord->ExceptionAddress,
+		(unsigned)ep->ExceptionRecord->NumberParameters);
+
+	OutputDebugStringA(buf);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
 void MOD_fn_vEngine()
 {
 	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
@@ -108,7 +128,14 @@ void MOD_fn_vEngine()
 
 	DR_UI_Update();
 
-	GAM_fn_vEngine();
+	__try {
+		GAM_fn_vEngine();
+	}
+	__except (LogExceptionFilter(GetExceptionInformation())) {
+		__debugbreak();
+
+		g_DR_Playback.pause = TRUE;
+	}
 
 	if (g_DR_Playback.pause) {
 
@@ -160,16 +187,25 @@ void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
 	SPTXT_vPrintFmtLine("DERUST %s - Press TAB", DERUST_VERSION);
 }
 
-
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
 	{
 		case DLL_PROCESS_ATTACH:
 
+			AllocConsole();
+			FILE* f;
+			freopen_s(&f, "CONOUT$", "w", stdout);
+			freopen_s(&f, "CONOUT$", "w", stderr);
+
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
+			FHK_fn_lCreateHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
+			FHK_fn_lCreateHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
+			FHK_fn_lCreateHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
+			FHK_fn_lCreateHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
+			FHK_fn_lCreateHook((size_t**)&SNA_fn_ulFRead, (size_t)MOD_fn_ulFRead);
 
 			DR_RemoveLoadScreens();
 

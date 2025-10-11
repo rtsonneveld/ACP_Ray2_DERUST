@@ -5,6 +5,8 @@
 
 // C INCLUDE
 #include "ui/ui_bridge.h"
+#include <ACP_Ray2.h>
+#include "mod/globals.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -137,6 +139,10 @@ void DR_UI_Update() {
 
   DR_DLG_Draw(window_r2);
 
+  if (g_DR_rayman != nullptr && g_DR_rayman->hLinkedObject.p_stActor != nullptr && g_DR_rayman->hLinkedObject.p_stActor->h3dData != nullptr) {
+    ImGui::Text("Rayman AnimFrame %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->uwCurrentFrame);
+    ImGui::Text("Rayman End of Anim Flag %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->ucFlagEndOfAnim);
+  }
   ImGui::Checkbox("Draw visuals", &dbg_drawVisuals);
   ImGui::Checkbox("Draw collision", &dbg_drawCollision);
   if (ImGui::Button("Toggle")) {

@@ -14,5 +14,5 @@ typedef struct {
 extern DR_State_Playback g_DR_Playback;
 
 #ifdef __cplusplus
-    }
+}
 #endif
