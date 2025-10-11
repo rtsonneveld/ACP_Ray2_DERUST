@@ -3,7 +3,6 @@
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/comportNames.hpp"
-#include "ui/comportnodegraph.hpp"
 #include <sstream>
 
 // C INCLUDE
