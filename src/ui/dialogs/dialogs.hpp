@@ -4,6 +4,7 @@
 
 #include "hierarchy.hpp";
 #include "menu.hpp";
+#include "menu_cheats.hpp"
 #include "playback.hpp"
 #include "practicetools.hpp"
 #include "inspector.hpp"

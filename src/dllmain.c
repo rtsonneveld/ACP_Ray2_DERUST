@@ -8,6 +8,7 @@
 #include "mod/state.h"
 #include "mod/savestates.h"
 #include "mod/globals.h"
+#include "mod/cheats.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
 
@@ -127,6 +128,7 @@ void MOD_fn_vEngine()
 	}
 
 	DR_UI_Update();
+	DR_Cheats_Apply();
 
 	__try {
 		GAM_fn_vEngine();
@@ -164,6 +166,10 @@ void MOD_fn_vEngine()
 #if _DEBUG
 		g_DR_selectedObject = g_DR_rayman;
 #endif
+	}
+
+	if (g_DR_global == NULL) {
+		g_DR_global = HIE_fn_p_stFindObjectByName("global");
 	}
 
 	CreateAlwaysRaymanObject();

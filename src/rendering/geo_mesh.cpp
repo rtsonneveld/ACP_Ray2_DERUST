@@ -46,12 +46,17 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 
     GEO_tdstElementIndexedTriangles* elemTris;
     GEO_tdstElementSpheres* elemSpheres;
+    
+    unsigned short colMat = 0;
 
     switch (geomObj->d_xListOfElementsTypes[i]) {
       case GEO_C_xElementNULL: break;
 
       case GEO_C_xElementIndexedTriangles:
         elemTris = (GEO_tdstElementIndexedTriangles*)element;
+        colMat = elemTris->hMaterial != nullptr && elemTris->hMaterial->hCollideMaterial != nullptr && 
+          (int)elemTris->hMaterial->hCollideMaterial != 0xFFFFFFFF ?
+                    elemTris->hMaterial->hCollideMaterial->xIdentifier : 0;
       
         for (int j = 0; j < geomObj->xNbPoints;j++) {
           auto point = geomObj->d_stListOfPoints[j];
@@ -69,7 +74,7 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
           }
         }
 
-        meshes.push_back(Mesh(vertices, indices));
+        meshes.push_back(Mesh(vertices, indices, 1.0f, colMat));
         break;
       case GEO_C_xElementSpheres:
         elemSpheres = (GEO_tdstElementSpheres*)element;

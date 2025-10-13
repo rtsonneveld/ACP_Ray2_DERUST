@@ -19,6 +19,7 @@ extern bool dbg_drawZDD;
 extern bool dbg_drawZDE;
 extern bool dbg_drawZDM;
 extern bool dbg_drawZDR;
+extern bool dbg_transparentZDRWalls;
 
 MouseLook mouseLook;
 bool useMouseLook = false;
@@ -36,8 +37,8 @@ void Scene::init() {
   sphere = Mesh::createSphere(1.0f);
 }
 
-void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po) {
-  if (dbg_drawCollision) {
+void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po, bool hasNoCollisionFlag) {
+  if (dbg_drawCollision && !hasNoCollisionFlag) {
     renderPhysicalObjectCollision(po);
   }
 
@@ -125,14 +126,22 @@ void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
   }
 
   if (collSet->hZdr != nullptr && dbg_drawZDR) {
+
+    if (dbg_transparentZDRWalls) {
+      shader->setBool("transparentWalls", TRUE);
+    }
+
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
     shader->setVec4("uColor", COLOR_ZDR);
     ipoMeshCollision.draw(shader);
+
+    shader->setBool("transparentWalls", FALSE);
   }
 }
 
 void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
 
+  if (spo->ulFlags & HIE_C_Flag_Hidden) return;
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
 
   shader->setMat4("uModel", model);
@@ -170,13 +179,13 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
 
     if (ipo != nullptr) {
-      renderPhysicalObject(ipo->hPhysicalObject);
+      renderPhysicalObject(ipo->hPhysicalObject, spo->ulFlags & HIE_C_Flag_NotPickable);
     }
   } else if (spo->ulType & HIE_C_Type_PO) {
     auto po = spo->hLinkedObject.p_stPhysicalObject;
 
     if (po != nullptr) {
-      renderPhysicalObject(po);
+      renderPhysicalObject(po, spo->ulFlags & HIE_C_Flag_NotPickable);
     }
   }
 

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 extern HIE_tdstSuperObject* g_DR_rayman;
+extern HIE_tdstSuperObject* g_DR_global;
 extern HIE_tdstSuperObject* g_DR_selectedObject;
 
 #ifdef __cplusplus

@@ -189,6 +189,13 @@ void DR_DLG_Menu_Draw() {
       ImGui::EndMenu();
     }
 
+    if (ImGui::BeginMenu("Cheats")) {
+
+      DR_DLG_Cheats_Draw();
+
+      ImGui::EndMenu();
+    }
+
     ImGui::EndMainMenuBar();
   }
 }

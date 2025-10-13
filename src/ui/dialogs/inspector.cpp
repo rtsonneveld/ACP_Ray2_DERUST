@@ -4,6 +4,8 @@
 #include <sstream>
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
+#include "ui/custominputs.hpp"
+#include <vector>
 
 // C INCLUDE
 #include <mod/globals.h>
@@ -28,6 +30,8 @@ void DR_DLG_Inspector_Draw() {
 
       ImGui::DragFloat3("GlobalMatrix.Position", (float*)&spo->p_stGlobalMatrix->stPos);
       ImGui::DragFloat3("LocalMatrix.Position",  (float*)&spo->p_stLocalMatrix->stPos);
+
+      InputBitField("SuperObject Flags", (unsigned long*)&spo->ulFlags, BITFIELD_SPOFLAGS, IM_ARRAYSIZE(BITFIELD_SPOFLAGS));
 
       ImGui::Checkbox("Debug Sphere", &DR_DLG_Inspector_DebugSphereEnabled);
       if (DR_DLG_Inspector_DebugSphereEnabled) {

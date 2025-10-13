@@ -1,5 +1,6 @@
 #include "custominputs.hpp"
 #include "ui/ui.hpp"
+#include <string>
 
 const char* BITFIELD_UNKNOWN[32] = {
     "Flag 0",   // 0x00000001
@@ -36,6 +37,25 @@ const char* BITFIELD_UNKNOWN[32] = {
     "Flag 31"  // 0x80000000
 };
 
+const char* BITFIELD_SPOFLAGS[15] = {
+  
+  "No Collision", // Not Pickable
+  "Hidden", 
+  "No Transformation Matrix", 
+  "Zoom Instead Of Scale", 
+  "Type Of Bounding Volume", 
+  "Superimposed", 
+  "Not Hit By Ray Trace", 
+  "No Shadow On Me", 
+  "Semi Look At", 
+  "Check Children", 
+  "Magnet Modification", 
+  "Module Transparency", 
+  "Exclude Light", 
+  "Superimposed Clipping", 
+  "Outline Mode"
+};
+
 
 const char* BITFIELD_CUSTOMBITS[32] = {
     "UnseenFrozenAnimPlayer",    // 0x00000001
@@ -70,6 +90,17 @@ const char* BITFIELD_CUSTOMBITS[32] = {
     "AIUser3",                   // 0x20000000
     "AIUser4",                   // 0x40000000
     "Rayman"                     // 0x80000000
+};
+
+const char* BITFIELD_STDGAME_MISCFLAGS[8] = {
+  "Desactive at all",
+  "Activable",
+  "Active",
+  "All second pass done",
+  "Always",
+  "Useless culling",
+  "Always active",
+  "Too far"
 };
 
 const char* BITFIELD_DYNAMICS_FLAGS[32] = {
@@ -142,10 +173,33 @@ const char* BITFIELD_DYNAMICS_ENDFLAGS[32] = {
     "Unused (31)"               // 0x80000000
 };
 
-void InputBitField(const char* label, unsigned long* bitfield, const char* bitLabels[]) {
-  if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
+// Helper function to summarize selected flags
+std::string GetSelectedFlagsString(const char * label, uint32_t flags, const char* bitLabels[], int numItems)
+{
+  std::string result;
+
+  for (int i=0;i<numItems;i++)
+  {
+    if (flags & 1<<i)
+    {
+      if (!result.empty()) result += ", ";
+      result += bitLabels[i];
+    }
+  }
+  if (result.empty()) result = "None";
+
+  result = std::string(label) + " (" + result + ")" + "###" + label;
+  return result;
+}
+
+
+void InputBitField(const char* label, unsigned long* bitfield, const char* bitLabels[], int numItems) {
+
+  std::string headerText = GetSelectedFlagsString(label, *bitfield, bitLabels, numItems);
+
+  if (ImGui::CollapsingHeader(headerText.c_str())) {
     if (ImGui::BeginTable("BitfieldTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-      for (int i = 0; i < 32; i++) {
+      for (int i = 0; i < numItems; i++) {
         if (i % 4 == 0) ImGui::TableNextRow();
         ImGui::TableNextColumn();
         unsigned long bitMask = 1UL << i;
@@ -158,4 +212,5 @@ void InputBitField(const char* label, unsigned long* bitfield, const char* bitLa
       ImGui::EndTable();
     }
   }
+
 }

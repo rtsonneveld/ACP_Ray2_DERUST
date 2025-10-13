@@ -34,6 +34,7 @@ bool dbg_drawZDD = true;
 bool dbg_drawZDE = true;
 bool dbg_drawZDM = true;
 bool dbg_drawZDR = true;
+bool dbg_transparentZDRWalls = true;
 
 // Main code
 int DR_UI_Init(HWND a_window_r2)
@@ -155,6 +156,7 @@ void DR_UI_Update() {
     ImGui::Checkbox("ZDE (Event Zones)",         &dbg_drawZDE);
     ImGui::Checkbox("ZDM (Mechanics Zones)",     &dbg_drawZDM);
     ImGui::Checkbox("ZDR (Repositioning Zones)", &dbg_drawZDR);
+    ImGui::Checkbox("Transparent ZDR walls", &dbg_transparentZDRWalls);
   }
 
   ImGui::Render();

@@ -1008,6 +1008,12 @@
     <ClInclude Include="src\mod\savestates.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\dialogs\menu_cheats.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod\cheats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1131,6 +1137,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mod\savestates.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\menu_cheats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\cheats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

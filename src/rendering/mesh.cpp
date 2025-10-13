@@ -3,7 +3,10 @@
 #include <glm/glm.hpp>
 # define M_PI  3.14159265358979323846  // pi
 
-Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
+Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices, float wireThickness, unsigned short collideMaterial) {
+
+  this->wireThickness = wireThickness;
+  this->collideMaterial = collideMaterial;
   numVertices = indices.size();
 
   // Allocate per-vertex smooth normal array
@@ -27,7 +30,6 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
     glm::vec3 edge2 = v2 - v0;
 
     glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
-
     faceNormals[i / 3] = faceNormal;
 
     smoothNormals[i0] += faceNormal;
@@ -40,15 +42,23 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
     n = glm::normalize(n);
   }
 
-  // Prepare per-corner data
+  // Prepare per-corner data (pos + smooth normal + face normal + barycentric)
   std::vector<float> vertexData;
-  vertexData.reserve(indices.size() * 9);
+  vertexData.reserve(indices.size() * 12); // 3(pos) + 3(smoothN) + 3(faceN) + 3(bary) = 12 floats per vertex
+
+  // Define barycentric coordinate set for each corner of a triangle
+  const glm::vec3 baryCoords[3] = {
+      glm::vec3(1, 0, 0),
+      glm::vec3(0, 1, 0),
+      glm::vec3(0, 0, 1)
+  };
 
   for (size_t i = 0; i < indices.size(); ++i) {
     int idx = indices[i];
     int faceIdx = i / 3;
+    int corner = i % 3; // 0, 1, or 2 within a triangle
 
-    // Vertex pos
+    // Vertex position
     vertexData.push_back(vertices[idx * 3 + 0]);
     vertexData.push_back(vertices[idx * 3 + 1]);
     vertexData.push_back(vertices[idx * 3 + 2]);
@@ -63,6 +73,12 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
     vertexData.push_back(faceNormal.x);
     vertexData.push_back(faceNormal.y);
     vertexData.push_back(faceNormal.z);
+
+    // Barycentric coordinate
+    glm::vec3 bary = baryCoords[corner];
+    vertexData.push_back(bary.x);
+    vertexData.push_back(bary.y);
+    vertexData.push_back(bary.z);
   }
 
   // OpenGL buffer setup
@@ -74,17 +90,23 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STATIC_DRAW);
 
-  // Position attribute (location = 0)
+  const GLsizei stride = 12 * sizeof(float);
+
+  // Position (location = 0)
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
 
-  // Smooth normal attribute (location = 1)
+  // Smooth normal (location = 1)
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
 
-  // Face normal attribute (location = 2)
+  // Face normal (location = 2)
   glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+
+  // Barycentric coordinate (location = 3)
+  glEnableVertexAttribArray(3);
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(9 * sizeof(float)));
 }
 
 Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slices) {
@@ -151,7 +173,7 @@ Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slic
     }
   }
 
-  return Mesh(vertices, indices);
+  return Mesh(vertices, indices, 0.0f, 0);
 }
 
 Mesh::~Mesh()
@@ -160,6 +182,9 @@ Mesh::~Mesh()
 
 void Mesh::draw(Shader * shader)
 {
+  shader->setUInt("uCollisionFlags", collideMaterial);
+  shader->setFloat("wireThickness", wireThickness);
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, numVertices);
+  shader->setUInt("uCollisionFlags", 0);
 }

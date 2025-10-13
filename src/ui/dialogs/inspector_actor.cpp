@@ -3,32 +3,63 @@
 #include "ui/ui_util.hpp"
 #include "ui/comportNames.hpp"
 #include "ui/custominputs.hpp"
-#include <sstream>
 
 // C INCLUDE
 #include "mod/dsgvarnames.h"
 #include "mod/globals.h"
 #include "mod/cpa_functions.h"
-
 #include <ACP_Ray2.h>
-#include <vector>
+#include <algorithm>
 
 void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
-
+  static char searchBuffer[128] = "";
   HIE_tdstSuperObject* spo = *p_data;
 
-  if (ImGui::BeginCombo(label, (spo != nullptr ? SPO_Name(spo).c_str() : "null"), ImGuiComboFlags_WidthFitPreview)) {
+  // Make combo wider
+  ImGui::SetNextItemWidth(300.0f); // adjust width as needed
 
-    if (ImGui::Selectable("null", spo == nullptr)) {
-      *p_data = nullptr;
+  if (ImGui::BeginCombo(label, (spo != nullptr ? SPO_Name(spo).c_str() : "null"), ImGuiComboFlags_HeightLarge)) {
+
+    // Reset search on open
+    if (ImGui::IsWindowAppearing()) {
+      searchBuffer[0] = '\0';
+      ImGui::SetKeyboardFocusHere();
     }
 
-    HIE_M_ForEachActor(actor) {
-      if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == spo)) {
-        *p_data = actor;
+    // Floating search box
+    ImGui::PushItemWidth(-1);
+    ImGui::InputTextWithHint("##search", "Search...", searchBuffer, IM_ARRAYSIZE(searchBuffer));
+    ImGui::PopItemWidth();
+
+    ImGui::Separator();
+
+    // Scrollable region
+    ImGui::BeginChild("##combo_scroll", ImVec2(0, 200), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    std::string searchLower(searchBuffer);
+    std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+
+    // Null option
+    if (std::string("null").find(searchLower) != std::string::npos) {
+      if (ImGui::Selectable("null", spo == nullptr)) {
+        *p_data = nullptr;
+        ImGui::CloseCurrentPopup(); // close combo on selection
       }
     }
 
+    HIE_M_ForEachActor(actor) {
+      std::string nameLower = SPO_Name(actor);
+      std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+      if (nameLower.find(searchLower) != std::string::npos) {
+        if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == spo)) {
+          *p_data = actor;
+          ImGui::CloseCurrentPopup(); // close combo on selection
+        }
+      }
+    }
+
+    ImGui::EndChild();
     ImGui::EndCombo();
   }
 }
@@ -95,7 +126,7 @@ void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type) {
 
   // Create a unique string based on the memory address
   char label[32];
-  snprintf(label, sizeof(label), "##%p", address);
+  snprintf(label, sizeof(label), "%p_", address);
 
   switch (type) {
   case AI_E_dvt_Perso:            InputPerso(label, (HIE_tdstSuperObject**)address); break;
@@ -225,6 +256,7 @@ void DR_DLG_Inspector_Draw_MS_Brain(HIE_tdstEngineObject* actor)
       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY)) {
 
       bool isRayman = (actor == g_DR_rayman->hLinkedObject.p_stActor);
+      bool isGlobal = (actor == g_DR_global->hLinkedObject.p_stActor);
 
       ImGui::TableSetupColumn("ID");
       ImGui::TableSetupColumn(isRayman ? "Type/Name" : "Type");
@@ -249,6 +281,9 @@ void DR_DLG_Inspector_Draw_MS_Brain(HIE_tdstEngineObject* actor)
         if (isRayman) {
           ImGui::SameLine();
           ImGui::Text(DV_STR_Rayman[i]);
+        } else if (isGlobal) {
+          ImGui::SameLine();
+          ImGui::Text(DV_STR_Global[i]);
         }
 
         ImGui::TableNextColumn();
@@ -318,8 +353,8 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
           ImGui::Unindent();
         }
 
-        InputBitField("ulFlags", &dynamicsBase.ulFlags, BITFIELD_DYNAMICS_FLAGS);
-        InputBitField("ulEndFlags", &dynamicsBase.ulEndFlags, BITFIELD_DYNAMICS_ENDFLAGS);
+        InputBitField("ulFlags", &dynamicsBase.ulFlags, BITFIELD_DYNAMICS_FLAGS, IM_ARRAYSIZE(BITFIELD_DYNAMICS_FLAGS));
+        InputBitField("ulEndFlags", &dynamicsBase.ulEndFlags, BITFIELD_DYNAMICS_ENDFLAGS, IM_ARRAYSIZE(BITFIELD_DYNAMICS_ENDFLAGS));
 
         ImGui::InputScalar("xGravity", ImGuiDataType_Float, &dynamicsBase.xGravity);
         ImGui::InputScalar("xSlopeLimit", ImGuiDataType_Float, &dynamicsBase.xSlopeLimit);
@@ -563,12 +598,14 @@ void DR_DLG_Inspector_Draw_MS_StandardGame(HIE_tdstEngineObject* actor)
   ImGui::InputScalar("ucHitPoints", ImGuiDataType_U8, &stdGame->ucHitPoints);
   ImGui::InputScalar("ucHitPointsMax", ImGuiDataType_U8, &stdGame->ucHitPointsMax);
   ImGui::InputScalar("ucHitPointsMaxMax", ImGuiDataType_U8, &stdGame->ucHitPointsMaxMax);
-  InputBitField("ulCustomBits", &stdGame->ulCustomBits, BITFIELD_CUSTOMBITS);
+  InputBitField("ulCustomBits", &stdGame->ulCustomBits, BITFIELD_CUSTOMBITS, IM_ARRAYSIZE(BITFIELD_CUSTOMBITS));
   ImGui::InputScalar("ucPlatformType", ImGuiDataType_U8, &stdGame->ucPlatformType);
-  ImGui::InputScalar("ucMiscFlags", ImGuiDataType_U8, &stdGame->ucMiscFlags);
+
+  InputBitField("ucMiscFlags", (unsigned long*)&stdGame->ucMiscFlags, BITFIELD_STDGAME_MISCFLAGS, IM_ARRAYSIZE(BITFIELD_STDGAME_MISCFLAGS));
+
   ImGui::InputScalar("ucTransparencyZoneMin", ImGuiDataType_U8, &stdGame->ucTransparencyZoneMin);
   ImGui::InputScalar("ucTransparencyZoneMax", ImGuiDataType_U8, &stdGame->ucTransparencyZoneMax);
-  InputBitField("ulSaveCustomBits", &stdGame->ulSaveCustomBits, BITFIELD_CUSTOMBITS);
+  InputBitField("ulSaveCustomBits", &stdGame->ulSaveCustomBits, BITFIELD_CUSTOMBITS, IM_ARRAYSIZE(BITFIELD_CUSTOMBITS));
   ImGui::InputScalar("ucSaveHitPoints", ImGuiDataType_U8, &stdGame->ucSaveHitPoints);
   ImGui::InputScalar("ucSaveHitPointsMax", ImGuiDataType_U8, &stdGame->ucSaveHitPointsMax);
   ImGui::InputScalar("ucSaveMiscFlags", ImGuiDataType_U8, &stdGame->ucSaveMiscFlags);
