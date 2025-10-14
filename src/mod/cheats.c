@@ -7,26 +7,32 @@ char g_DR_Cheats_InfiniteHealth = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 
-void DisableObject(HIE_tdstSuperObject* spo) {
+BOOL DisableObject(HIE_tdstSuperObject* spo) {
   if (spo != NULL) {
 
     if (spo->hLinkedObject.p_stActor != NULL && spo->hLinkedObject.p_stActor->hStandardGame != NULL) {
       GAM_tdstStandardGame* std = spo->hLinkedObject.p_stActor->hStandardGame;
-      std->ulCustomBits |= Std_C_CustBit_NoAI;
+      if (!(std->ulCustomBits & Std_C_CustBit_NoAI)) {
+        std->ulCustomBits |= Std_C_CustBit_NoAI;
+        fn_vKillEngineObjectOrAlwaysByPointer(spo->hLinkedObject.p_stActor);
+        return TRUE;
+      }
     }
   }
+
+  return FALSE;
 }
 
-void DisableObjectOfModelType(const char* modelType)
+BOOL DisableObjectOfModelType(const char* modelType)
 {
   HIE_tdstSuperObject* spo = HIE_fn_p_stFindObjectByModelType(HIE_fn_lFindModelTypeByName(modelType));
-  DisableObject(spo);
+  return DisableObject(spo);
 }
 
-void DisableObjectOfPersonalType(const char* personalType)
+BOOL DisableObjectOfPersonalType(const char* personalType)
 {
   HIE_tdstSuperObject* spo = HIE_fn_p_stFindObjectByPersonalType(HIE_fn_lFindPersonalTypeByName(personalType));
-  DisableObject(spo);
+  return DisableObject(spo);
 }
 
 void DR_Cheats_Apply() {
@@ -46,6 +52,14 @@ void DR_Cheats_Apply() {
     }
 
     if (g_DR_Cheats_DisableStartingCutscenes) {
+      
+      HIE_tdstSuperObject* debutSPO = HIE_fn_p_stFindObjectByModelType(HIE_fn_lFindModelTypeByName("ARG_DebutDeMap"));
+      if (debutSPO != NULL) {
+        if (DisableObject(debutSPO)) {
+          char* raymanReacts = (char*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_RAY_ReagitAuxCommandes);
+          *raymanReacts = TRUE;
+        }
+      }
 
       DisableObjectOfModelType("ARG_DebutDeMap"); 
       DisableObjectOfModelType("MIC_CameraCinoche");

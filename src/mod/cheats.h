@@ -39,8 +39,6 @@ extern char g_DR_Cheats_InfiniteHealth;
 extern char g_DR_Cheats_MegaShoots;
 extern char g_DR_Cheats_DisableStartingCutscenes;
 
-void DisableObjectOfModelType();
-
 void DR_Cheats_Apply();
 char DR_Cheats_GetFlag(int index);
 void DR_Cheats_ToggleFlag(int index);
