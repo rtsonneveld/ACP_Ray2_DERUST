@@ -363,14 +363,14 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
 
   glm::mat4 proj = glm::perspective(1.0f / cam->hLinkedObject.p_stActor->hCineInfo->hCurrent->xFocal, (float)display_w / (float)display_h, 0.1f, 10000.0f);
 
-  // Opaque pass goes here, nothing in this implementation, other than a clear
+  // Opaque pass start:
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDepthMask(GL_TRUE);
-  glClearColor(1.0f, 0.75f, 0.75f, 1.0f);
+  glClearColor(0.0, 0.0, 0.0, 1.0f); 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Opaque pass
-  //renderPass(true, model, view, proj);
+  renderPass(true, model, view, proj);
 
   // Copy depth buffer
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -397,8 +397,8 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
 
   // Composite over the default buffer.
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(0, 0, 0, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  //glClearColor(0, 0, 0, 1.0f);
+  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDepthMask(GL_TRUE);
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

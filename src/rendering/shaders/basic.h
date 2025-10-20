@@ -42,7 +42,7 @@ float edgeFactor() {
 // --- Collect active colors ---
 int getCollisionColors(uint flags, out vec4 colors[16]) {
     int count = 0;
-    if ((flags & (1u << 0u))  != 0u) colors[count++] = vec4(0.0, 0.2, 1.0, 1.0);
+    if ((flags & (1u << 0u))  != 0u) colors[count++] = vec4(0.0, 0.2, 1.0, 1.0); // None
     if ((flags & (1u << 1u))  != 0u) colors[count++] = vec4(0.8, 0.8, 0.1, 1.0);
     if ((flags & (1u << 2u))  != 0u) colors[count++] = vec4(0.0, 0.8, 0.0, 1.0);
     if ((flags & (1u << 4u))  != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
@@ -55,8 +55,8 @@ int getCollisionColors(uint flags, out vec4 colors[16]) {
     if ((flags & (1u << 11u)) != 0u) colors[count++] = vec4(1.0, 0.0, 0.0, 1.0);
     if ((flags & (1u << 12u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
     if ((flags & (1u << 13u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
-    if ((flags & (1u << 14u)) != 0u) colors[count++] = vec4(0.25, 1.0, 0.9, 1.0);
-    if ((flags & (1u << 15u)) != 0u) colors[count++] = vec4(0.0, 0.0, 0.0, 0.0);
+    if ((flags & (1u << 14u)) != 0u) colors[count++] = vec4(0.25, 1.0, 0.9, 0.65); // Water
+    if ((flags & (1u << 15u)) != 0u) colors[count++] = vec4(0.0, 0.0, 0.0, 0.0); // NoCollision
     return count;
 }
 
@@ -91,11 +91,25 @@ void main() {
     float edge = edgeFactor();
     out_col = mix(vec4(out_col.rgb * 0.5, out_col.a), out_col, edge);
 
+    // --- Opaque/Transparent pass handling ---
+    if (uOpaquePass) {
+        // --- OPAQUE PASS ---
+        // Only keep fully opaque fragments
+        if (out_col.a < 0.999) discard;
+
+        accum = vec4(out_col.rgb, 1.0);
+        return;
+    }
+
+    // --- TRANSPARENT PASS (Weighted Blended OIT) ---
+    // Skip fully opaque fragments
+    if (out_col.a >= 0.999) discard;
+
     float csz = abs(1.0 / gl_FragCoord.w);
 
     float factor = 1.0 / 200.0;
     float z = factor * csz;
-    float weight = clamp( (0.03 / (1e-5 + pow(z, 4.0) ) ), 1e-4, 3e3 );
+    float weight = clamp((0.03 / (1e-5 + pow(z, 4.0))), 1e-4, 3e3);
 
     // --- write MRTs required by WOIT ---
     accum = vec4(out_col.rgb * out_col.a, out_col.a) * weight;
