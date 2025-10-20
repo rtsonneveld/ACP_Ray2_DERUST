@@ -418,13 +418,15 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\derust.h" />
     <ClInclude Include="src\rendering\camera.h" />
     <ClInclude Include="src\rendering\cpa_glm_util.h" />
-    <ClInclude Include="src\rendering\cube_data.h" />
+    <ClInclude Include="src\rendering\primitives\cube.h" />
     <ClInclude Include="src\rendering\geo_mesh.h" />
     <ClInclude Include="src\rendering\mesh.h" />
     <ClInclude Include="src\rendering\scene.h" />
     <ClInclude Include="src\rendering\shader.h" />
     <ClInclude Include="src\rendering\shaders\basic.h" />
     <ClInclude Include="src\rendering\shaders\oitcomposite.h" />
+    <ClInclude Include="src\rendering\shaders\woit_fullscreenpresent.h" />
+    <ClInclude Include="src\rendering\shaders\woit_transparencyshader.h" />
     <ClInclude Include="src\ui\comportNames.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />

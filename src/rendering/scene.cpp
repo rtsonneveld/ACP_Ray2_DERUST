@@ -7,6 +7,9 @@
 #include "mod/globals.h"
 #include <ui/dialogs/inspector.hpp>
 
+#include "rendering/shaders/basic.h"
+#include "rendering/shaders/woit_fullscreenpresent.h"
+
 #define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
 #define COLOR_ZDE glm::vec4(1.0f, 1.0f, 0.0f, 0.5f)
 #define COLOR_ZDM glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)
@@ -29,50 +32,57 @@ bool wasTeleporting = false;
 float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
 Mesh sphere;
+Mesh fullScreenQuad;
+
+GLuint oit_fbo, accum_texture, reveal_texture, rbo_depth;
 
 void Scene::init() {
-  shader = new Shader(Shaders::Basic::Vertex, Shaders::Basic::Fragment);
+
+  geometryShader = new Shader(Shaders::Basic::Vertex, Shaders::Basic::Fragment);
+  woitFullScreenPresentShader = new Shader(Shaders::WOIT_FullScreenPresent::Vertex, Shaders::WOIT_FullScreenPresent::Fragment);
+
   camera = new Camera(glm::vec3(1.5f, 1.5f, 1.5f));
 
   sphere = Mesh::createSphere(1.0f);
+  fullScreenQuad = Mesh::createQuad(1.0f, 1.0f);
 }
 
-void Scene::renderPhysicalObject(PO_tdstPhysicalObject* po, bool hasNoCollisionFlag) {
+void Scene::renderPhysicalObject(Shader* shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag) {
   if (dbg_drawCollision && !hasNoCollisionFlag) {
-    renderPhysicalObjectCollision(po);
+    renderPhysicalObjectCollision(shader, po);
   }
 
   if (dbg_drawVisuals) {
-    renderPhysicalObjectVisual(po);
+    renderPhysicalObjectVisual(shader, po);
   }
 }
 
-void Scene::renderActorCollSet(ZDX_tdstCollSet* collSet) {
+void Scene::renderActorCollSet(Shader * shader, ZDX_tdstCollSet* collSet) {
   if (collSet == nullptr) return;
   if (!dbg_drawCollision) return;
 
   if (dbg_drawZDD) {
     shader->setVec4("uColor", COLOR_ZDD);
-    renderZdxList(collSet->hZddList);
+    renderZdxList(shader, collSet->hZddList);
   }
 
   if (dbg_drawZDE) {
     shader->setVec4("uColor", COLOR_ZDE);
-    renderZdxList(collSet->hZdeList);
+    renderZdxList(shader, collSet->hZdeList);
   }
 
   if (dbg_drawZDM) {
     shader->setVec4("uColor", COLOR_ZDM);
-    renderZdxList(collSet->hZdmList);
+    renderZdxList(shader, collSet->hZdmList);
   }
 
   if (dbg_drawZDR) {
     shader->setVec4("uColor", COLOR_ZDR);
-    renderZdxList(collSet->hZdrList);
+    renderZdxList(shader, collSet->hZdrList);
   }
 }
 
-void Scene::renderZdxList(ZDX_tdstZdxList* list) {
+void Scene::renderZdxList(Shader* shader, ZDX_tdstZdxList* list) {
 
   if (list == nullptr) return;
 
@@ -88,7 +98,7 @@ void Scene::renderZdxList(ZDX_tdstZdxList* list) {
   }
 }
 
-void Scene::renderPhysicalObjectVisual(PO_tdstPhysicalObject* po)
+void Scene::renderPhysicalObjectVisual(Shader* shader, PO_tdstPhysicalObject* po)
 {
   int nbLod = po->hVisualSet->xNbLodDefinitions;
 
@@ -102,7 +112,7 @@ void Scene::renderPhysicalObjectVisual(PO_tdstPhysicalObject* po)
 }
 
 
-void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
+void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject* po)
 {
   auto collSet = po->hCollideSet;
   if (collSet == nullptr) return;
@@ -139,7 +149,7 @@ void Scene::renderPhysicalObjectCollision(PO_tdstPhysicalObject* po)
   }
 }
 
-void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
+void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector) {
 
   if (spo->ulFlags & HIE_C_Flag_Hidden) return;
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
@@ -179,13 +189,13 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
 
     if (ipo != nullptr) {
-      renderPhysicalObject(ipo->hPhysicalObject, spo->ulFlags & HIE_C_Flag_NotPickable);
+      renderPhysicalObject(shader, ipo->hPhysicalObject, spo->ulFlags & HIE_C_Flag_NotPickable);
     }
   } else if (spo->ulType & HIE_C_Type_PO) {
     auto po = spo->hLinkedObject.p_stPhysicalObject;
 
     if (po != nullptr) {
-      renderPhysicalObject(po, spo->ulFlags & HIE_C_Flag_NotPickable);
+      renderPhysicalObject(shader, po, spo->ulFlags & HIE_C_Flag_NotPickable);
     }
   }
 
@@ -193,7 +203,7 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
     auto actor = spo->hLinkedObject.p_stActor;
 
     if (actor != nullptr && spo != GAM_g_stEngineStructure->g_hStdCamCharacter) {
-      renderActorCollSet(actor->hCollSet);
+      renderActorCollSet(shader, actor->hCollSet);
     }
   }
 
@@ -214,13 +224,84 @@ void Scene::renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector) {
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
-    renderSPO(child, inActiveSector);
+    renderSPO(shader, child, inActiveSector);
   }
 }
 
+int fb_width = 0;
+int fb_height = 0;
+
+void generateRenderTextures(int display_w, int display_h) {
+  // Only regenerate if size changed
+  if (display_w == fb_width && display_h == fb_height && oit_fbo != 0)
+    return;
+
+  fb_width = display_w;
+  fb_height = display_h;
+
+  // Delete old resources if they exist
+  if (oit_fbo) {
+    glDeleteFramebuffers(1, &oit_fbo);
+    glDeleteTextures(1, &accum_texture);
+    glDeleteTextures(1, &reveal_texture);
+    glDeleteRenderbuffers(1, &rbo_depth);
+  }
+
+  // Create new framebuffer
+  glGenFramebuffers(1, &oit_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, oit_fbo);
+
+  // Accum texture
+  glGenTextures(1, &accum_texture);
+  glBindTexture(GL_TEXTURE_2D, accum_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, display_w, display_h, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accum_texture, 0);
+
+  // Reveal texture
+  glGenTextures(1, &reveal_texture);
+  glBindTexture(GL_TEXTURE_2D, reveal_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, display_w, display_h, 0, GL_RED, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, reveal_texture, 0);
+
+  // Depth buffer
+  glGenRenderbuffers(1, &rbo_depth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, display_w, display_h);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
+
+  // Draw buffers
+  GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+  glDrawBuffers(2, attachments);
+
+  // Check framebuffer status
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    printf("Framebuffer not complete!\n");
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj) {
+  geometryShader->use();
+  geometryShader->setBool("uOpaquePass", opaquePass);
+  geometryShader->setMat4("uModel", model);
+  geometryShader->setMat4("uView", view);
+  geometryShader->setMat4("uProjection", proj);
+  geometryShader->setFloat("uAlphaMult", 1.0f);
+
+  renderSPO(geometryShader, *GAM_g_p_stFatherSector, true);
+  renderSPO(geometryShader, *GAM_g_p_stDynamicWorld, true);
+  renderSPO(geometryShader, *GAM_g_p_stInactiveDynamicWorld, false);
+}
+
 void Scene::render(GLFWwindow * window, float display_w, float display_h) {
-  assert(shader != nullptr);
+  assert(geometryShader != nullptr);
   assert(camera != nullptr);
+
+  generateRenderTextures(display_w, display_h);
 
   glViewport(0, 0, display_w, display_h);
   glClearColor(0, 0, 0, 0);
@@ -281,14 +362,60 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   mouseLook.Update(window);
 
   glm::mat4 proj = glm::perspective(1.0f / cam->hLinkedObject.p_stActor->hCineInfo->hCurrent->xFocal, (float)display_w / (float)display_h, 0.1f, 10000.0f);
- 
-  shader->setMat4("uModel", model);
-  shader->setMat4("uView", view);
-  shader->setMat4("uProjection", proj);
-  shader->setFloat("uAlphaMult", 1.0f);
-  shader->use();
 
-  renderSPO(*GAM_g_p_stFatherSector, true);
-  renderSPO(*GAM_g_p_stDynamicWorld, true);
-  renderSPO(*GAM_g_p_stInactiveDynamicWorld, false);
+  // Opaque pass goes here, nothing in this implementation, other than a clear
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDepthMask(GL_TRUE);
+  glClearColor(1.0f, 0.75f, 0.75f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Opaque pass
+  //renderPass(true, model, view, proj);
+
+  // Copy depth buffer
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oit_fbo);
+  glBlitFramebuffer(0, 0, display_w, display_h, 0, 0, display_w, display_h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+  // OIT pass
+  glBindFramebuffer(GL_FRAMEBUFFER, oit_fbo);
+  glViewport(0, 0, display_w, display_h);
+  glDepthMask(GL_FALSE);
+
+  static const float clear_accum[] = { 0, 0, 0, 0 };
+  glClearBufferfv(GL_COLOR, 0, clear_accum);
+  glBlendEquationi(0, GL_FUNC_ADD);
+  glBlendFunci(0, GL_ONE, GL_ONE);
+
+  static const float clear_reveal[] = { 1, 1, 1, 1 };
+  glClearBufferfv(GL_COLOR, 1, clear_reveal);
+  glBlendEquationi(1, GL_FUNC_ADD);
+  glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+
+  // Transparent pass
+  renderPass(false, model, view, proj);
+
+  // Composite over the default buffer.
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0, 0, 0, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDepthMask(GL_TRUE);
+  glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  glViewport(0, 0, display_w, display_h);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, accum_texture);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, reveal_texture);
+  
+  woitFullScreenPresentShader->use();
+  woitFullScreenPresentShader->setInt("accum_tex", 0);
+  woitFullScreenPresentShader->setInt("reveal_tex", 1);
+
+  fullScreenQuad.draw();
+
+  glUseProgram(0);
 }

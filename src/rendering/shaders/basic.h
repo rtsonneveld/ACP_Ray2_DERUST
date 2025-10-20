@@ -3,15 +3,18 @@
 namespace Shaders {
 
   namespace Basic {
+
     inline const char* Fragment = R""""(
 
-#version 330 core
+#version 430 core
 in vec3 Normal;
 in vec3 FaceNormal;
 in vec3 FragPos;
 in vec3 Bary; // From vertex shader
 
-out vec4 FragColor;
+// Two render targets for WOIT
+layout(location = 0) out vec4 accum;
+layout(location = 1) out float revealage;
 
 uniform vec3 lightDir = normalize(vec3(-0.5, -0.5, -0.5));
 uniform vec4 baseColorFloors = vec4(1.0, 1.0, 1.0, 1.0);
@@ -22,6 +25,7 @@ uniform vec4 maxBrightness = vec4(1.1, 1.1, 1.1, 1.0);
 uniform vec4 uColor = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float uAlphaMult = 1.0;
 uniform bool transparentWalls = false;
+uniform bool uOpaquePass = false;
 
 uniform float wireThickness = 1.5;
 
@@ -57,20 +61,22 @@ int getCollisionColors(uint flags, out vec4 colors[16]) {
 }
 
 void main() {
+    // --- shading & base color ---
     vec3 norm = normalize(Normal);
     vec3 faceNorm = normalize(FaceNormal);
     vec3 interpNorm = mix(norm, faceNorm, 0.5);
-    float diff = 0.5f + (dot(interpNorm, -lightDir)) * 0.5f;
+    float diff = 0.5 + (dot(interpNorm, -lightDir)) * 0.5;
 
-    FragColor = baseColorFloors;
+    vec4 out_col = baseColorFloors;
     if (transparentWalls && faceNorm.z < 0.70710678) {
-        FragColor = baseColorWalls;
+        out_col = baseColorWalls;
     }
 
-    FragColor *= uColor;
-    FragColor *= mix(minBrightness, maxBrightness, diff);
-    FragColor.a *= uAlphaMult;
+    out_col *= uColor;
+    out_col *= mix(minBrightness, maxBrightness, diff);
+    out_col.a *= uAlphaMult;
 
+    // --- collision color striping (multiplicative) ---
     vec4 colors[16];
     int colorCount = getCollisionColors(uCollisionFlags, colors);
     if (colorCount > 0 && uScreenSize.x > 0.0 && uScreenSize.y > 0.0) {
@@ -78,15 +84,25 @@ void main() {
         float scale = 100.0;
         float lineIndex = floor(mod((screenUV.x + screenUV.y) * scale, float(colorCount)));
         int idx = int(lineIndex);
-        FragColor *= colors[idx];
+        out_col *= colors[idx];
     }
 
+    // --- wireframe edge anti-aliasing ---
     float edge = edgeFactor();
-    FragColor = mix(vec4(FragColor.rgb * 0.5, 1.0), FragColor, edge);
+    out_col = mix(vec4(out_col.rgb * 0.5, out_col.a), out_col, edge);
+
+    float csz = abs(1.0 / gl_FragCoord.w);
+
+    float factor = 1.0 / 200.0;
+    float z = factor * csz;
+    float weight = clamp( (0.03 / (1e-5 + pow(z, 4.0) ) ), 1e-4, 3e3 );
+
+    // --- write MRTs required by WOIT ---
+    accum = vec4(out_col.rgb * out_col.a, out_col.a) * weight;
+    revealage = out_col.a;
 }
 
 )"""";
-
 
     inline const char* Vertex = R""""(
 

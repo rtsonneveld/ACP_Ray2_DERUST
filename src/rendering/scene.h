@@ -10,7 +10,6 @@
 #include "rendering/shader.h"
 #include "rendering/camera.h"
 #include "rendering/mesh.h"
-#include "rendering/shaders/basic.h"
 
 #include <ACP_Ray2.h>
 #include <GAM/GAM.h>
@@ -24,14 +23,17 @@ public:
 
 private:
 
-  Shader* shader;
+  Shader* geometryShader;
+  Shader* woitFullScreenPresentShader;
+  Shader* woitTransparencyShader;
   Camera* camera;
 
-  void renderSPO(HIE_tdstSuperObject* spo, bool inActiveSector);
-  void renderPhysicalObject(PO_tdstPhysicalObject* po, bool hasNoCollisionFlag);
-  void renderActorCollSet(ZDX_tdstCollSet* collSet);
-  void renderZdxList(ZDX_tdstZdxList* list);
-  void renderPhysicalObjectVisual(PO_tdstPhysicalObject* po);
-  void renderPhysicalObjectCollision(PO_tdstPhysicalObject* po);
+  void renderPass(bool isTransparent, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj);
+  void renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector);
+  void renderPhysicalObject(Shader * shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag);
+  void renderActorCollSet(Shader * shader, ZDX_tdstCollSet* collSet);
+  void renderZdxList(Shader * shader, ZDX_tdstZdxList* list);
+  void renderPhysicalObjectVisual(Shader * shader, PO_tdstPhysicalObject* po);
+  void renderPhysicalObjectCollision(Shader * shader, PO_tdstPhysicalObject* po);
 
 };

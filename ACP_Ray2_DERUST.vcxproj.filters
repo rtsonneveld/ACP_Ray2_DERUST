@@ -975,7 +975,7 @@
     <ClInclude Include="include\glm\simd\vector_relational.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\cube_data.h">
+    <ClInclude Include="src\rendering\primitives\cube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\rendering\scene.h">
@@ -1012,6 +1012,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mod\cheats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\shaders\oitcomposite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\shaders\woit_fullscreenpresent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\shaders\woit_transparencyshader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -109,6 +109,21 @@ Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices, float
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(9 * sizeof(float)));
 }
 
+
+Mesh Mesh::createQuad(float width, float height) {
+  std::vector<float> vertices = {
+      -width, -height, 0.0f,
+       width, -height, 0.0f,
+       width,  height, 0.0f,
+      -width,  height, 0.0f
+  };
+  std::vector<unsigned int> indices = {
+      0, 1, 2,
+      0, 2, 3
+  };
+  return Mesh(vertices, indices, 0.0f, 0);
+}
+
 Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slices) {
 
   std::vector<float> vertices;
@@ -184,7 +199,11 @@ void Mesh::draw(Shader * shader)
 {
   shader->setUInt("uCollisionFlags", collideMaterial);
   shader->setFloat("wireThickness", wireThickness);
+  this->draw();
+  shader->setUInt("uCollisionFlags", 0);
+}
+
+void Mesh::draw() {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, numVertices);
-  shader->setUInt("uCollisionFlags", 0);
 }
