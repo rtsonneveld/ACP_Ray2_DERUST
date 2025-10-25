@@ -7,13 +7,13 @@
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
-#include "rendering/shader.h"
-#include "rendering/camera.h"
-#include "rendering/mesh.h"
+#include "rendering/shader.hpp"
+#include "rendering/camera.hpp"
+#include "rendering/mesh.hpp"
 
 #include <ACP_Ray2.h>
 #include <GAM/GAM.h>
-#include "cpa_glm_util.h"
+#include "cpa_glm_util.hpp"
 
 class Scene {
 public:
@@ -30,10 +30,10 @@ private:
 
   void renderPass(bool isTransparent, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj);
   void renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector);
-  void renderPhysicalObject(Shader * shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag);
-  void renderActorCollSet(Shader * shader, ZDX_tdstCollSet* collSet);
-  void renderZdxList(Shader * shader, ZDX_tdstZdxList* list);
+  void renderPhysicalObject(Shader* shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag);
+  void renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_tdstCollSet* collSet);
+  void renderZdxList(Shader* shader, ZDX_tdstZdxList* list, HIE_tdstSuperObject* spo, unsigned char zoneType);
   void renderPhysicalObjectVisual(Shader * shader, PO_tdstPhysicalObject* po);
-  void renderPhysicalObjectCollision(Shader * shader, PO_tdstPhysicalObject* po);
+  void renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject* po);
 
 };

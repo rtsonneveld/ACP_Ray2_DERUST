@@ -42,19 +42,20 @@ float edgeFactor() {
 // --- Collect active colors ---
 int getCollisionColors(uint flags, out vec4 colors[16]) {
     int count = 0;
-    if ((flags & (1u << 0u))  != 0u) colors[count++] = vec4(0.0, 0.2, 1.0, 1.0); // None
-    if ((flags & (1u << 1u))  != 0u) colors[count++] = vec4(0.8, 0.8, 0.1, 1.0);
-    if ((flags & (1u << 2u))  != 0u) colors[count++] = vec4(0.0, 0.8, 0.0, 1.0);
-    if ((flags & (1u << 4u))  != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
-    if ((flags & (1u << 5u))  != 0u) colors[count++] = vec4(0.59, 0.29, 0.0, 1.0);
-    if ((flags & (1u << 6u))  != 0u) colors[count++] = vec4(0.59, 0.29, 0.0, 1.0);
-    if ((flags & (1u << 7u))  != 0u) colors[count++] = vec4(0.5, 0.8, 1.0, 1.0);
-    if ((flags & (1u << 8u))  != 0u) colors[count++] = vec4(0.4, 0.0, 0.0, 1.0);
-    if ((flags & (1u << 9u))  != 0u) colors[count++] = vec4(0.6, 0.5, 0.0, 1.0);
-    if ((flags & (1u << 10u)) != 0u) colors[count++] = vec4(1.0, 0.4, 0.0, 1.0);
-    if ((flags & (1u << 11u)) != 0u) colors[count++] = vec4(1.0, 0.0, 0.0, 1.0);
-    if ((flags & (1u << 12u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
-    if ((flags & (1u << 13u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0);
+    if ((flags & (1u << 0u))  != 0u) colors[count++] = vec4(0.0, 0.2, 1.0, 1.0); // Slide
+    if ((flags & (1u << 1u))  != 0u) colors[count++] = vec4(0.8, 0.8, 0.1, 1.0); // Trampoline
+    if ((flags & (1u << 2u))  != 0u) colors[count++] = vec4(0.0, 0.8, 0.0, 1.0); // Ledge
+    //if ((flags & (1u << 3u))  != 0u) colors[count++] = vec4(0.0, 0.8, 0.0, 1.0); // User1
+    if ((flags & (1u << 4u))  != 0u) colors[count++] = vec4(0.0, 1.0, 1.0, 1.0); // GrappinBis (unused)
+    if ((flags & (1u << 5u))  != 0u) colors[count++] = vec4(0.59, 0.29, 0.0, 1.0); // Hangable ceiling
+    if ((flags & (1u << 6u))  != 0u) colors[count++] = vec4(0.59, 0.29, 0.0, 1.0); // Climbable wall
+    if ((flags & (1u << 7u))  != 0u) colors[count++] = vec4(0.5, 0.8, 1.0, 1.0); // Electric
+    if ((flags & (1u << 8u))  != 0u) colors[count++] = vec4(0.4, 0.0, 0.0, 1.0); // Lava deathwarp
+    if ((flags & (1u << 9u))  != 0u) colors[count++] = vec4(0.6, 0.5, 0.0, 1.0); // Fall trigger
+    if ((flags & (1u << 10u)) != 0u) colors[count++] = vec4(1.0, 0.4, 0.0, 1.0); // Hurt trigger
+    if ((flags & (1u << 11u)) != 0u) colors[count++] = vec4(1.0, 0.0, 0.0, 1.0); // Deathwarp
+    if ((flags & (1u << 12u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0); // User2
+    if ((flags & (1u << 13u)) != 0u) colors[count++] = vec4(1.0, 0.0, 1.0, 1.0); // User3
     if ((flags & (1u << 14u)) != 0u) colors[count++] = vec4(0.25, 1.0, 0.9, 0.65); // Water
     if ((flags & (1u << 15u)) != 0u) colors[count++] = vec4(0.0, 0.0, 0.0, 0.0); // NoCollision
     return count;

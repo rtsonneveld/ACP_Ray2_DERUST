@@ -1,28 +1,21 @@
-#include "scene.h"
-#include "geo_mesh.h"
+#include "scene.hpp"
+#include "geo_mesh.hpp"
 #include <HIE/HIE_Const.h>
 #include <LST.h>
-#include "mouselook.h"
+#include "mouselook.hpp"
 #include <imgui.h>
 #include "mod/globals.h"
 #include <ui/dialogs/inspector.hpp>
+#include <ui/dialogs/options.hpp>
 
-#include "rendering/shaders/basic.h"
-#include "rendering/shaders/woit_fullscreenpresent.h"
+#include "rendering/shaders/basic.hpp"
+#include "rendering/shaders/woit_fullscreenpresent.hpp"
 
 #define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
 #define COLOR_ZDE glm::vec4(1.0f, 1.0f, 0.0f, 0.5f)
 #define COLOR_ZDM glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)
 #define COLOR_ZDR glm::vec4(0.75f, 0.75f, 1.0f, 1.0f)
 #define COLOR_DEFAULT glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
-
-extern bool dbg_drawCollision;
-extern bool dbg_drawVisuals;
-extern bool dbg_drawZDD;
-extern bool dbg_drawZDE;
-extern bool dbg_drawZDM;
-extern bool dbg_drawZDR;
-extern bool dbg_transparentZDRWalls;
 
 MouseLook mouseLook;
 bool useMouseLook = false;
@@ -48,53 +41,57 @@ void Scene::init() {
 }
 
 void Scene::renderPhysicalObject(Shader* shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag) {
-  if (dbg_drawCollision && !hasNoCollisionFlag) {
+
+  if (opt_drawCollisionZones && (!hasNoCollisionFlag || opt_drawNoCollisionObjects)) {
     renderPhysicalObjectCollision(shader, po);
   }
 
-  if (dbg_drawVisuals) {
+  if (opt_drawVisuals) {
     renderPhysicalObjectVisual(shader, po);
   }
 }
 
-void Scene::renderActorCollSet(Shader * shader, ZDX_tdstCollSet* collSet) {
+void Scene::renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_tdstCollSet* collSet) {
   if (collSet == nullptr) return;
-  if (!dbg_drawCollision) return;
+  if (!opt_drawCollisionZones) return;
 
-  if (dbg_drawZDD) {
+  if (IsCollisionZoneEnabled(CollisionZoneMask::ZDD)) {
     shader->setVec4("uColor", COLOR_ZDD);
-    renderZdxList(shader, collSet->hZddList);
+    renderZdxList(shader, collSet->hZddList, spo, ZDX_C_ucTypeZdd);
   }
 
-  if (dbg_drawZDE) {
+  if (IsCollisionZoneEnabled(CollisionZoneMask::ZDE)) {
     shader->setVec4("uColor", COLOR_ZDE);
-    renderZdxList(shader, collSet->hZdeList);
+    renderZdxList(shader, collSet->hZdeList, spo, ZDX_C_ucTypeZde);
   }
 
-  if (dbg_drawZDM) {
+  if (IsCollisionZoneEnabled(CollisionZoneMask::ZDM)) {
     shader->setVec4("uColor", COLOR_ZDM);
-    renderZdxList(shader, collSet->hZdmList);
+    renderZdxList(shader, collSet->hZdmList, spo, ZDX_C_ucTypeZdm);
   }
 
-  if (dbg_drawZDR) {
+  if (IsCollisionZoneEnabled(CollisionZoneMask::ZDR)) {
     shader->setVec4("uColor", COLOR_ZDR);
-    renderZdxList(shader, collSet->hZdrList);
+    renderZdxList(shader, collSet->hZdrList, spo, ZDX_C_ucTypeZdr);
   }
 }
 
-void Scene::renderZdxList(Shader* shader, ZDX_tdstZdxList* list) {
+void Scene::renderZdxList(Shader* shader, ZDX_tdstZdxList* list, HIE_tdstSuperObject* spo, unsigned char zoneType) {
 
   if (list == nullptr) return;
+
+  int index = 0;
 
   auto hZdx = list->hGeoZdxList.hFirstElementSta;
   while (hZdx != nullptr) {
 
-    if (hZdx->hGeoObj != nullptr) {
+    if (hZdx->hGeoObj != nullptr && GAM_fn_hIsThisZoneActive(spo, zoneType, index)) {
       GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
       geoMesh.draw(shader);
     }
 
     hZdx = hZdx->hNextBrotherSta;
+    index++;
   }
 }
 
@@ -114,30 +111,31 @@ void Scene::renderPhysicalObjectVisual(Shader* shader, PO_tdstPhysicalObject* po
 
 void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject* po)
 {
+
   auto collSet = po->hCollideSet;
   if (collSet == nullptr) return;
 
-  if (collSet->hZdd != nullptr && dbg_drawZDD) {
+  if (collSet->hZdd != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDD)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
     shader->setVec4("uColor", COLOR_ZDD);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZde != nullptr && dbg_drawZDE) {
+  if (collSet->hZde != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDE)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
     shader->setVec4("uColor", COLOR_ZDE);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZdm != nullptr && dbg_drawZDM) {
+  if (collSet->hZdm != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDM)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
     shader->setVec4("uColor", COLOR_ZDM);
     ipoMeshCollision.draw(shader);
   }
 
-  if (collSet->hZdr != nullptr && dbg_drawZDR) {
+  if (collSet->hZdr != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDR)) {
 
-    if (dbg_transparentZDRWalls) {
+    if (opt_transparentZDRWalls) {
       shader->setBool("transparentWalls", TRUE);
     }
 
@@ -149,9 +147,9 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
   }
 }
 
-void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector) {
+void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSector) {
 
-  if (spo->ulFlags & HIE_C_Flag_Hidden) return;
+  if (spo->ulFlags & HIE_C_Flag_Hidden && !opt_drawInvisibleObjects) return;
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
 
   shader->setMat4("uModel", model);
@@ -169,21 +167,27 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSe
     auto sector = spo->hLinkedObject.p_stSector;
     auto currentSector = GAM_g_stEngineStructure->g_hMainActor->hLinkedObject.p_stActor->hSectInfo->hCurrentSector->hLinkedObject.p_stSector;
 
-    inActiveSector = false;
+    activeSector = false;
     if (sector == currentSector) {
-      inActiveSector = true;
+      activeSector = true;
     } else {
-      
+
       auto iterSector = currentSector->stListOfSectorsInActivityInteraction.hFirstElementSta;
       LST_M_StaticForEach(&currentSector->stListOfSectorsInActivityInteraction, iterSector) {
         if (iterSector->hPointerOfSectorSO->hLinkedObject.p_stSector == sector) {
-          inActiveSector = true;
+          activeSector = true;
         }
       }
     }
   }
 
-  shader->setFloat("uAlphaMult", inActiveSector ? 1.0f : 0.5f);
+  if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Hidden) {
+    if (!activeSector) return; 
+  } else if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Transparent) {
+    shader->setFloat("uAlphaMult", activeSector ? 1.0f : 0.5f);
+  } else if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Visible) {
+    shader->setFloat("uAlphaMult", 1.0f);
+  }
 
   if (spo->ulType & HIE_C_Type_IPO) {
     auto ipo = spo->hLinkedObject.p_stInstantiatedPhysicalObject;
@@ -203,7 +207,7 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSe
     auto actor = spo->hLinkedObject.p_stActor;
 
     if (actor != nullptr && spo != GAM_g_stEngineStructure->g_hStdCamCharacter) {
-      renderActorCollSet(shader, actor->hCollSet);
+      renderActorCollSet(shader, spo, actor->hCollSet);
     }
   }
 
@@ -224,7 +228,7 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSe
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
-    renderSPO(shader, child, inActiveSector);
+    renderSPO(shader, child, activeSector);
   }
 }
 

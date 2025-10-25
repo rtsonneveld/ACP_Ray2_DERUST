@@ -173,6 +173,13 @@ const char* BITFIELD_DYNAMICS_ENDFLAGS[32] = {
     "Unused (31)"               // 0x80000000
 };
 
+const char* BITFIELD_DR_DISPLAYOPTIONS_ZONE[4] = {
+    "Mechanics",
+    "Repositioning",
+    "Event",
+    "Detection",
+};
+
 // Helper function to summarize selected flags
 std::string GetSelectedFlagsString(const char * label, uint32_t flags, const char* bitLabels[], int numItems)
 {

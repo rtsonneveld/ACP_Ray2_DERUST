@@ -176,6 +176,7 @@ void DR_DLG_Menu_Draw() {
       ImGui::MenuItem("AI Model", nullptr, &DR_DLG_AIModel_Enabled);
       ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
       ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
+      ImGui::MenuItem("Options", nullptr, &DR_DLG_Options_Enabled);
       ImGui::EndMenu();
     }
 

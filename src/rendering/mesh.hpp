@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "shader.h"
+#include "shader.hpp"
 #include <glm/glm.hpp>
 
 class Mesh {

@@ -7,6 +7,7 @@ extern "C" {
 
 int DR_UI_Init(HWND p_r2Window);
 void DR_UI_Update();
+void DR_UI_OnMapExit();
 void DR_UI_DeInit();
 
 #ifdef __cplusplus

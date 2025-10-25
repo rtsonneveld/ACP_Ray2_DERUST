@@ -1,29 +1,12 @@
-﻿#include "geo_mesh.h"
-#include "cpa_glm_util.h"
-
-/*
-typedef struct GEO_tdstElementIndexedTriangles
-{
-  GMT_tdstGameMaterial *hMaterial;
-
-  ACP_tdxIndex xNbFaces; = num_triangles
-  ACP_tdxIndex xNbElementUV = num_uvs;
-  GEO_tdstTripledIndex *d_stListOfFacesTripled; = off_triangles // 1 entry = 3 shorts. Max: geometricObject.num_vertices
-  GEO_tdstTripledIndex *d_stListOfFacesTripledIndexUV; = off_mapping_uvs // 1 entry = 3 shorts. Max: num_weights
-  MTH3D_tdstVector *d_stListOfFacesNormals; = off_normals // 1 entry = 3 floats
-  GLI_tdst2DUVValues *d_stListOfElementUV; // 1 entry = 2 floats
-
-  ACP_tdxIndex *d_stListOfIndexUsedByThisElement; // off_vertex_indices → not needed
-  ACP_tdxIndex xNbOfIndexUsed; // num_vertex_indices → not needed
-
-  ACP_tdxIndex xIndexOfParallelBox;
-}
-GEO_tdstElementIndexedTriangles;
-*/
-
+﻿#include "geo_mesh.hpp"
+#include "cpa_glm_util.hpp"
 
 // Cache
 std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> GeometricObjectMesh::cache;
+
+void GeometricObjectMesh::clearCache() {
+  cache.clear();
+}
 
 std::shared_ptr<GeometricObjectMesh> GeometricObjectMesh::get(GEO_tdstGeometricObject* po) {
   auto it = cache.find(po);

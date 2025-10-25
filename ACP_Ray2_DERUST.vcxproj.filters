@@ -102,13 +102,13 @@
     <ClInclude Include="src\ui\custominputs.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\shader.h">
+    <ClInclude Include="src\rendering\shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\camera.h">
+    <ClInclude Include="src\rendering\camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\mesh.h">
+    <ClInclude Include="src\rendering\mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\glm\common.hpp">
@@ -975,22 +975,22 @@
     <ClInclude Include="include\glm\simd\vector_relational.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\primitives\cube.h">
+    <ClInclude Include="src\rendering\primitives\cube.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\scene.h">
+    <ClInclude Include="src\rendering\scene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\cpa_glm_util.h">
+    <ClInclude Include="src\rendering\cpa_glm_util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\geo_mesh.h">
+    <ClInclude Include="src\rendering\geo_mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\mouselook.h">
+    <ClInclude Include="src\rendering\mouselook.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\shaders\basic.h">
+    <ClInclude Include="src\rendering\shaders\basic.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dialogs\aimodel.hpp">
@@ -1017,10 +1017,13 @@
     <ClInclude Include="src\rendering\shaders\oitcomposite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\shaders\woit_fullscreenpresent.h">
+    <ClInclude Include="src\rendering\shaders\woit_fullscreenpresent.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\rendering\shaders\woit_transparencyshader.h">
+    <ClInclude Include="src\rendering\shaders\woit_transparencyshader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\options.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1152,6 +1155,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mod\cheats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\options.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

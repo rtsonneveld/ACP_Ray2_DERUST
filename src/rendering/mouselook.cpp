@@ -1,4 +1,4 @@
-#include "mouselook.h"
+#include "mouselook.hpp"
 
 MouseLook::MouseLook() {
 

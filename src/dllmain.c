@@ -99,6 +99,8 @@ void MOD_fn_vChooseTheGoodDesInit() {
 		g_DR_selectedObject = NULL;
 	}
 
+	DR_UI_OnMapExit();
+
 	GAM_fn_vChooseTheGoodDesInit();
 }
 

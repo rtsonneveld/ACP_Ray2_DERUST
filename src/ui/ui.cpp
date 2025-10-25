@@ -1,7 +1,8 @@
 #include "dialogs/dialogs.hpp"
 #include "ui/ui.hpp"
 #include <iostream>
-#include "rendering/scene.h"
+#include "rendering/scene.hpp"
+#include "rendering/geo_mesh.hpp"
 
 // C INCLUDE
 #include "ui/ui_bridge.h"
@@ -26,15 +27,6 @@ ImVec2 lastCentralNodeSize;
 
 // 3D Scene
 Scene scene;
-
-// DEBUG
-bool dbg_drawCollision = false;
-bool dbg_drawVisuals = true;
-bool dbg_drawZDD = true;
-bool dbg_drawZDE = true;
-bool dbg_drawZDM = true;
-bool dbg_drawZDR = true;
-bool dbg_transparentZDRWalls = true;
 
 // Main code
 int DR_UI_Init(HWND a_window_r2)
@@ -112,6 +104,10 @@ int DR_UI_Init(HWND a_window_r2)
   return 0;
 }
 
+void DR_UI_OnMapExit() {
+  GeometricObjectMesh::clearCache();
+}
+
 void DR_UI_Update() {
 
   glfwPollEvents();
@@ -143,20 +139,6 @@ void DR_UI_Update() {
   if (g_DR_rayman != nullptr && g_DR_rayman->hLinkedObject.p_stActor != nullptr && g_DR_rayman->hLinkedObject.p_stActor->h3dData != nullptr) {
     ImGui::Text("Rayman AnimFrame %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->uwCurrentFrame);
     ImGui::Text("Rayman End of Anim Flag %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->ucFlagEndOfAnim);
-  }
-  ImGui::Checkbox("Draw visuals", &dbg_drawVisuals);
-  ImGui::Checkbox("Draw collision", &dbg_drawCollision);
-  if (ImGui::Button("Toggle")) {
-    dbg_drawVisuals = !dbg_drawVisuals;
-    dbg_drawCollision = !dbg_drawCollision;
-  }
-
-  if (dbg_drawCollision) {
-    ImGui::Checkbox("ZDD (Detection Zones)",     &dbg_drawZDD);
-    ImGui::Checkbox("ZDE (Event Zones)",         &dbg_drawZDE);
-    ImGui::Checkbox("ZDM (Mechanics Zones)",     &dbg_drawZDM);
-    ImGui::Checkbox("ZDR (Repositioning Zones)", &dbg_drawZDR);
-    ImGui::Checkbox("Transparent ZDR walls", &dbg_transparentZDRWalls);
   }
 
   ImGui::Render();
