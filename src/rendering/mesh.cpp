@@ -1,12 +1,17 @@
 #include "mesh.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include "textures.hpp"
+#include "primitives/cube.hpp"
+#include <GLFW/glfw3.h>
+
+#include <ACP_Ray2.h>
+
 # define M_PI  3.14159265358979323846  // pi
 
-Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices, float wireThickness, unsigned short collideMaterial) {
+Mesh::Mesh(std::vector<float> vertices, std::vector<unsigned int> indices, float wireThickness) {
 
   this->wireThickness = wireThickness;
-  this->collideMaterial = collideMaterial;
   numVertices = indices.size();
 
   // Allocate per-vertex smooth normal array
@@ -121,8 +126,41 @@ Mesh Mesh::createQuad(float width, float height) {
       0, 1, 2,
       0, 2, 3
   };
-  return Mesh(vertices, indices, 0.0f, 0);
+  return Mesh(vertices, indices, 0.0f);
 }
+
+Mesh Mesh::createCube(glm::vec3 size, glm::vec3 offset)
+{
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+
+  // Copy and transform the base cube vertices
+  for (int i = 0; i < 8; ++i) {
+    glm::vec3 v(
+      Primitives::Cube::vertices[i * 3 + 0],
+      Primitives::Cube::vertices[i * 3 + 1],
+      Primitives::Cube::vertices[i * 3 + 2]
+    );
+
+    // Scale and translate (offset)
+    v *= size;
+    v += offset;
+
+    vertices.push_back(v.x);
+    vertices.push_back(v.y);
+    vertices.push_back(v.z);
+  }
+
+  // Copy indices from the primitive definition
+  indices.insert(
+    indices.end(),
+    std::begin(Primitives::Cube::indices),
+    std::end(Primitives::Cube::indices)
+  );
+
+  return Mesh(vertices, indices, 0.0f);
+}
+
 
 Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slices) {
 
@@ -188,7 +226,7 @@ Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slic
     }
   }
 
-  return Mesh(vertices, indices, 0.0f, 0);
+  return Mesh(vertices, indices, 0.0f);
 }
 
 Mesh::~Mesh()
@@ -197,10 +235,8 @@ Mesh::~Mesh()
 
 void Mesh::draw(Shader * shader)
 {
-  shader->setUInt("uCollisionFlags", collideMaterial);
   shader->setFloat("wireThickness", wireThickness);
   this->draw();
-  shader->setUInt("uCollisionFlags", 0);
 }
 
 void Mesh::draw() {

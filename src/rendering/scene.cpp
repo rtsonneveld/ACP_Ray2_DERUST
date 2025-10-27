@@ -10,11 +10,12 @@
 
 #include "rendering/shaders/basic.hpp"
 #include "rendering/shaders/woit_fullscreenpresent.hpp"
+#include "rendering/textures.hpp"
 
 #define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
-#define COLOR_ZDE glm::vec4(1.0f, 1.0f, 0.0f, 0.5f)
-#define COLOR_ZDM glm::vec4(1.0f, 0.0f, 0.0f, 0.5f)
-#define COLOR_ZDR glm::vec4(0.75f, 0.75f, 1.0f, 1.0f)
+#define COLOR_ZDE glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
+#define COLOR_ZDM glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
+#define COLOR_ZDR glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define COLOR_DEFAULT glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 
 MouseLook mouseLook;
@@ -36,7 +37,7 @@ void Scene::init() {
 
   camera = new Camera(glm::vec3(1.5f, 1.5f, 1.5f));
 
-  sphere = Mesh::createSphere(1.0f);
+  sphere = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f)); //Mesh::createSphere(1.0f);
   fullScreenQuad = Mesh::createQuad(1.0f, 1.0f);
 }
 
@@ -221,8 +222,12 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
     // Build a new matrix with only position and scale
     glm::mat4 debugSphereModelMatrix = glm::translate(glm::mat4(1.0f), position);
     debugSphereModelMatrix = glm::scale(debugSphereModelMatrix, scale);
+
+    shader->use();
+
     shader->setMat4("uModel", debugSphereModelMatrix);
     shader->setVec4("uColor", COLOR_DEFAULT);
+    shader->setTex2D("tex1", Textures::ColDefault, 0);
     sphere.draw(shader);
   }
 
@@ -289,7 +294,13 @@ void generateRenderTextures(int display_w, int display_h) {
 }
 
 void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj) {
+
+
   geometryShader->use();
+
+  geometryShader->setTex2D("tex1", Textures::ColDefault, 0);
+  geometryShader->setBool("useSecondTexture", FALSE);
+
   geometryShader->setBool("uOpaquePass", opaquePass);
   geometryShader->setMat4("uModel", model);
   geometryShader->setMat4("uView", view);

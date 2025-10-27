@@ -3,6 +3,7 @@
 #include <iostream>
 #include "rendering/scene.hpp"
 #include "rendering/geo_mesh.hpp"
+#include "rendering/textures.hpp"
 
 // C INCLUDE
 #include "ui/ui_bridge.h"
@@ -29,7 +30,7 @@ ImVec2 lastCentralNodeSize;
 Scene scene;
 
 // Main code
-int DR_UI_Init(HWND a_window_r2)
+int DR_UI_Init(HWND a_window_r2, HMODULE module)
 {
   if (ui_initialized) {
     return 0;
@@ -97,6 +98,8 @@ int DR_UI_Init(HWND a_window_r2)
 
   // Init OpenGL loader (GLAD)
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+  Textures::LoadAllTextures(module);
 
   scene.init();
 

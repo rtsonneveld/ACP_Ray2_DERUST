@@ -13,7 +13,7 @@ bool opt_drawVisuals = FALSE;
 unsigned int opt_drawCollisionZones = (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD;
 bool opt_transparentZDRWalls = FALSE;
 bool opt_drawNoCollisionObjects = FALSE;
-bool opt_drawInvisibleObjects = FALSE;
+bool opt_drawInvisibleObjects = TRUE;
 InactiveSectorVisibility opt_inactiveSectorVisibility = InactiveSectorVisibility::Transparent;
 
 bool IsCollisionZoneEnabled(CollisionZoneMask zone)

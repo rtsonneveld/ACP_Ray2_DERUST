@@ -1,5 +1,7 @@
 ﻿#include "geo_mesh.hpp"
 #include "cpa_glm_util.hpp"
+#include "textures.hpp"
+#include <GLFW//glfw3.h>
 
 // Cache
 std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> GeometricObjectMesh::cache;
@@ -29,17 +31,17 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 
     GEO_tdstElementIndexedTriangles* elemTris;
     GEO_tdstElementSpheres* elemSpheres;
-    
-    unsigned short colMat = 0;
+    GEO_tdstElementAlignedBoxes* elemBoxes;
+
+    unsigned short collisionFlags = 0;
+    unsigned short zoneType = 0;
+    GMT_tdstCollideMaterial* collideMaterial = nullptr;
 
     switch (geomObj->d_xListOfElementsTypes[i]) {
       case GEO_C_xElementNULL: break;
 
       case GEO_C_xElementIndexedTriangles:
         elemTris = (GEO_tdstElementIndexedTriangles*)element;
-        colMat = elemTris->hMaterial != nullptr && elemTris->hMaterial->hCollideMaterial != nullptr && 
-          (int)elemTris->hMaterial->hCollideMaterial != 0xFFFFFFFF ?
-                    elemTris->hMaterial->hCollideMaterial->xIdentifier : 0;
       
         for (int j = 0; j < geomObj->xNbPoints;j++) {
           auto point = geomObj->d_stListOfPoints[j];
@@ -57,26 +59,146 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
           }
         }
 
-        meshes.push_back(Mesh(vertices, indices, 1.0f, colMat));
+        collideMaterial = elemTris->hMaterial != nullptr && elemTris->hMaterial->hCollideMaterial != nullptr &&
+          (int)elemTris->hMaterial->hCollideMaterial != 0xFFFFFFFF ? elemTris->hMaterial->hCollideMaterial : nullptr;
+        
+        if (collideMaterial != nullptr) {
+          collisionFlags = collideMaterial->xIdentifier;
+          zoneType = collideMaterial->wTypeOfZone;
+        } else {
+          collisionFlags = 0;
+          zoneType = 0;
+        }
+
+        meshes.push_back({
+          .mesh = Mesh(vertices, indices, 1.0f),
+          .collisionFlags = collisionFlags,
+          .zoneType = zoneType
+        });
+
         break;
+
       case GEO_C_xElementSpheres:
         elemSpheres = (GEO_tdstElementSpheres*)element;
         for (int sphereIdx = 0;sphereIdx < elemSpheres->xNbSpheres; sphereIdx++) {
             
-          auto sphere = elemSpheres->d_stListOfSpheres[sphereIdx];
+          GEO_tdstIndexedSphere Box = elemSpheres->d_stListOfSpheres[sphereIdx];
           
-          auto offset = geomObj->d_stListOfPoints[sphere.xCenterPoint];
-          auto radius = sphere.xRadius;
+          auto offset = geomObj->d_stListOfPoints[Box.xCenterPoint];
+          auto radius = Box.xRadius;
 
-          meshes.push_back(Mesh::createSphere(radius, ToGLMVec(offset)));
+          collideMaterial = Box.hMaterial != nullptr && Box.hMaterial->hCollideMaterial != nullptr &&
+            (int)Box.hMaterial->hCollideMaterial != 0xFFFFFFFF ? Box.hMaterial->hCollideMaterial : nullptr;
+
+          if (collideMaterial != nullptr) {
+            collisionFlags = collideMaterial->xIdentifier;
+            zoneType = collideMaterial->wTypeOfZone;
+          } else {
+            collisionFlags = 0;
+            zoneType = 0;
+          }
+
+          meshes.push_back({
+            .mesh = Mesh::createSphere(radius, ToGLMVec(offset), 8, 8),
+            .collisionFlags = collisionFlags,
+            .zoneType = zoneType,
+          });
+        }
+        break;
+
+      case GEO_C_xElementAlignedBoxes:
+        elemBoxes = (GEO_tdstElementAlignedBoxes*)element;
+        for (int sphereIdx = 0;sphereIdx < elemBoxes->xNbAlignedBoxes; sphereIdx++) {
+
+          GEO_tdstIndexedAlignedBox box = elemBoxes->d_stListOfAlignedBoxes[sphereIdx];
+
+          auto minPoint = ToGLMVec(geomObj->d_stListOfPoints[box.xMinPoint]);
+          auto maxPoint = ToGLMVec(geomObj->d_stListOfPoints[box.xMaxPoint]);
+
+          collideMaterial = box.hMaterial != nullptr && box.hMaterial->hCollideMaterial != nullptr &&
+            (int)box.hMaterial->hCollideMaterial != 0xFFFFFFFF ? box.hMaterial->hCollideMaterial : nullptr;
+
+          if (collideMaterial != nullptr) {
+            collisionFlags = collideMaterial->xIdentifier;
+            zoneType = collideMaterial->wTypeOfZone;
+          }
+          else {
+            collisionFlags = 0;
+            zoneType = 0;
+          }
+
+          auto center = minPoint + (maxPoint - minPoint) * 0.5f;
+          auto size = (maxPoint - center) * 2.0f;
+
+          meshes.push_back({
+            .mesh = Mesh::createCube(size, center),
+            .collisionFlags = collisionFlags,
+            .zoneType = zoneType,
+            });
         }
         break;
     }
   }
 }
 
-void GeometricObjectMesh::draw(Shader * shader) {
-  for (Mesh& mesh : meshes) {
-    mesh.draw(shader);
+
+void GeometricObjectMesh::setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info) {
+
+  std::vector<GLuint> textureTable; // zoneType switch
+
+  switch (info.zoneType) {
+    case GMT_C_wZDM: textureTable = Textures::textureTableZDM; break;
+    case GMT_C_wZDE: textureTable = Textures::textureTableZDE; break;
+    case GMT_C_wZDR: textureTable = Textures::textureTableZDR; break;
+    case GMT_C_wZDD: textureTable = Textures::textureTableZDD; break;
+    default: return;
+  }
+
+  std::vector<int> textures;
+
+  for (int i = 0; i < 16; ++i) {
+    if (info.collisionFlags & (1 << i)) {
+      textures.push_back(textureTable[i]);
+    }
+  }
+
+  size_t count = textures.size();
+
+  if (count == 0) {
+    shader->setTex2D("tex1", Textures::ColDefault, 0);
+    shader->setTex2D("tex2", 0, 1);
+    shader->setBool("useSecondTexture", false);
+    return;
+  }
+  else if (count == 1) {
+    shader->setTex2D("tex1", textures[0], 0);
+    shader->setTex2D("tex2", 0, 1);
+    shader->setBool("useSecondTexture", false);
+  }
+  else if (count == 2) {
+    shader->setTex2D("tex1", textures[0], 0);
+    shader->setTex2D("tex2", textures[1], 1);
+    shader->setBool("useSecondTexture", true);
+  }
+  else {
+
+    // Cycle through textures every second (2 at a time)
+    int cycle = static_cast<int>(glfwGetTime()) % count;
+    int next = (cycle + 1) % count;
+
+    shader->setTex2D("tex1", textures[cycle], 0);
+    shader->setTex2D("tex2", textures[next], 1);
+    shader->setBool("useSecondTexture", true);
+  }
+}
+
+
+
+void GeometricObjectMesh::draw(Shader* shader) {
+  for (MeshDrawInfo& mdi : meshes) {
+
+    this->setTextureBasedOnFlagsAndType(shader, mdi);
+
+    mdi.mesh.draw(shader);
   }
 }

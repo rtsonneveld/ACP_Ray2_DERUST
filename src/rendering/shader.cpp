@@ -78,3 +78,15 @@ void Shader::setVec4(const std::string& name, const glm::vec4& vec4) const {
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {
   glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
+
+void Shader::setTex2D(const std::string& name, GLuint texture, GLuint unit) const
+{
+  // Activate the correct texture unit
+  glActiveTexture(GL_TEXTURE0 + unit);
+
+  // Bind the given texture to that unit
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  // Set the sampler uniform in the shader to use this unit
+  setInt(name, unit);
+}

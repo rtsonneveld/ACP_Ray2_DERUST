@@ -13,7 +13,17 @@ public:
   static void clearCache();
   void draw(Shader* shader);
 private:
-  std::vector<Mesh> meshes;
+
+  struct MeshDrawInfo {
+    Mesh mesh;
+    unsigned short collisionFlags;
+    unsigned short zoneType; // BEWARE: based on GMT_C_w..., not ZDX_C_ucType...!
+  };
+
+  std::vector<MeshDrawInfo> meshes;
+  GEO_tdstGeometricObject* geomObj;
 
   static std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> cache;
+
+  void setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info);
 };

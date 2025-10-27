@@ -12,6 +12,12 @@
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+// Global module handle
+HMODULE g_hModule;
+
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
 
@@ -124,7 +130,7 @@ LONG LogExceptionFilter(PEXCEPTION_POINTERS ep) {
 
 void MOD_fn_vEngine()
 {
-	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle()) != 0) {
+	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle(), g_hModule) != 0) {
 		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
@@ -200,6 +206,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 	switch ( dwReason )
 	{
 		case DLL_PROCESS_ATTACH:
+
+			g_hModule = hModule;
 
 			AllocConsole();
 			FILE* f;

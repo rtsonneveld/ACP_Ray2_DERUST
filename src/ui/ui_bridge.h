@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-int DR_UI_Init(HWND p_r2Window);
+int DR_UI_Init(HWND p_r2Window, HMODULE hModule);
 void DR_UI_Update();
 void DR_UI_OnMapExit();
 void DR_UI_DeInit();

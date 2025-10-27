@@ -1026,6 +1026,21 @@
     <ClInclude Include="src\ui\dialogs\options.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\resourceutil.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\textures.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\textures_list.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1158,6 +1173,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dialogs\options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\resourceutil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\textures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1576,9 +1597,104 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="generate_texture_list.py" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />
     <Text Include="include\glm\copying.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ACP_Ray2_DERUST.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\col_bounce.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_climb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_default.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_falldeath.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_gi.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_grappin.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_grappinbis.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_lava.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_ledgegrab.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_mort.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_nocol.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_paf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_slippery.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_swim.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_user1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_user2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_user3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_water.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdm_body.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdm_feet.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdm_hand.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdm_head.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdm_traversesol.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_electric.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\unknown.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_unknown.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zde_grapple.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zde_takedamage.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zde_dodamage.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
