@@ -7,14 +7,15 @@
 #include "mod/globals.h"
 #include <ui/dialogs/inspector.hpp>
 #include <ui/dialogs/options.hpp>
+#include <ui/settings.hpp>
 
 #include "rendering/shaders/basic.hpp"
 #include "rendering/shaders/woit_fullscreenpresent.hpp"
 #include "rendering/textures.hpp"
 
-#define COLOR_ZDD glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)
-#define COLOR_ZDE glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
-#define COLOR_ZDM glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
+#define COLOR_ZDD glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
+#define COLOR_ZDE glm::vec4(1.0f, 1.0f, 1.0f, 0.8f)
+#define COLOR_ZDM glm::vec4(1.0f, 1.0f, 1.0f, 0.8f)
 #define COLOR_ZDR glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define COLOR_DEFAULT glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 
@@ -27,6 +28,7 @@ float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
 Mesh sphere;
 Mesh fullScreenQuad;
+Mesh sectorBordersCube;
 
 GLuint oit_fbo, accum_texture, reveal_texture, rbo_depth;
 
@@ -39,22 +41,23 @@ void Scene::init() {
 
   sphere = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f)); //Mesh::createSphere(1.0f);
   fullScreenQuad = Mesh::createQuad(1.0f, 1.0f);
+  sectorBordersCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void Scene::renderPhysicalObject(Shader* shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag) {
 
-  if (opt_drawCollisionZones && (!hasNoCollisionFlag || opt_drawNoCollisionObjects)) {
+  if (g_DR_settings.opt_drawCollisionZones && (!hasNoCollisionFlag || g_DR_settings.opt_drawNoCollisionObjects)) {
     renderPhysicalObjectCollision(shader, po);
   }
 
-  if (opt_drawVisuals) {
+  if (g_DR_settings.opt_drawVisuals) {
     renderPhysicalObjectVisual(shader, po);
   }
 }
 
 void Scene::renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_tdstCollSet* collSet) {
   if (collSet == nullptr) return;
-  if (!opt_drawCollisionZones) return;
+  if (!g_DR_settings.opt_drawCollisionZones) return;
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDD)) {
     shader->setVec4("uColor", COLOR_ZDD);
@@ -63,11 +66,13 @@ void Scene::renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_td
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDE)) {
     shader->setVec4("uColor", COLOR_ZDE);
+    shader->setVec3("uvScale", glm::vec3(2, 2, 2));
     renderZdxList(shader, collSet->hZdeList, spo, ZDX_C_ucTypeZde);
   }
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDM)) {
     shader->setVec4("uColor", COLOR_ZDM);
+    shader->setVec3("uvScale", glm::vec3(2, 2, 2));
     renderZdxList(shader, collSet->hZdmList, spo, ZDX_C_ucTypeZdm);
   }
 
@@ -88,7 +93,7 @@ void Scene::renderZdxList(Shader* shader, ZDX_tdstZdxList* list, HIE_tdstSuperOb
 
     if (hZdx->hGeoObj != nullptr && GAM_fn_hIsThisZoneActive(spo, zoneType, index)) {
       GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
-      geoMesh.draw(shader);
+      geoMesh.draw(shader, zoneType);
     }
 
     hZdx = hZdx->hNextBrotherSta;
@@ -119,30 +124,33 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
   if (collSet->hZdd != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDD)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdd);
     shader->setVec4("uColor", COLOR_ZDD);
-    ipoMeshCollision.draw(shader);
+    ipoMeshCollision.draw(shader, ZDX_C_ucTypeZdd);
   }
 
   if (collSet->hZde != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDE)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZde);
     shader->setVec4("uColor", COLOR_ZDE);
-    ipoMeshCollision.draw(shader);
+    ipoMeshCollision.draw(shader, ZDX_C_ucTypeZde);
   }
 
   if (collSet->hZdm != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDM)) {
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdm);
     shader->setVec4("uColor", COLOR_ZDM);
-    ipoMeshCollision.draw(shader);
+    ipoMeshCollision.draw(shader, ZDX_C_ucTypeZdm);
   }
 
   if (collSet->hZdr != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDR)) {
 
-    if (opt_transparentZDRWalls) {
+    if (g_DR_settings.opt_transparentZDRWalls) {
       shader->setBool("transparentWalls", TRUE);
     }
 
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
     shader->setVec4("uColor", COLOR_ZDR);
-    ipoMeshCollision.draw(shader);
+
+    glEnable(GL_CULL_FACE); // For ZDR geometry we'll enable backface culling
+    ipoMeshCollision.draw(shader, ZDX_C_ucTypeZdr);
+    glDisable(GL_CULL_FACE);
 
     shader->setBool("transparentWalls", FALSE);
   }
@@ -150,7 +158,7 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
 
 void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSector) {
 
-  if (spo->ulFlags & HIE_C_Flag_Hidden && !opt_drawInvisibleObjects) return;
+  if (spo->ulFlags & HIE_C_Flag_Hidden && !g_DR_settings.opt_drawInvisibleObjects) return;
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
 
   shader->setMat4("uModel", model);
@@ -166,6 +174,9 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
   if (spo->ulType & HIE_C_Type_Sector) {
 
     auto sector = spo->hLinkedObject.p_stSector;
+
+    if (sector->bVirtual && !g_DR_settings.opt_drawVirtualSectors) return;
+
     auto currentSector = GAM_g_stEngineStructure->g_hMainActor->hLinkedObject.p_stActor->hSectInfo->hCurrentSector->hLinkedObject.p_stSector;
 
     activeSector = false;
@@ -180,14 +191,49 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
         }
       }
     }
+
   }
 
-  if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Hidden) {
+  if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Hidden) {
     if (!activeSector) return; 
-  } else if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Transparent) {
+  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Transparent) {
     shader->setFloat("uAlphaMult", activeSector ? 1.0f : 0.5f);
-  } else if (opt_inactiveSectorVisibility == InactiveSectorVisibility::Visible) {
+  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Visible) {
     shader->setFloat("uAlphaMult", 1.0f);
+  }
+
+
+  if (spo->ulType & HIE_C_Type_Sector && g_DR_settings.opt_drawSectorBorders) {
+
+
+    auto sector = spo->hLinkedObject.p_stSector;
+
+    auto minPoint = sector->a_stMinMaxPoints[0];
+    auto maxPoint = sector->a_stMinMaxPoints[1];
+
+    glm::vec3 scale(
+      maxPoint.x - minPoint.x,
+      maxPoint.y - minPoint.y,
+      maxPoint.z - minPoint.z
+    );
+
+    glm::vec3 pos(
+      minPoint.x + (maxPoint.x - minPoint.x) * 0.5f,
+      minPoint.y + (maxPoint.y - minPoint.y) * 0.5f,
+      minPoint.z + (maxPoint.z - minPoint.z) * 0.5f
+    );
+
+    glm::mat4 sectorMatrix = glm::translate(glm::mat4(1.0f), pos);
+    sectorMatrix = glm::scale(sectorMatrix, scale);
+
+    shader->use();
+    shader->setMat4("uModel", sectorMatrix);
+    shader->setTex2D("tex1", Textures::Sectorborder, 0);
+    shader->setVec3("uvScale", scale);
+    shader->setBool("useSecondTexture", false);
+    sectorBordersCube.draw(shader);
+
+    shader->setVec3("uvScale", glm::vec3(1, 1, 1));
   }
 
   if (spo->ulType & HIE_C_Type_IPO) {
@@ -322,7 +368,7 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   glClearColor(0, 0, 0, 0);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
-  glEnable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE); // Culling will be enabled for ZDR only
   glFrontFace(GL_CCW);
   glCullFace(GL_BACK);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -1,6 +1,5 @@
 #pragma once
 
-extern bool DR_DLG_Inspector_Enabled;
 extern bool DR_DLG_Inspector_DebugSphereEnabled;
 extern float DR_DLG_Inspector_DebugSphereRadius;
 

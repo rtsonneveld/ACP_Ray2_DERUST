@@ -1,47 +1,40 @@
 #include "options.hpp"
 #include "ui/ui.hpp"
 #include "ui/custominputs.hpp"
+#include "ui/settings.hpp"
 
 // C INCLUDE
 
 #include <ACP_Ray2.h>
 #include <windows.h>
 
-bool DR_DLG_Options_Enabled = FALSE;
-
-bool opt_drawVisuals = FALSE;
-unsigned int opt_drawCollisionZones = (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD;
-bool opt_transparentZDRWalls = FALSE;
-bool opt_drawNoCollisionObjects = FALSE;
-bool opt_drawInvisibleObjects = TRUE;
-InactiveSectorVisibility opt_inactiveSectorVisibility = InactiveSectorVisibility::Transparent;
-
 bool IsCollisionZoneEnabled(CollisionZoneMask zone)
 {
-  if (opt_drawVisuals) return false;
-  return (opt_drawCollisionZones & static_cast<unsigned int>(zone)) != 0;
+  if (g_DR_settings.opt_drawVisuals) return false;
+  return (g_DR_settings.opt_drawCollisionZones & static_cast<unsigned int>(zone)) != 0;
 }
 
 void DR_DLG_Options_Draw() {
 
-  if (!DR_DLG_Options_Enabled) return;
+  if (!g_DR_settings.dlg_options) return;
 
-  bool open = true;
-  if (ImGui::Begin("Options", &DR_DLG_Options_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Options", &g_DR_settings.dlg_options, ImGuiWindowFlags_NoCollapse)) {
 
-    ImGui::Checkbox("Draw visual sets", &opt_drawVisuals);
-    if (opt_drawVisuals) ImGui::BeginDisabled();
-    InputBitField("Draw collision zones", (unsigned long*)&opt_drawCollisionZones, BITFIELD_DR_DISPLAYOPTIONS_ZONE, IM_ARRAYSIZE(BITFIELD_DR_DISPLAYOPTIONS_ZONE));
-    ImGui::Checkbox("Transparent ZDR walls", &opt_transparentZDRWalls);
-    ImGui::Checkbox("Draw no-collision objects", &opt_drawNoCollisionObjects);
-    if (opt_drawVisuals) ImGui::EndDisabled();
-    ImGui::Checkbox("Draw invisible objects", &opt_drawInvisibleObjects);
+    ImGui::Checkbox("Draw visual sets", &g_DR_settings.opt_drawVisuals);
+    if (g_DR_settings.opt_drawVisuals) ImGui::BeginDisabled();
+    InputBitField("Draw collision zones", (unsigned long*)&g_DR_settings.opt_drawCollisionZones, BITFIELD_DR_DISPLAYOPTIONS_ZONE, IM_ARRAYSIZE(BITFIELD_DR_DISPLAYOPTIONS_ZONE));
+    ImGui::Checkbox("Transparent ZDR walls", &g_DR_settings.opt_transparentZDRWalls);
+    ImGui::Checkbox("Draw no-collision objects", &g_DR_settings.opt_drawNoCollisionObjects);
+    if (g_DR_settings.opt_drawVisuals) ImGui::EndDisabled();
+    ImGui::Checkbox("Draw invisible objects", &g_DR_settings.opt_drawInvisibleObjects);
+    ImGui::Checkbox("Draw virtual sectors", &g_DR_settings.opt_drawVirtualSectors);
+    ImGui::Checkbox("Draw sector borders", &g_DR_settings.opt_drawSectorBorders);
 
     // Inactive sector visibility dropdown
-    int inactiveIndex = static_cast<int>(opt_inactiveSectorVisibility);
+    int inactiveIndex = static_cast<int>(g_DR_settings.opt_inactiveSectorVisibility);
     const char* inactiveItems[] = { "Visible", "Transparent", "Hidden" }; 
     if (ImGui::Combo("Inactive sector visibility", &inactiveIndex, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
-      opt_inactiveSectorVisibility = static_cast<InactiveSectorVisibility>(inactiveIndex);
+      g_DR_settings.opt_inactiveSectorVisibility = static_cast<InactiveSectorVisibility>(inactiveIndex);
     }
 
   }

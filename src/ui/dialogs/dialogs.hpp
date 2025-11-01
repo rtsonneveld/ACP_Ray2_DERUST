@@ -6,7 +6,7 @@
 #include "menu.hpp";
 #include "menu_cheats.hpp"
 #include "playback.hpp"
-#include "practicetools.hpp"
+#include "stats.hpp"
 #include "inspector.hpp"
 #include "aimodel.hpp"
 #include "options.hpp"

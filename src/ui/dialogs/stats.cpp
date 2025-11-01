@@ -1,5 +1,6 @@
-#include "practicetools.hpp"
+#include "stats.hpp"
 #include "ui/ui.hpp"
+#include "ui/settings.hpp"
 
 #include <sstream>
 #include <map>
@@ -12,7 +13,6 @@
 
 #define MAX_POS_DELTA 50.0f
 
-bool DR_DLG_PracticeTools_Enabled = FALSE;
 int historySizeSeconds = 10;
 
 struct PlotData {
@@ -51,7 +51,7 @@ void ClearHistory() {
   }
 }
 
-void DR_DLG_PracticeTools_Init() {
+void DR_DLG_Stats_Init() {
 
   DNM_tdstDynamicsBaseBlock base = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics->stDynamicsBase;
   lastRaymanPos = currentRaymanPos = base.stCurrentMatrix.stPos;
@@ -157,11 +157,11 @@ void DetectTeleports()
   lastRaymanPos = currentRaymanPos;
 }
 
-void DR_DLG_PracticeTools_Draw() {
-  if (!DR_DLG_PracticeTools_Enabled) return;
+void DR_DLG_Stats_Draw() {
+  if (!g_DR_settings.dlg_stats) return;
 
   if (!isInitialized) {
-    DR_DLG_PracticeTools_Init();
+    DR_DLG_Stats_Init();
     isInitialized = true;
   }
 
@@ -169,7 +169,7 @@ void DR_DLG_PracticeTools_Draw() {
   windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_TopMost | ImGuiViewportFlags_NoTaskBarIcon;
   ImGui::SetNextWindowClass(&windowClass);
 
-  if (ImGui::Begin("Practice Tools", &DR_DLG_PracticeTools_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Practice Tools", &g_DR_settings.dlg_stats, ImGuiWindowFlags_NoCollapse)) {
 
     ImGui::BeginGroup();
     for (auto& [plotKey, plotData] : plots) {

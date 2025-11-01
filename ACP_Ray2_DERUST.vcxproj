@@ -447,7 +447,8 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\menu.hpp" />
     <ClInclude Include="src\ui\dialogs\options.hpp" />
     <ClInclude Include="src\ui\dialogs\playback.hpp" />
-    <ClInclude Include="src\ui\dialogs\practicetools.hpp" />
+    <ClInclude Include="src\ui\dialogs\stats.hpp" />
+    <ClInclude Include="src\ui\settings.hpp" />
     <ClInclude Include="src\ui\ui.hpp" />
     <ClInclude Include="src\ui\ui_bridge.h" />
     <ClInclude Include="src\ui\ui_util.hpp" />
@@ -500,7 +501,8 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\dialogs\menu.cpp" />
     <ClCompile Include="src\ui\dialogs\options.cpp" />
     <ClCompile Include="src\ui\dialogs\playback.cpp" />
-    <ClCompile Include="src\ui\dialogs\practicetools.cpp" />
+    <ClCompile Include="src\ui\dialogs\stats.cpp" />
+    <ClCompile Include="src\ui\settings.cpp" />
     <ClCompile Include="src\ui\ui_util.cpp">
     </ClCompile>
     <ClCompile Include="src\mod\util.c">
@@ -662,6 +664,7 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\col_climb.png" />
     <Image Include="resources\col_default.png" />
     <Image Include="resources\col_electric.png" />
+    <Image Include="resources\col_event.png" />
     <Image Include="resources\col_falldeath.png" />
     <Image Include="resources\col_gi.png" />
     <Image Include="resources\col_grappin.png" />
@@ -678,6 +681,7 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\col_user2.png" />
     <Image Include="resources\col_user3.png" />
     <Image Include="resources\col_water.png" />
+    <Image Include="resources\col_zdd.png" />
     <Image Include="resources\col_zde_dodamage.png" />
     <Image Include="resources\col_zde_grapple.png" />
     <Image Include="resources\col_zde_takedamage.png" />
@@ -686,6 +690,7 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\col_zdm_hand.png" />
     <Image Include="resources\col_zdm_head.png" />
     <Image Include="resources\col_zdm_traversesol.png" />
+    <Image Include="resources\sectorborder.png" />
     <Image Include="resources\unknown.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

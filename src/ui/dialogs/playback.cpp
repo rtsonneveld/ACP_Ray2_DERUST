@@ -1,27 +1,23 @@
 #include "playback.hpp"
 #include "ui/ui.hpp"
+#include "ui/settings.hpp"
 
 // C INCLUDE
 #include "mod/state.h"
 #include "mod/savestates.h"
 
 #include <ACP_Ray2.h>
-#include <vector>
-#include <windows.h>
-#include <iostream>
-#include <psapi.h>
 
-bool DR_DLG_Playback_Enabled = FALSE;
 int colliderType = 52;
 
 //SS_Snapshot state;
 
 void DR_DLG_Playback_Draw() {
 
-  if (!DR_DLG_Playback_Enabled) return;
+  if (!g_DR_settings.dlg_playback) return;
 
   bool open = true;
-  if (ImGui::Begin("Playback", &DR_DLG_Playback_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Playback", &g_DR_settings.dlg_playback, ImGuiWindowFlags_NoCollapse)) {
 
     if (IPT_M_bActionJustValidated(IPT_E_Entry_PulseStep)) { // F6
       g_DR_Playback.unpause = true;

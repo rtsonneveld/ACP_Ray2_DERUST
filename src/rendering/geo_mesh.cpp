@@ -34,7 +34,6 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
     GEO_tdstElementAlignedBoxes* elemBoxes;
 
     unsigned short collisionFlags = 0;
-    unsigned short zoneType = 0;
     GMT_tdstCollideMaterial* collideMaterial = nullptr;
 
     switch (geomObj->d_xListOfElementsTypes[i]) {
@@ -64,16 +63,13 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
         
         if (collideMaterial != nullptr) {
           collisionFlags = collideMaterial->xIdentifier;
-          zoneType = collideMaterial->wTypeOfZone;
         } else {
           collisionFlags = 0;
-          zoneType = 0;
         }
 
         meshes.push_back({
           .mesh = Mesh(vertices, indices, 1.0f),
           .collisionFlags = collisionFlags,
-          .zoneType = zoneType
         });
 
         break;
@@ -92,16 +88,13 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 
           if (collideMaterial != nullptr) {
             collisionFlags = collideMaterial->xIdentifier;
-            zoneType = collideMaterial->wTypeOfZone;
           } else {
             collisionFlags = 0;
-            zoneType = 0;
           }
 
           meshes.push_back({
             .mesh = Mesh::createSphere(radius, ToGLMVec(offset), 8, 8),
             .collisionFlags = collisionFlags,
-            .zoneType = zoneType,
           });
         }
         break;
@@ -120,11 +113,9 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 
           if (collideMaterial != nullptr) {
             collisionFlags = collideMaterial->xIdentifier;
-            zoneType = collideMaterial->wTypeOfZone;
           }
           else {
             collisionFlags = 0;
-            zoneType = 0;
           }
 
           auto center = minPoint + (maxPoint - minPoint) * 0.5f;
@@ -133,7 +124,6 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
           meshes.push_back({
             .mesh = Mesh::createCube(size, center),
             .collisionFlags = collisionFlags,
-            .zoneType = zoneType,
             });
         }
         break;
@@ -142,15 +132,24 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
 }
 
 
-void GeometricObjectMesh::setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info) {
+void GeometricObjectMesh::setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info, short zoneType) {
+
+  if (zoneType < 0) {
+    shader->setTex2D("tex1", Textures::ColDefault, 0);
+    shader->setTex2D("tex2", 0, 1);
+    shader->setBool("useSecondTexture", false);
+    return;
+  }
 
   std::vector<GLuint> textureTable; // zoneType switch
 
-  switch (info.zoneType) {
-    case GMT_C_wZDM: textureTable = Textures::textureTableZDM; break;
-    case GMT_C_wZDE: textureTable = Textures::textureTableZDE; break;
-    case GMT_C_wZDR: textureTable = Textures::textureTableZDR; break;
-    case GMT_C_wZDD: textureTable = Textures::textureTableZDD; break;
+  GLuint defaultTexture = Textures::ColDefault; 
+
+  switch (zoneType) {
+    case ZDX_C_ucTypeZdm: textureTable = Textures::textureTableZDM; break;
+    case ZDX_C_ucTypeZde: textureTable = Textures::textureTableZDE; defaultTexture = Textures::ColEvent; break;
+    case ZDX_C_ucTypeZdr: textureTable = Textures::textureTableZDR; break;
+    case ZDX_C_ucTypeZdd: textureTable = Textures::textureTableZDD; defaultTexture = Textures::ColZdd; break; // TODO: this doesn't work
     default: return;
   }
 
@@ -165,7 +164,7 @@ void GeometricObjectMesh::setTextureBasedOnFlagsAndType(Shader* shader, MeshDraw
   size_t count = textures.size();
 
   if (count == 0) {
-    shader->setTex2D("tex1", Textures::ColDefault, 0);
+    shader->setTex2D("tex1", defaultTexture, 0);
     shader->setTex2D("tex2", 0, 1);
     shader->setBool("useSecondTexture", false);
     return;
@@ -194,11 +193,10 @@ void GeometricObjectMesh::setTextureBasedOnFlagsAndType(Shader* shader, MeshDraw
 
 
 
-void GeometricObjectMesh::draw(Shader* shader) {
+void GeometricObjectMesh::draw(Shader* shader, short zoneType) {
   for (MeshDrawInfo& mdi : meshes) {
 
-    this->setTextureBasedOnFlagsAndType(shader, mdi);
-
+    this->setTextureBasedOnFlagsAndType(shader, mdi, zoneType);
     mdi.mesh.draw(shader);
   }
 }

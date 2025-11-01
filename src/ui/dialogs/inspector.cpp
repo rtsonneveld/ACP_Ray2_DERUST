@@ -5,6 +5,7 @@
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/custominputs.hpp"
+#include "ui/settings.hpp"
 #include <vector>
 
 // C INCLUDE
@@ -12,16 +13,14 @@
 
 #include <ACP_Ray2.h>
 
-bool DR_DLG_Inspector_Enabled = FALSE;
 bool DR_DLG_Inspector_DebugSphereEnabled = FALSE;
 float DR_DLG_Inspector_DebugSphereRadius = 1.0f;
 
 void DR_DLG_Inspector_Draw() {
 
-  if (!DR_DLG_Inspector_Enabled) return;
+  if (!g_DR_settings.dlg_inspector) return;
 
-  bool open = true;
-  if (ImGui::Begin("Inspector", &DR_DLG_Inspector_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Inspector", &g_DR_settings.dlg_inspector, ImGuiWindowFlags_NoCollapse)) {
 
     if (g_DR_selectedObject != nullptr) {
       HIE_tdstSuperObject* spo = g_DR_selectedObject; // Alias

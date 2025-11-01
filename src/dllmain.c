@@ -135,7 +135,6 @@ void MOD_fn_vEngine()
 		exit(1);
 	}
 
-	DR_UI_Update();
 	DR_Cheats_Apply();
 
 	__try {
@@ -195,6 +194,8 @@ void MOD_fn_vEngine()
 			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}
 	}
+
+	DR_UI_Update();
 }
 
 void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {

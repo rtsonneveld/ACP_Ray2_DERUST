@@ -1,5 +1,6 @@
 #include "dialogs/dialogs.hpp"
 #include "ui/ui.hpp"
+#include "ui/settings.hpp"
 #include <iostream>
 #include "rendering/scene.hpp"
 #include "rendering/geo_mesh.hpp"
@@ -103,6 +104,9 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 
   scene.init();
 
+  // Load settings from file
+  DR_LoadSettings();
+
   ui_initialized = 1;
   return 0;
 }
@@ -163,6 +167,8 @@ void DR_UI_Update() {
 }
 
 void DR_UI_DeInit() {
+  
+  DR_SaveSettings();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

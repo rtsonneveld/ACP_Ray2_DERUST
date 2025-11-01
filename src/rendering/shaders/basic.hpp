@@ -31,6 +31,7 @@ layout(binding = 0) uniform sampler2D tex1;
 layout(binding = 1) uniform sampler2D tex2;
 uniform bool useSecondTexture = false;
 
+uniform vec3 uvScale = vec3(1.0, 1.0, 1.0);
 uniform float wireThickness = 1.5;
 uniform vec2 uScreenSize = vec2(1000.0,1000.0);
 
@@ -41,22 +42,22 @@ float edgeFactor() {
     return min(min(a3.x, a3.y), a3.z);
 }
 
-// --- Generate planar UVs from FragPos and Normal ---
-vec2 computeAutoUV(vec3 pos, vec3 normal) {
+// --- Triplanar mapping using model-space position and normal ---
+vec4 triplanarTexture(sampler2D tex, vec3 pos, vec3 normal) {
+    vec3 n = abs(normalize(normal));
+    n /= (n.x + n.y + n.z);  // normalize weights
 
-    vec3 n = abs(normal);
-    vec2 uv;
-    if (n.z >= n.x && n.z >= n.y) {
-        // Surface mostly facing up/down → use X/Y
-        uv = pos.xy;
-    } else if (n.x >= n.y) {
-        // Surface mostly facing X → use Y/Z
-        uv = pos.yz;
-    } else {
-        // Surface mostly facing Y → use X/Z
-        uv = pos.xz;
-    }
-    return uv;
+    vec3 scaledPos = pos * uvScale;
+
+    vec2 uvX = scaledPos.yz;  // projection on YZ plane
+    vec2 uvY = scaledPos.xz;  // projection on XZ plane
+    vec2 uvZ = scaledPos.xy;  // projection on XY plane
+
+    vec4 colX = texture(tex, uvX);
+    vec4 colY = texture(tex, uvY);
+    vec4 colZ = texture(tex, uvZ);
+
+    return colX * n.x + colY * n.y + colZ * n.z;
 }
 
 void main() {
@@ -65,18 +66,18 @@ void main() {
     vec3 interpNorm = mix(norm, faceNorm, 0.5);
     float diff = 0.5 + (dot(interpNorm, -lightDir)) * 0.5;
     
-    // --- Auto-UVs based on model-space normals & positions ---
-    vec3 modelInterpNorm = normalize(mix(ModelNormal, ModelFaceNormal, 0.5));
-    vec2 autoUV = computeAutoUV(Pos, modelInterpNorm);
+    // Model-space normal for texture orientation
+    vec3 modelInterpNorm = normalize(mix(ModelNormal, ModelFaceNormal, 1.0));
 
-    // --- Sample texture(s) ---
+    // --- Auto-UV sampling using triplanar method ---
     vec4 texColor;
     if (useSecondTexture) {
-        // Alternate between tex1 and tex2 in a checker pattern
+        vec4 tex1Color = triplanarTexture(tex1, Pos, modelInterpNorm);
+        vec4 tex2Color = triplanarTexture(tex2, Pos, modelInterpNorm);
         float stripe = mod(floor(Pos.x) + floor(Pos.y) + floor(Pos.z), 2.0);
-        texColor = mix(texture(tex1, autoUV), texture(tex2, autoUV), stripe);
+        texColor = mix(tex1Color, tex2Color, stripe);
     } else {
-        texColor = texture(tex1, autoUV);
+        texColor = triplanarTexture(tex1, Pos, modelInterpNorm);
     }
 
     // --- Lighting & modulation ---

@@ -3,6 +3,7 @@
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/comportNames.hpp"
+#include "ui/settings.hpp"
 #include <sstream>
 
 // C INCLUDE
@@ -11,12 +12,6 @@
 #include <imgui/imnodes.h>
 #include <mod/ai_strings.h>
 #include <string>
-
-#if _DEBUG
-bool DR_DLG_AIModel_Enabled = true;
-#else
-bool DR_DLG_AIModel_Enabled = false;
-#endif
 
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
@@ -138,9 +133,9 @@ void DR_DLG_AIModel_Draw_AIModel(HIE_tdstEngineObject* actor, AI_tdstMind* mind,
 
 void DR_DLG_AIModel_Draw() {
 
-  if (!DR_DLG_AIModel_Enabled) return;
+  if (!g_DR_settings.dlg_aimodel) return;
 
-  if (ImGui::Begin("AI Model", &DR_DLG_AIModel_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("AI Model", &g_DR_settings.dlg_aimodel, ImGuiWindowFlags_NoCollapse)) {
 
     if (g_DR_selectedObject != nullptr && g_DR_selectedObject->ulType == HIE_C_Type_Actor) {
       HIE_tdstSuperObject* spo = g_DR_selectedObject; // Alias

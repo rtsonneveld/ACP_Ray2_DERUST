@@ -11,13 +11,13 @@ public:
   GeometricObjectMesh(GEO_tdstGeometricObject* po);
   static std::shared_ptr<GeometricObjectMesh> get(GEO_tdstGeometricObject* po);
   static void clearCache();
-  void draw(Shader* shader);
+  void draw(Shader* shader, short zoneType = -1);
 private:
 
   struct MeshDrawInfo {
     Mesh mesh;
     unsigned short collisionFlags;
-    unsigned short zoneType; // BEWARE: based on GMT_C_w..., not ZDX_C_ucType...!
+    //unsigned short zoneType; // BEWARE: based on GMT_C_w..., not ZDX_C_ucType...!
   };
 
   std::vector<MeshDrawInfo> meshes;
@@ -25,5 +25,5 @@ private:
 
   static std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> cache;
 
-  void setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info);
+  void setTextureBasedOnFlagsAndType(Shader* shader, MeshDrawInfo info, short zoneType);
 };

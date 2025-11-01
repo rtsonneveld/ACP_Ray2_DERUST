@@ -4,8 +4,8 @@
 
 #include "hierarchy.hpp"
 #include "ui/ui.hpp"
+#include "ui/settings.hpp"
 #include <imgui_internal.h>
-#include "JSON.hpp"
 
 #include <ACP_Ray2.h>
 
@@ -171,12 +171,12 @@ void DR_DLG_Menu_Draw() {
   if (ImGui::BeginMainMenuBar()) {
 
     if (ImGui::BeginMenu("Windows")) {
-      ImGui::MenuItem("Hierarchy", nullptr, &DR_DLG_Hierarchy_Enabled);
-      ImGui::MenuItem("Inspector", nullptr, &DR_DLG_Inspector_Enabled);
-      ImGui::MenuItem("AI Model", nullptr, &DR_DLG_AIModel_Enabled);
-      ImGui::MenuItem("Playback", nullptr, &DR_DLG_Playback_Enabled);
-      ImGui::MenuItem("Practice Tools", nullptr, &DR_DLG_PracticeTools_Enabled);
-      ImGui::MenuItem("Options", nullptr, &DR_DLG_Options_Enabled);
+      ImGui::MenuItem("Hierarchy", nullptr, &g_DR_settings.dlg_hierarchy);
+      ImGui::MenuItem("Inspector", nullptr, &g_DR_settings.dlg_inspector);
+      ImGui::MenuItem("AI Model", nullptr, &g_DR_settings.dlg_aimodel);
+      ImGui::MenuItem("Playback", nullptr, &g_DR_settings.dlg_playback);
+      ImGui::MenuItem("Stats", nullptr, &g_DR_settings.dlg_stats);
+      ImGui::MenuItem("Options", nullptr, &g_DR_settings.dlg_options);
       ImGui::EndMenu();
     }
 

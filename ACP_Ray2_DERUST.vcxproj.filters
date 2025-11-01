@@ -1041,6 +1041,9 @@
     <ClInclude Include="src\rendering\textures_list.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\dialogs\stats.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1179,6 +1182,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\rendering\textures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1694,6 +1700,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\col_zde_dodamage.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_zdd.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_event.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\sectorborder.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

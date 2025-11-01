@@ -3,15 +3,10 @@
 #include <sstream>
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
+#include "ui/settings.hpp"
 
 // C INCLUDE
 #include "mod/globals.h"
-
-#if _DEBUG
-bool DR_DLG_Hierarchy_Enabled = true;
-#else
-bool DR_DLG_Hierarchy_Enabled = false;
-#endif
 
 void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
   int childCount = LST_M_DynamicGetNbOfElements(spo);
@@ -77,9 +72,9 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
 
 void DR_DLG_Hierarchy_Draw() {
 
-  if (!DR_DLG_Hierarchy_Enabled) return;
+  if (!g_DR_settings.dlg_hierarchy) return;
 
-  if (ImGui::Begin("Hierarchy", &DR_DLG_Hierarchy_Enabled, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Hierarchy", &g_DR_settings.dlg_hierarchy, ImGuiWindowFlags_NoCollapse)) {
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World");
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stInactiveDynamicWorld, "Inactive Dynamic World");
     DR_DLG_Hierarchy_SPO(*GAM_g_p_stFatherSector, "Father Sector");
