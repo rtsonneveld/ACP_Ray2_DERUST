@@ -10,7 +10,7 @@ class MouseLook
     glm::vec3 position;
     glm::vec3 forward;
 
-    void SetFromGame(glm::vec3 pos, glm::vec3 forward);
+    void SetManually(glm::vec3 pos, glm::vec3 forward);
     void SetFromUser(GLFWwindow * window);
     void Update(GLFWwindow* window);
     MouseLook();

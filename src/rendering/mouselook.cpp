@@ -7,7 +7,7 @@ MouseLook::MouseLook() {
   speed = 1.0f;
 }
 
-void MouseLook::SetFromGame(glm::vec3 pos, glm::vec3 forward) {
+void MouseLook::SetManually(glm::vec3 pos, glm::vec3 forward) {
   yaw = glm::degrees(atan2(forward.y, forward.x));
   pitch = glm::degrees(asin(forward.z));
   position = pos;

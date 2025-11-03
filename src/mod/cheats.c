@@ -58,11 +58,16 @@ void DR_Cheats_Apply() {
         if (DisableObject(debutSPO)) {
           char* raymanReacts = (char*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_RAY_ReagitAuxCommandes);
           *raymanReacts = TRUE;
+
+          WP_tdstGraph* graph = *((WP_tdstGraph**)ACT_DsgVarPtr(debutSPO->hLinkedObject.p_stActor, 0));
+          MTH3D_tdstVector lastWaypointPos = graph->m_hListOfNode.hLastElementDyn->m_hWayPoint->m_stVertex;
+          ACT_Teleport(g_DR_rayman, lastWaypointPos);
         }
       }
 
       DisableObjectOfModelType("ARG_DebutDeMap"); 
       DisableObjectOfModelType("MIC_CameraCinoche");
+      DisableObjectOfModelType("MIC_GenCamera");
       DisableObjectOfModelType("MIC_RetientRay");
       DisableObjectOfModelType("LevelLy_10");
       DisableObjectOfModelType("LevelLy_20");

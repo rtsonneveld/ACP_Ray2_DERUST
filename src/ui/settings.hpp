@@ -11,6 +11,7 @@ using json = nlohmann::json;
     X(bool, dlg_options, false) \
     X(bool, dlg_stats, false) \
     X(bool, dlg_playback, false) \
+    X(bool, dlg_utils, false) \
 /* Options */ \
     X(bool, opt_drawVisuals, false) \
     X(unsigned int, opt_drawCollisionZones, (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD) \
@@ -20,6 +21,14 @@ using json = nlohmann::json;
     X(bool, opt_drawVirtualSectors, false) \
     X(bool, opt_drawSectorBorders, false) \
     X(InactiveSectorVisibility, opt_inactiveSectorVisibility, InactiveSectorVisibility::Transparent) \
+    X(bool, opt_showTooFarLimitAnim, false) \
+    X(bool, opt_showTooFarLimitMeca, false) \
+    X(bool, opt_showTooFarLimitAI, false) \
+    X(int, opt_tooFarLimitMinSize, 0) \
+    X(int, opt_tooFarLimitMaxSize, 255) \
+    X(float, opt_tooFarLimitHideRange, 0.0f) \
+/* Utilities */ \
+    X(bool, util_showGLM, false) \
     /* Format: X(type, name, default_value) */
 
 struct DR_Settings {

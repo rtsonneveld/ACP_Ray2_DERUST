@@ -16,7 +16,6 @@ void DR_DLG_Playback_Draw() {
 
   if (!g_DR_settings.dlg_playback) return;
 
-  bool open = true;
   if (ImGui::Begin("Playback", &g_DR_settings.dlg_playback, ImGuiWindowFlags_NoCollapse)) {
 
     if (IPT_M_bActionJustValidated(IPT_E_Entry_PulseStep)) { // F6

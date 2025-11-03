@@ -98,6 +98,44 @@ unsigned long ACT_GetNumberOfBooleanInArray(HIE_tdstEngineObject* actor, int dsg
   return count;
 }
 
+void ACT_ChangeComportRule(HIE_tdstEngineObject * actor, int index) {
+
+  assert(index >= 0);
+
+  AI_tdstAIModel* aiModel = actor->hBrain->p_stMind->p_stAIModel;
+  AI_tdstScriptAI* scriptAI = aiModel->a_stScriptAIIntel;
+  AI_tdstIntelligence* intelligence = actor->hBrain->p_stMind->p_stIntelligence;
+
+  AI_fn_ucChangeComportIntell(intelligence, &scriptAI->a_stComport[index]);
+}
+
+void ACT_ChangeComportReflex(HIE_tdstEngineObject* actor, int index) {
+
+  assert(index >= 0);
+
+  AI_tdstAIModel* aiModel = actor->hBrain->p_stMind->p_stAIModel;
+  AI_tdstScriptAI* scriptAI = aiModel->a_stScriptAIReflex;
+  AI_tdstIntelligence* intelligence = actor->hBrain->p_stMind->p_stReflex;
+
+  AI_fn_ucChangeComportIntell(intelligence, &scriptAI->a_stComport[index]);
+}
+
+HIE_tdstState* ACT_GetStateByIndex(HIE_tdstEngineObject* actor, int stateIndex)
+{
+  if (!actor || !actor->h3dData || !actor->h3dData->h_Family)
+    return NULL;
+
+  HIE_tdstState * element = actor->h3dData->h_Family->stForStateArray.hFirstElementSta;
+  for (int i = 0;i < stateIndex;i++) {
+    element = element->hNextBrotherSta;
+    if (element == NULL) {
+      return NULL;
+    }
+  }
+
+  return element;
+}
+
 
 /// <summary>
 /// Sets the transparency of a SuperObject
@@ -115,4 +153,21 @@ void SPO_SetTransparency(HIE_tdstSuperObject* spo, float alpha) {
     spo->hLinkedObject.p_stActor->h3dData->lDrawMask |= GLI_C_lIsNotGrided;
   }
   PLA_fn_vUpdateTransparencyForModules(spo);
+}
+
+void ACT_Teleport(HIE_tdstSuperObject* actorSPO, MTH3D_tdstVector newPos) {
+  
+  assert(actorSPO->ulType == HIE_C_Type_Actor);
+
+  actorSPO->hFatherDyn = *GAM_g_p_stDynamicWorld; // Reset parent to world
+  actorSPO->p_stLocalMatrix->stPos = newPos;
+
+  HIE_tdstEngineObject* actor = actorSPO->hLinkedObject.p_stActor;
+  if (actor->hDynam != NULL && actor->hDynam->p_stDynamics != NULL) {
+    DNM_tdstDynamics* dynam = actor->hDynam->p_stDynamics;
+
+    dynam->stDynamicsBase.stPreviousMatrix.stPos = newPos;
+    dynam->stDynamicsBase.stCurrentMatrix.stPos = newPos;
+  }
+
 }

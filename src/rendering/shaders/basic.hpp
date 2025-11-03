@@ -42,29 +42,60 @@ float edgeFactor() {
     return min(min(a3.x, a3.y), a3.z);
 }
 
-// --- Triplanar mapping using model-space position and normal ---
-vec4 triplanarTexture(sampler2D tex, vec3 pos, vec3 normal) {
-    vec3 n = abs(normalize(normal));
-    n /= (n.x + n.y + n.z);  // normalize weights
+vec4 quantizedTriplanarTexture(sampler2D tex, vec3 pos, vec3 normal) {
+    // Normalize normal
+    vec3 n = normalize(normal);
 
+    // Define the 14 discrete directions
+    const vec3 dirs[14] = vec3[14](
+        vec3( 1,  0,  0), vec3(-1,  0,  0), // ±X
+        vec3( 0,  1,  0), vec3( 0, -1,  0), // ±Y
+        vec3( 0,  0,  1), vec3( 0,  0, -1), // ±Z
+        normalize(vec3( 1,  1,  1)), normalize(vec3(-1,  1,  1)),
+        normalize(vec3( 1, -1,  1)), normalize(vec3(-1, -1,  1)),
+        normalize(vec3( 1,  1, -1)), normalize(vec3(-1,  1, -1)),
+        normalize(vec3( 1, -1, -1)), normalize(vec3(-1, -1, -1))
+    );
+
+    // Find best-matching direction (max dot)
+    float bestDot = -1.0;
+    int bestIndex = 0;
+    for (int i = 0; i < 14; ++i) {
+        float d = dot(n, dirs[i]);
+        if (d > bestDot) {
+            bestDot = d;
+            bestIndex = i;
+        }
+    }
+
+    vec3 bestDir = dirs[bestIndex];
     vec3 scaledPos = pos * uvScale;
 
-    vec2 uvX = scaledPos.yz;  // projection on YZ plane
-    vec2 uvY = scaledPos.xz;  // projection on XZ plane
-    vec2 uvZ = scaledPos.xy;  // projection on XY plane
+    // Compute UV based on the chosen dominant axis
+    vec2 uv;
+    if (abs(bestDir.x) > abs(bestDir.y) && abs(bestDir.x) > abs(bestDir.z)) {
+        uv = scaledPos.yz; // projection on YZ plane
+    } else if (abs(bestDir.y) > abs(bestDir.z)) {
+        uv = scaledPos.xz; // projection on XZ plane
+    } else {
+        uv = scaledPos.xy; // projection on XY plane
+    }
 
-    vec4 colX = texture(tex, uvX);
-    vec4 colY = texture(tex, uvY);
-    vec4 colZ = texture(tex, uvZ);
+    // Sample single texture
+    return texture(tex, uv);
+}
 
-    return colX * n.x + colY * n.y + colZ * n.z;
+
+vec3 safeNormalize(vec3 v) {
+    float len = length(v);
+    return (len > 1e-6) ? v / len : vec3(0.0, 1.0, 0.0); // or some fallback
 }
 
 void main() {
-    vec3 norm = normalize(Normal);
-    vec3 faceNorm = normalize(FaceNormal);
+    vec3 norm = safeNormalize(Normal);
+    vec3 faceNorm = safeNormalize(FaceNormal);
     vec3 interpNorm = mix(norm, faceNorm, 0.5);
-    float diff = 0.5 + (dot(interpNorm, -lightDir)) * 0.5;
+    float diff = clamp(0.5 + (dot(interpNorm, -lightDir)) * 0.5, 0.0, 1.0); // Clamp for safety
     
     // Model-space normal for texture orientation
     vec3 modelInterpNorm = normalize(mix(ModelNormal, ModelFaceNormal, 1.0));
@@ -72,12 +103,12 @@ void main() {
     // --- Auto-UV sampling using triplanar method ---
     vec4 texColor;
     if (useSecondTexture) {
-        vec4 tex1Color = triplanarTexture(tex1, Pos, modelInterpNorm);
-        vec4 tex2Color = triplanarTexture(tex2, Pos, modelInterpNorm);
+        vec4 tex1Color = quantizedTriplanarTexture(tex1, Pos, modelInterpNorm);
+        vec4 tex2Color = quantizedTriplanarTexture(tex2, Pos, modelInterpNorm);
         float stripe = mod(floor(Pos.x) + floor(Pos.y) + floor(Pos.z), 2.0);
         texColor = mix(tex1Color, tex2Color, stripe);
     } else {
-        texColor = triplanarTexture(tex1, Pos, modelInterpNorm);
+        texColor = quantizedTriplanarTexture(tex1, Pos, modelInterpNorm);
     }
 
     // --- Lighting & modulation ---

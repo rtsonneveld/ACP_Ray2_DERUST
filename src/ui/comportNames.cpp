@@ -41,6 +41,57 @@ std::string GetReflexName(std::string aiModel, int index) {
   return fallbackResult;
 }
 
+int GetComportIndex(std::string aiModel, const std::string& name) {
+  static std::map<std::pair<std::string, std::string>, int> cache;
+
+  auto cacheKey = std::make_pair(aiModel, name);
+  auto cacheIt = cache.find(cacheKey);
+  if (cacheIt != cache.end()) {
+    return cacheIt->second;
+  }
+
+  auto it = comportNames.find(aiModel);
+  if (it != comportNames.end()) {
+    const auto& names = it->second;
+    for (size_t i = 0; i < names.size(); ++i) {
+      if (names[i] == name) {
+        cache[cacheKey] = static_cast<int>(i);
+        return static_cast<int>(i);
+      }
+    }
+  }
+
+  // Not found
+  cache[cacheKey] = -1;
+  return -1;
+}
+
+int GetReflexIndex(std::string aiModel, const std::string& name) {
+  static std::map<std::pair<std::string, std::string>, int> cache;
+
+  auto cacheKey = std::make_pair(aiModel, name);
+  auto cacheIt = cache.find(cacheKey);
+  if (cacheIt != cache.end()) {
+    return cacheIt->second;
+  }
+
+  auto it = reflexNames.find(aiModel);
+  if (it != reflexNames.end()) {
+    const auto& names = it->second;
+    for (size_t i = 0; i < names.size(); ++i) {
+      if (names[i] == name) {
+        cache[cacheKey] = static_cast<int>(i);
+        return static_cast<int>(i);
+      }
+    }
+  }
+
+  // Not found
+  cache[cacheKey] = -1;
+  return -1;
+}
+
+
 const std::unordered_map<std::string, std::vector<std::string>> comportNames = {
     {"Alw_Explosion_model", { "SUN_Flash_init", "OLD_c_boom", "CHR_wait_until_dead", "SUN_c_boo_paf" }},
     {"ELR_mLaveBloup", { "ELR_C_LaveBloup_00_Init", "ELR_C_LaveBloup_01_Normal2" }},

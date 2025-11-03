@@ -5,13 +5,16 @@
 #include "mouselook.hpp"
 #include <imgui.h>
 #include "mod/globals.h"
+#include "mod/util.h"
 #include <ui/dialogs/inspector.hpp>
 #include <ui/dialogs/options.hpp>
+#include <ui/dialogs/utils.hpp>
 #include <ui/settings.hpp>
 
 #include "rendering/shaders/basic.hpp"
 #include "rendering/shaders/woit_fullscreenpresent.hpp"
 #include "rendering/textures.hpp"
+
 
 #define COLOR_ZDD glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)
 #define COLOR_ZDE glm::vec4(1.0f, 1.0f, 1.0f, 0.8f)
@@ -27,6 +30,7 @@ bool wasTeleporting = false;
 float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
 Mesh sphere;
+Mesh tooFarLimitMesh;
 Mesh fullScreenQuad;
 Mesh sectorBordersCube;
 
@@ -37,9 +41,8 @@ void Scene::init() {
   geometryShader = new Shader(Shaders::Basic::Vertex, Shaders::Basic::Fragment);
   woitFullScreenPresentShader = new Shader(Shaders::WOIT_FullScreenPresent::Vertex, Shaders::WOIT_FullScreenPresent::Fragment);
 
-  camera = new Camera(glm::vec3(1.5f, 1.5f, 1.5f));
-
-  sphere = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f)); //Mesh::createSphere(1.0f);
+  sphere = Mesh::createSphere(1.0f);
+  tooFarLimitMesh = Mesh::createOctahedron(glm::vec3(1, 1, 1));
   fullScreenQuad = Mesh::createQuad(1.0f, 1.0f);
   sectorBordersCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
 }
@@ -66,14 +69,16 @@ void Scene::renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_td
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDE)) {
     shader->setVec4("uColor", COLOR_ZDE);
-    shader->setVec3("uvScale", glm::vec3(2, 2, 2));
+    shader->setVec3("uvScale", glm::vec3(2));
     renderZdxList(shader, collSet->hZdeList, spo, ZDX_C_ucTypeZde);
+    shader->setVec3("uvScale", glm::vec3(1));
   }
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDM)) {
     shader->setVec4("uColor", COLOR_ZDM);
-    shader->setVec3("uvScale", glm::vec3(2, 2, 2));
+    shader->setVec3("uvScale", glm::vec3(2));
     renderZdxList(shader, collSet->hZdmList, spo, ZDX_C_ucTypeZdm);
+    shader->setVec3("uvScale", glm::vec3(1));
   }
 
   if (IsCollisionZoneEnabled(CollisionZoneMask::ZDR)) {
@@ -156,7 +161,60 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
   }
 }
 
-void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSector) {
+// Build rows explicitly from column-major glm::mat4
+static inline glm::vec4 row(const glm::mat4& m, int r) {
+  return glm::vec4(m[0][r], m[1][r], m[2][r], m[3][r]);
+}
+
+// Returns true if AABB (minPoint, maxPoint) is at least partly inside frustum
+bool isSectorInFrustum(const glm::vec3& minPoint, const glm::vec3& maxPoint,
+  const glm::mat4& view, const glm::mat4& proj)
+{
+  glm::mat4 clip = proj * view;
+
+  // build rows
+  glm::vec4 r0 = row(clip, 0);
+  glm::vec4 r1 = row(clip, 1);
+  glm::vec4 r2 = row(clip, 2);
+  glm::vec4 r3 = row(clip, 3);
+
+  glm::vec4 planes[6];
+  // Note: rows are used — this avoids mixing axes with glm column storage
+  planes[0] = r3 + r0; // left
+  planes[1] = r3 - r0; // right
+  planes[2] = r3 + r1; // bottom
+  planes[3] = r3 - r1; // top
+  planes[4] = r3 + r2; // near
+  planes[5] = r3 - r2; // far
+
+  // normalize planes
+  for (int i = 0; i < 6; ++i) {
+    float len = glm::length(glm::vec3(planes[i]));
+    if (len > 0.0f) planes[i] /= len;
+  }
+
+  // test AABB using "positive vertex" method
+  for (int i = 0; i < 6; ++i) {
+    glm::vec4 p = planes[i];
+    glm::vec3 normal(p.x, p.y, p.z);
+
+    // choose the vertex most likely to be outside the plane
+    glm::vec3 positive = minPoint;
+    if (normal.x >= 0.0f) positive.x = maxPoint.x;
+    if (normal.y >= 0.0f) positive.y = maxPoint.y;
+    if (normal.z >= 0.0f) positive.z = maxPoint.z;
+
+    float distance = glm::dot(normal, positive) + p.w;
+    if (distance < 0.0f) {
+      // completely outside this plane
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSector, const glm::mat4 view, const glm::mat4 proj, const glm::vec3 mainCharPos) {
 
   if (spo->ulFlags & HIE_C_Flag_Hidden && !g_DR_settings.opt_drawInvisibleObjects) return;
   glm::mat4 model = ToGLMMat4(*spo->p_stGlobalMatrix);
@@ -164,7 +222,7 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
   shader->setMat4("uModel", model);
 
   bool mirrored = glm::determinant(model) < 0.0f;
-
+ 
   if (mirrored) {
     glFrontFace(GL_CW); // Clockwise is front-facing
   }  else {
@@ -192,6 +250,12 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
       }
     }
 
+    const glm::vec3 minPoint = ToGLMVec(sector->a_stMinMaxPoints[0]);
+    const glm::vec3 maxPoint = ToGLMVec(sector->a_stMinMaxPoints[1]);
+
+    if (!isSectorInFrustum(minPoint, maxPoint, view, proj)) {
+      return;
+    }
   }
 
   if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Hidden) {
@@ -204,7 +268,6 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
 
 
   if (spo->ulType & HIE_C_Type_Sector && g_DR_settings.opt_drawSectorBorders) {
-
 
     auto sector = spo->hLinkedObject.p_stSector;
 
@@ -253,6 +316,43 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
   if (spo->ulType & HIE_C_Type_Actor) {
     auto actor = spo->hLinkedObject.p_stActor;
 
+    if (actor->hStandardGame != nullptr && actor->hStandardGame->ucTooFarLimit > 0) {
+
+      float limit = actor->hStandardGame->ucTooFarLimit;
+
+      if (limit >= g_DR_settings.opt_tooFarLimitMinSize && limit <= g_DR_settings.opt_tooFarLimitMaxSize) {
+
+        if (actor->hStandardGame->ulCustomBits & Std_C_CustBit_NoAnimPlayerWhenTooFar && g_DR_settings.opt_showTooFarLimitAnim ||
+          actor->hStandardGame->ulCustomBits & Std_C_CustBit_NoMecaWhenTooFar && g_DR_settings.opt_showTooFarLimitMeca ||
+          actor->hStandardGame->ulCustomBits & Std_C_CustBit_NoAIWhenTooFar && g_DR_settings.opt_showTooFarLimitAI) {
+
+          glm::vec3 dist = mainCharPos - ToGLMVec(spo->p_stGlobalMatrix->stPos);
+          float totalDist = abs(dist.x) + abs(dist.y) + abs(dist.z);
+          float delta = abs(limit - totalDist);
+
+          float alpha = g_DR_settings.opt_tooFarLimitHideRange > 0 ? min(max(1.0f - (delta / g_DR_settings.opt_tooFarLimitHideRange), 0.0f), 1.0f) : 1.0f;
+          if (alpha > 0.0f) {
+
+            glm::mat4 tooFarLimitMatrix = glm::translate(glm::mat4(1.0f), ToGLMVec(spo->p_stGlobalMatrix->stPos));
+            tooFarLimitMatrix = glm::scale(tooFarLimitMatrix, glm::vec3(limit * 2));
+
+            shader->use();
+            shader->setMat4("uModel", tooFarLimitMatrix);
+            shader->setTex2D("tex1", Textures::Toofar, 0);
+            shader->setVec3("uvScale", glm::vec3(limit * 2));
+            shader->setBool("useSecondTexture", false);
+            shader->setFloat("uAlphaMult", alpha);
+            tooFarLimitMesh.draw(shader);
+            shader->setFloat("uAlphaMult", 1.0f);
+            shader->setVec3("uvScale", glm::vec3(1));
+            shader->setMat4("uModel", model);
+          }
+        }
+
+      }
+
+    }
+
     if (actor != nullptr && spo != GAM_g_stEngineStructure->g_hStdCamCharacter) {
       renderActorCollSet(shader, spo, actor->hCollSet);
     }
@@ -279,7 +379,7 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
-    renderSPO(shader, child, activeSector);
+    renderSPO(shader, child, activeSector, view, proj, mainCharPos);
   }
 }
 
@@ -352,15 +452,24 @@ void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4&
   geometryShader->setMat4("uView", view);
   geometryShader->setMat4("uProjection", proj);
   geometryShader->setFloat("uAlphaMult", 1.0f);
+  geometryShader->setFloat("falloffDistance", 0.0f);
 
-  renderSPO(geometryShader, *GAM_g_p_stFatherSector, true);
-  renderSPO(geometryShader, *GAM_g_p_stDynamicWorld, true);
-  renderSPO(geometryShader, *GAM_g_p_stInactiveDynamicWorld, false);
+  glm::vec3 mainCharPos = ToGLMVec(GAM_g_stEngineStructure->g_hMainActor->p_stGlobalMatrix->stPos);
+
+  renderSPO(geometryShader, *GAM_g_p_stFatherSector, true, view, proj, mainCharPos);
+  renderSPO(geometryShader, *GAM_g_p_stDynamicWorld, true, view, proj, mainCharPos);
+  renderSPO(geometryShader, *GAM_g_p_stInactiveDynamicWorld, false, view, proj, mainCharPos);
+
+  DR_DLG_Utils_DrawScene(this, geometryShader);
+}
+
+void Scene::setCameraPosition(glm::vec3 from, glm::vec3 to) {
+  useMouseLook = true;
+  mouseLook.SetManually(from, glm::normalize(to - from)); 
 }
 
 void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   assert(geometryShader != nullptr);
-  assert(camera != nullptr);
 
   generateRenderTextures(display_w, display_h);
 
@@ -397,18 +506,14 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
       // Teleport with space
       if (ImGui::IsKeyDown(ImGuiKey_Space)) {
         auto newPos = FromGLMVec(mouseLook.position);
-        g_DR_rayman->hFatherDyn = *GAM_g_p_stDynamicWorld;
-        g_DR_rayman->p_stLocalMatrix->stPos = newPos;
-        auto dynam = g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics;
-        dynam->stDynamicsBase.stPreviousMatrix.stPos = newPos;
-        dynam->stDynamicsBase.stCurrentMatrix.stPos = newPos;
+        ACT_Teleport(g_DR_rayman, newPos);
         *GAM_g_ucIsEdInGhostMode = true;
         wasTeleporting = true;
       }
     }
     view = glm::lookAtRH(mouseLook.position, mouseLook.position + mouseLook.forward, glm::vec3(0,0,1));
   } else {
-    mouseLook.SetFromGame(ToGLMVec(cam->p_stGlobalMatrix->stPos), -glm::vec3(camMatrix[1]));
+    mouseLook.SetManually(ToGLMVec(cam->p_stGlobalMatrix->stPos), -glm::vec3(camMatrix[1]));
     view = glm::lookAtRH(mouseLook.position, mouseLook.position + mouseLook.forward, glm::vec3(camMatrix[2]));
   }
 

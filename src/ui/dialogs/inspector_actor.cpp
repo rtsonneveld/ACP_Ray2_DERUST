@@ -205,7 +205,7 @@ void DrawComportPicker(HIE_tdstEngineObject* actor, AI_tdstMind * mind, AI_tdstA
     for (int i = 0;i < scriptAI->ulNbComport;i++) {
       snprintf(label, sizeof(label), "%s##selection", (isReflex ? GetReflexName(modelName, i) : GetComportName(modelName, i)).c_str());
       if (ImGui::Selectable(label, i == activeComport)) {
-        intelligence->p_stCurrentComport = &scriptAI->a_stComport[i];
+        AI_fn_ucChangeComportIntell(intelligence, &scriptAI->a_stComport[i]);
       }
     }
 

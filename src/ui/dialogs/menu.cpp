@@ -176,6 +176,7 @@ void DR_DLG_Menu_Draw() {
       ImGui::MenuItem("AI Model", nullptr, &g_DR_settings.dlg_aimodel);
       ImGui::MenuItem("Playback", nullptr, &g_DR_settings.dlg_playback);
       ImGui::MenuItem("Stats", nullptr, &g_DR_settings.dlg_stats);
+      ImGui::MenuItem("Utilities", nullptr, &g_DR_settings.dlg_utils);
       ImGui::MenuItem("Options", nullptr, &g_DR_settings.dlg_options);
       ImGui::EndMenu();
     }

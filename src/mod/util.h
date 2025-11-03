@@ -31,12 +31,19 @@ void ACT_SetBooleanInArray(HIE_tdstEngineObject* engineObj, int dsgVarIndex, uns
 char ACT_GetBooleanInArray(HIE_tdstEngineObject* engineObj, int dsgVarIndex, unsigned long bitIndex);
 unsigned long ACT_GetNumberOfBooleanInArray(HIE_tdstEngineObject* engineObj, int dsgVarIndex, unsigned long firstIndex, unsigned long lastIndex);
 
+void ACT_ChangeComportRule(HIE_tdstEngineObject* actor, int index);
+void ACT_ChangeComportReflex(HIE_tdstEngineObject* actor, int index);
+HIE_tdstState* ACT_GetStateByIndex(HIE_tdstEngineObject* actor, int stateIndex);
+void ACT_ChangeState(HIE_tdstEngineObject* actor, int stateIndex);
+
 /// <summary>
 /// Sets the transparency of a SuperObject
 /// </summary>
 /// <param name="spo">The SuperObject</param>
 /// <param name="alpha">Alpha where 0 is fully transparent and 1 is fully opaque</param>
 void SPO_SetTransparency(HIE_tdstSuperObject* spo, float alpha);
+
+void ACT_Teleport(HIE_tdstSuperObject* actorSPO, MTH3D_tdstVector newPos);
 
 #ifdef __cplusplus
     }

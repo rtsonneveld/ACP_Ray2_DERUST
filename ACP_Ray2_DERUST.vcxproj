@@ -427,6 +427,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\primitives\cube.hpp" />
     <ClInclude Include="src\rendering\geo_mesh.hpp" />
     <ClInclude Include="src\rendering\mesh.hpp" />
+    <ClInclude Include="src\rendering\primitives\octahedron.hpp" />
     <ClInclude Include="src\rendering\resourceutil.hpp" />
     <ClInclude Include="src\rendering\scene.hpp" />
     <ClInclude Include="src\rendering\shader.hpp" />
@@ -448,6 +449,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\options.hpp" />
     <ClInclude Include="src\ui\dialogs\playback.hpp" />
     <ClInclude Include="src\ui\dialogs\stats.hpp" />
+    <ClInclude Include="src\ui\dialogs\utils.hpp" />
     <ClInclude Include="src\ui\settings.hpp" />
     <ClInclude Include="src\ui\ui.hpp" />
     <ClInclude Include="src\ui\ui_bridge.h" />
@@ -502,6 +504,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\dialogs\options.cpp" />
     <ClCompile Include="src\ui\dialogs\playback.cpp" />
     <ClCompile Include="src\ui\dialogs\stats.cpp" />
+    <ClCompile Include="src\ui\dialogs\utils.cpp" />
     <ClCompile Include="src\ui\settings.cpp" />
     <ClCompile Include="src\ui\ui_util.cpp">
     </ClCompile>
@@ -691,6 +694,7 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\col_zdm_head.png" />
     <Image Include="resources\col_zdm_traversesol.png" />
     <Image Include="resources\sectorborder.png" />
+    <Image Include="resources\toofar.png" />
     <Image Include="resources\unknown.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

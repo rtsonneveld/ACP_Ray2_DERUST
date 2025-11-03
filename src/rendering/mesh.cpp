@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "textures.hpp"
 #include "primitives/cube.hpp"
+#include "primitives/octahedron.hpp"
 #include <GLFW/glfw3.h>
 
 #include <ACP_Ray2.h>
@@ -161,6 +162,37 @@ Mesh Mesh::createCube(glm::vec3 size, glm::vec3 offset)
   return Mesh(vertices, indices, 0.0f);
 }
 
+Mesh Mesh::createOctahedron(glm::vec3 size, glm::vec3 offset)
+{
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+
+  // Copy and transform the base cube vertices
+  for (int i = 0; i < 6; ++i) {
+    glm::vec3 v(
+      Primitives::Octahedron::vertices[i * 3 + 0],
+      Primitives::Octahedron::vertices[i * 3 + 1],
+      Primitives::Octahedron::vertices[i * 3 + 2]
+    );
+
+    // Scale and translate (offset)
+    v *= size;
+    v += offset;
+
+    vertices.push_back(v.x);
+    vertices.push_back(v.y);
+    vertices.push_back(v.z);
+  }
+
+  // Copy indices from the primitive definition
+  indices.insert(
+    indices.end(),
+    std::begin(Primitives::Octahedron::indices),
+    std::end(Primitives::Octahedron::indices)
+  );
+
+  return Mesh(vertices, indices, 0.0f);
+}
 
 Mesh Mesh::createSphere(float radius, glm::vec3 offset, int n_stacks, int n_slices) {
 

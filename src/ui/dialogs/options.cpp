@@ -37,6 +37,12 @@ void DR_DLG_Options_Draw() {
       g_DR_settings.opt_inactiveSectorVisibility = static_cast<InactiveSectorVisibility>(inactiveIndex);
     }
 
+    ImGui::Checkbox("Show TooFarLimit (Animations)", &g_DR_settings.opt_showTooFarLimitAnim);
+    ImGui::Checkbox("Show TooFarLimit (Mechanics)", &g_DR_settings.opt_showTooFarLimitMeca);
+    ImGui::Checkbox("Show TooFarLimit (AI)", &g_DR_settings.opt_showTooFarLimitAI);
+    ImGui::DragIntRange2("TooFarLimit size filter", &g_DR_settings.opt_tooFarLimitMinSize, &g_DR_settings.opt_tooFarLimitMaxSize, 1.0f, 0, 255, "Min: %d", "Max: %d");
+    ImGui::SliderFloat("TooFarLimit visibility range", &g_DR_settings.opt_tooFarLimitHideRange, 0.0f, 100.0f);
+
   }
   ImGui::End();
 }

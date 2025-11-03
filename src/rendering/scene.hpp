@@ -20,16 +20,16 @@ public:
 
   void init();
   void render(GLFWwindow * window, float display_w, float display_h);
+  void setCameraPosition(glm::vec3 from, glm::vec3 to);
 
 private:
 
   Shader* geometryShader;
   Shader* woitFullScreenPresentShader;
   Shader* woitTransparencyShader;
-  Camera* camera;
 
   void renderPass(bool isTransparent, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj);
-  void renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector);
+  void renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool inActiveSector, const glm::mat4 view, const glm::mat4 proj, glm::vec3 mainCharPos);
   void renderPhysicalObject(Shader* shader, PO_tdstPhysicalObject* po, bool hasNoCollisionFlag);
   void renderActorCollSet(Shader * shader, HIE_tdstSuperObject* spo, ZDX_tdstCollSet* collSet);
   void renderZdxList(Shader* shader, ZDX_tdstZdxList* list, HIE_tdstSuperObject* spo, unsigned char zoneType);

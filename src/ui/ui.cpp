@@ -106,6 +106,7 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 
   // Load settings from file
   DR_LoadSettings();
+  DR_DLG_Init(a_window_r2);
 
   ui_initialized = 1;
   return 0;
@@ -142,11 +143,6 @@ void DR_UI_Update() {
   }
 
   DR_DLG_Draw(window_r2);
-
-  if (g_DR_rayman != nullptr && g_DR_rayman->hLinkedObject.p_stActor != nullptr && g_DR_rayman->hLinkedObject.p_stActor->h3dData != nullptr) {
-    ImGui::Text("Rayman AnimFrame %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->uwCurrentFrame);
-    ImGui::Text("Rayman End of Anim Flag %u", g_DR_rayman->hLinkedObject.p_stActor->h3dData->ucFlagEndOfAnim);
-  }
 
   ImGui::Render();
 
