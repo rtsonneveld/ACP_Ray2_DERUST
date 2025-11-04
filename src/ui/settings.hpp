@@ -15,12 +15,13 @@ using json = nlohmann::json;
 /* Options */ \
     X(bool, opt_drawVisuals, false) \
     X(unsigned int, opt_drawCollisionZones, (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD) \
+    X(InactiveItemVisibility, opt_inactiveZoneVisibility, InactiveItemVisibility::Transparent) \
     X(bool, opt_drawNoCollisionObjects, false) \
     X(bool, opt_drawInvisibleObjects, true) \
     X(bool, opt_transparentZDRWalls, false) \
     X(bool, opt_drawVirtualSectors, false) \
     X(bool, opt_drawSectorBorders, false) \
-    X(InactiveSectorVisibility, opt_inactiveSectorVisibility, InactiveSectorVisibility::Transparent) \
+    X(InactiveItemVisibility, opt_inactiveSectorVisibility, InactiveItemVisibility::Transparent) \
     X(bool, opt_showTooFarLimitAnim, false) \
     X(bool, opt_showTooFarLimitMeca, false) \
     X(bool, opt_showTooFarLimitAI, false) \

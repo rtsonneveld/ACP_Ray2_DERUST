@@ -96,9 +96,19 @@ void Scene::renderZdxList(Shader* shader, ZDX_tdstZdxList* list, HIE_tdstSuperOb
   auto hZdx = list->hGeoZdxList.hFirstElementSta;
   while (hZdx != nullptr) {
 
-    if (hZdx->hGeoObj != nullptr && GAM_fn_hIsThisZoneActive(spo, zoneType, index)) {
-      GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
-      geoMesh.draw(shader, zoneType);
+    if (hZdx->hGeoObj != nullptr) {
+
+      bool isActive = GAM_fn_hIsThisZoneActive(spo, zoneType, index);
+      if (isActive || g_DR_settings.opt_inactiveZoneVisibility != InactiveItemVisibility::Hidden) {
+
+        shader->setFloat("uAlphaMult", 1.0f);
+
+        if (!isActive && g_DR_settings.opt_inactiveZoneVisibility == InactiveItemVisibility::Transparent) {
+            shader->setFloat("uAlphaMult", 0.25f);
+        }
+        GeometricObjectMesh geoMesh = *GeometricObjectMesh::get(hZdx->hGeoObj);
+        geoMesh.draw(shader, zoneType);
+      }
     }
 
     hZdx = hZdx->hNextBrotherSta;
@@ -258,11 +268,11 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
     }
   }
 
-  if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Hidden) {
+  if (g_DR_settings.opt_inactiveSectorVisibility == InactiveItemVisibility::Hidden) {
     if (!activeSector) return; 
-  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Transparent) {
+  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveItemVisibility::Transparent) {
     shader->setFloat("uAlphaMult", activeSector ? 1.0f : 0.5f);
-  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveSectorVisibility::Visible) {
+  } else if (g_DR_settings.opt_inactiveSectorVisibility == InactiveItemVisibility::Visible) {
     shader->setFloat("uAlphaMult", 1.0f);
   }
 

@@ -20,9 +20,18 @@ void DR_DLG_Options_Draw() {
 
   if (ImGui::Begin("Options", &g_DR_settings.dlg_options, ImGuiWindowFlags_NoCollapse)) {
 
+    const char* inactiveItems[] = { "Visible", "Transparent", "Hidden" };
+
     ImGui::Checkbox("Draw visual sets", &g_DR_settings.opt_drawVisuals);
     if (g_DR_settings.opt_drawVisuals) ImGui::BeginDisabled();
     InputBitField("Draw collision zones", (unsigned long*)&g_DR_settings.opt_drawCollisionZones, BITFIELD_DR_DISPLAYOPTIONS_ZONE, IM_ARRAYSIZE(BITFIELD_DR_DISPLAYOPTIONS_ZONE));
+
+    // Inactive zone visibility dropdown
+    int inactiveZoneSetting = static_cast<int>(g_DR_settings.opt_inactiveZoneVisibility);
+    if (ImGui::Combo("Inactive zone visibility", &inactiveZoneSetting, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
+      g_DR_settings.opt_inactiveZoneVisibility = static_cast<InactiveItemVisibility>(inactiveZoneSetting);
+    }
+
     ImGui::Checkbox("Transparent ZDR walls", &g_DR_settings.opt_transparentZDRWalls);
     ImGui::Checkbox("Draw no-collision objects", &g_DR_settings.opt_drawNoCollisionObjects);
     if (g_DR_settings.opt_drawVisuals) ImGui::EndDisabled();
@@ -31,10 +40,9 @@ void DR_DLG_Options_Draw() {
     ImGui::Checkbox("Draw sector borders", &g_DR_settings.opt_drawSectorBorders);
 
     // Inactive sector visibility dropdown
-    int inactiveIndex = static_cast<int>(g_DR_settings.opt_inactiveSectorVisibility);
-    const char* inactiveItems[] = { "Visible", "Transparent", "Hidden" }; 
-    if (ImGui::Combo("Inactive sector visibility", &inactiveIndex, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
-      g_DR_settings.opt_inactiveSectorVisibility = static_cast<InactiveSectorVisibility>(inactiveIndex);
+    int inactiveSectorSetting = static_cast<int>(g_DR_settings.opt_inactiveSectorVisibility);
+    if (ImGui::Combo("Inactive sector visibility", &inactiveSectorSetting, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
+      g_DR_settings.opt_inactiveSectorVisibility = static_cast<InactiveItemVisibility>(inactiveSectorSetting);
     }
 
     ImGui::Checkbox("Show TooFarLimit (Animations)", &g_DR_settings.opt_showTooFarLimitAnim);

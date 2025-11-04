@@ -1,6 +1,6 @@
 #pragma once
 
-enum class InactiveSectorVisibility : unsigned int
+enum class InactiveItemVisibility : unsigned int
 {
   Visible = 0,
   Transparent = 1,
