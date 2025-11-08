@@ -11,6 +11,7 @@
 #include "aimodel.hpp"
 #include "options.hpp"
 #include "utils.hpp"
+#include "engineglobals.hpp"
 
 void DR_DLG_Init(HWND window_r2);
 void DR_DLG_Draw(HWND window_r2);

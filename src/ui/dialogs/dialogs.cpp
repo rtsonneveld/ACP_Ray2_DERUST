@@ -14,5 +14,6 @@ void DR_DLG_Draw(HWND window_r2) {
   DR_DLG_Inspector_Draw();
   DR_DLG_AIModel_Draw();
   DR_DLG_Utils_Draw();
+  DR_DLG_EngineGlobals_Draw();
   DR_DLG_Options_Draw();
 }

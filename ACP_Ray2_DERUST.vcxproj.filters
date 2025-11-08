@@ -84,9 +84,6 @@
     <ClInclude Include="src\ui\dialogs\playback.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\dialogs\practicetools.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\ui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1044,6 +1041,24 @@
     <ClInclude Include="src\ui\dialogs\stats.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\rendering\primitives\octahedron.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\settings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\inspector_actor_dynam.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\engineglobals.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\inspector_actor_brain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1115,9 +1130,6 @@
     <ClCompile Include="src\ui\dialogs\menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dialogs\practicetools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\mod\globals.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1185,6 +1197,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dialogs\stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\inspector_actor_dynam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\engineglobals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\engineglobals_enginestructure.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\engineglobals_collisionreport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\inspector_actor_brain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1709,6 +1742,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\sectorborder.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\toofar.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

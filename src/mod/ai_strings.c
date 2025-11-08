@@ -13,7 +13,7 @@ const char* AI_GetNodeString(const AI_tdstNodeInterpret* node) {
   }
 }
 
-static const char* AI_TypeInterpretStrings[AI_E_Nb_ti] = {
+const char* AI_TypeInterpretStrings[AI_E_Nb_ti] = {
     "KeyWord","Condition","Operator","Function","Procedure","MetaAction",
     "BeginMacro","EndMacro","EndTree","Field","DsgVar","DsgVarRef","Constant",
     "Real","Button","ConstantVector","Vector","Mask","Module","DsgVarId",
@@ -28,7 +28,7 @@ const char* AI_GetTypeInterpretString(AI_tdeTypeInterpret value) {
   return "<InvalidTypeInterpret>";
 }
 
-static const char* AI_VariableTypeStrings[AI_E_Nb_vt] = {
+const char* AI_VariableTypeStrings[AI_E_Nb_vt] = {
     "None","Boolean","Char","UChar","Short","UShort","Integer","PositiveInteger",
     "Float","String","WayPoint","Perso","List","1bit","2bit","3bit","4bit",
     "5bit","6bit","7bit","MetaActionReturn","Vector","Module","DsgVarId","Action",
@@ -42,7 +42,19 @@ const char* AI_GetVariableTypeString(AI_tdeVariableType value) {
   return "<InvalidVariableType>";
 }
 
-static const char* AI_KeyWordIdStrings[AI_E_Nb_kw] = {
+const char* AI_DsgVarTypeStrings[AI_E_Nb_dvt] = {
+    "Bool", "Char", "UChar", "Short", "UShort", "Int", "UInt",
+    "Float", "WayPoint", "Perso", "List", "Vector", "Comport", "Action",
+    "Text", "GameMaterial", "Caps", "Graph", "Perso[]", "Vector[]",
+    "Float[]", "Integer[]", "WayPoint[]", "Text[]", "SuperObject"
+};
+
+const char* AI_GetDsgVarTypeString(AI_tdeDsgVarType value) {
+  if (value < AI_E_Nb_dvt) return AI_DsgVarTypeStrings[value];
+  return "<InvalidDsgVarType>";
+}
+
+const char* AI_KeyWordIdStrings[AI_E_Nb_kw] = {
     "If","IfNot","If2","If4","If8","If16","IfDebug","IfNotU64","Then","Else",
     "Goto","Me","MainActor","Nobody","NoInput","Nowhere","EmptyText","CapsNull",
     "NoGraph","NoAction"
@@ -53,7 +65,7 @@ const char* AI_GetKeyWordString(AI_tdeKeyWordId value) {
   return "<InvalidKeywordId>";
 }
 
-static const char* AI_OperatorStrings[AI_E_Nb_op] = {
+const char* AI_OperatorStrings[AI_E_Nb_op] = {
     "Plus",
     "Minus",
     "Mul",
@@ -89,7 +101,7 @@ const char* AI_GetOperatorString(AI_tdeOperator value) {
   return "<InvalidOperator>";
 }
 
-static const char* AI_FunctionStrings[AI_E_Nb_func] = {
+const char* AI_FunctionStrings[AI_E_Nb_func] = {
   "GetPersoAbsolutePosition",
   "GetMyAbsolutePosition",
   "GetAngleAroundZToPerso",
@@ -409,7 +421,7 @@ const char* AI_GetFunctionString(AI_tdeFuncId value) {
   return "<InvalidFunction>";
 }
 
-static const char* AI_ProcedureStrings[AI_E_Nb_proc] = {
+const char* AI_ProcedureStrings[AI_E_Nb_proc] = {
   "SetHitPoints",
   "SetHitPointsInit",
   "SetHitPointsToInit",
@@ -931,7 +943,7 @@ const char* AI_GetProcedureString(AI_tdeProcedureId value) {
   return "<InvalidProcedure>";
 }
 
-static const char* AI_ConditionStrings[AI_E_Nb_cond] = {
+const char* AI_ConditionStrings[AI_E_Nb_cond] = {
   "And", // 0
   "Or",
   "Not",
@@ -1091,7 +1103,7 @@ const char* AI_GetConditionString(AI_tdeCondition value) {
 // --------------------
 // Field strings
 // --------------------
-static const char* AI_FieldStrings[AI_E_Nb_fd] = {
+const char* AI_FieldStrings[AI_E_Nb_fd] = {
     "Position","Orientation","Speed","NormSpeed","AbsoluteAxisX","AbsoluteAxisY",
     "AbsoluteAxisZ","PrevComportIntell","PrevComportReflex","ShadowScaleX","ShadowScaleY",
 };
@@ -1104,7 +1116,7 @@ const char* AI_GetFieldString(AI_tdeField value) {
 // --------------------
 // MetaAction strings
 // --------------------
-static const char* AI_MetaActionStrings[AI_E_Nb_ma] = {
+const char* AI_MetaActionStrings[AI_E_Nb_ma] = {
     "TIME_FrozenWait","ACTION_ExecuteAction","ACTION_WaitEndOfAction","ACTION_WaitEndOfAnim",
     "CAM_CineMoveAToBTgtC","CAM_CineMoveAToBTgtAC","CAM_CinePosATgtB",
     "CAM_CinePosAMoveTgtBToC","CAM_CinePosATgtBTurnPosH","CAM_CinePosATgtBTurnTgtH",

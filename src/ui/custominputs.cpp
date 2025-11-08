@@ -1,6 +1,14 @@
 #include "custominputs.hpp"
 #include "ui/ui.hpp"
+#include "ui/ui_util.hpp"
 #include <string>
+#include <algorithm>
+// C INCLUDES
+#include <ACP_Ray2.h>
+#include "mod/ai_strings.h"
+#include "mod/cpa_functions.h"
+#include "mod/globals.h"
+#include "mod/dsgvarnames.h"
 
 const char* BITFIELD_UNKNOWN[32] = {
     "Flag 0",   // 0x00000001
@@ -220,4 +228,197 @@ void InputBitField(const char* label, unsigned long* bitfield, const char* bitLa
     }
   }
 
+}
+
+void InputMatrix(const char* label, MTH3D_tdstMatrix* matrix) {
+
+  if (ImGui::CollapsingHeader(label)) {
+    ImGui::Indent();
+    char columnLabel_0[64];
+    char columnLabel_1[64];
+    char columnLabel_2[64];
+
+    snprintf(columnLabel_0, sizeof(columnLabel_0), "%s[0]", label);
+    snprintf(columnLabel_1, sizeof(columnLabel_1), "%s[1]", label);
+    snprintf(columnLabel_2, sizeof(columnLabel_2), "%s[2]", label);
+
+    ImGui::DragFloat3(columnLabel_0, (float*)&matrix->stCol_0.x);
+    ImGui::DragFloat3(columnLabel_1, (float*)&matrix->stCol_1.x);
+    ImGui::DragFloat3(columnLabel_2, (float*)&matrix->stCol_2.x);
+    ImGui::Unindent();
+  }
+}
+
+void InputCompletePosition(const char* label, POS_tdstCompletePosition* position) {
+
+  if (ImGui::CollapsingHeader(label)) {
+
+    ImGui::Indent();
+
+    char label_Position[64];
+    char label_RotationMatrix[64];
+    char label_TransformMatrix[64];
+
+    snprintf(label_Position, sizeof(label_Position), "%s[position]", label);
+    snprintf(label_RotationMatrix, sizeof(label_RotationMatrix), "%s[rotation]", label);
+    snprintf(label_TransformMatrix, sizeof(label_TransformMatrix), "%s[transform]", label);
+
+    if (ImGui::CollapsingHeader(label_Position)) {
+      ImGui::DragFloat3(label_Position, (float*)&position->stPos.x);
+    }
+
+    InputMatrix(label_RotationMatrix, &position->stRotationMatrix);
+    InputMatrix(label_TransformMatrix, &position->stTransformMatrix);
+
+    ImGui::Unindent();
+  }
+}
+
+
+void InputCollideMaterial(GMT_tdstCollideMaterial* mat)
+{
+  if (mat == nullptr || (int)mat == -1) {
+    ImGui::Text("Collide Material: null");
+    return;
+  }
+
+  ImGui::Text("Collide Material:");
+  ImGui::Indent();
+  ImGui::Text("Type of Zone: %d", mat->wTypeOfZone);
+  ImGui::Text("Identifier: 0x%X", mat->xIdentifier);
+  ImGui::Unindent();
+}
+
+void InputGameMaterial(GMT_tdstGameMaterial* mat)
+{
+  if (mat == nullptr || (int)mat == -1) {
+    ImGui::Text("Game Material: null");
+    return;
+  }
+
+  InputCollideMaterial(mat->hCollideMaterial);
+}
+
+
+void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
+  static char searchBuffer[128] = "";
+  HIE_tdstSuperObject* spo = *p_data;
+
+  // Make combo wider
+  ImGui::SetNextItemWidth(300.0f); // adjust width as needed
+
+  if (ImGui::BeginCombo(label, (spo != nullptr ? SPO_Name(spo).c_str() : "null"), ImGuiComboFlags_HeightLarge)) {
+
+    // Reset search on open
+    if (ImGui::IsWindowAppearing()) {
+      searchBuffer[0] = '\0';
+      ImGui::SetKeyboardFocusHere();
+    }
+
+    // Floating search box
+    ImGui::PushItemWidth(-1);
+    ImGui::InputTextWithHint("##search", "Search...", searchBuffer, IM_ARRAYSIZE(searchBuffer));
+    ImGui::PopItemWidth();
+
+    ImGui::Separator();
+
+    // Scrollable region
+    ImGui::BeginChild("##combo_scroll", ImVec2(0, 200), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    std::string searchLower(searchBuffer);
+    std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+
+    // Null option
+    if (std::string("null").find(searchLower) != std::string::npos) {
+      if (ImGui::Selectable("null", spo == nullptr)) {
+        *p_data = nullptr;
+        ImGui::CloseCurrentPopup(); // close combo on selection
+      }
+    }
+
+    HIE_M_ForEachActor(actor) {
+      std::string nameLower = SPO_Name(actor);
+      std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+      if (nameLower.find(searchLower) != std::string::npos) {
+        if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == spo)) {
+          *p_data = actor;
+          ImGui::CloseCurrentPopup(); // close combo on selection
+        }
+      }
+    }
+
+    ImGui::EndChild();
+    ImGui::EndCombo();
+  }
+}
+
+static void InputVector3(const char* label, char* buffer, int offsetInBuffer = 0) {
+  char full_label[64];
+  snprintf(full_label, sizeof(full_label), "%s##%p", label, (void*)(&buffer[offsetInBuffer]));
+
+  ImGui::InputScalarN(full_label, ImGuiDataType_Float, &buffer[offsetInBuffer], 3, nullptr, nullptr, "%.3f", 0);
+}
+
+void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type) {
+
+  if (buffer == nullptr) {
+    ImGui::Text("N/A");
+    return;
+  }
+
+  void* address = (void*)(&buffer[offset]);
+
+  // Create a unique string based on the memory address
+  char label[32];
+  snprintf(label, sizeof(label), "%p_", address);
+
+  switch (type) {
+  case AI_E_dvt_Perso:            InputPerso(label, (HIE_tdstSuperObject**)address); break;
+  case AI_E_dvt_Boolean:          ImGui::Checkbox(label, (bool*)address); break;
+  case AI_E_dvt_Integer:          ImGui::InputScalar(label, ImGuiDataType_S32, address); break;
+  case AI_E_dvt_PositiveInteger:  ImGui::InputScalar(label, ImGuiDataType_U32, address); break;
+  case AI_E_dvt_UChar:            ImGui::InputScalar(label, ImGuiDataType_U8, address); break;
+  case AI_E_dvt_Char:             ImGui::InputScalar(label, ImGuiDataType_S8, address); break;
+  case AI_E_dvt_Short:            ImGui::InputScalar(label, ImGuiDataType_S16, address); break;
+  case AI_E_dvt_UShort:           ImGui::InputScalar(label, ImGuiDataType_U16, address); break;
+  case AI_E_dvt_Float:            ImGui::InputScalar(label, ImGuiDataType_Float, address); break;
+  case AI_E_dvt_Vector:           InputVector3(label, buffer, offset); break;
+  }
+}
+
+void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId) {
+
+    assert(spo != nullptr);
+    HIE_tdstEngineObject * actor = spo->hLinkedObject.p_stActor;
+    assert(actor != nullptr);
+    AI_tdstBrain* brain = actor->hBrain;
+    assert(brain != nullptr);
+    AI_tdstMind* mind = brain->p_stMind;
+    assert(mind != nullptr);
+    AI_tdstAIModel* aiModel = mind->p_stAIModel;
+    assert(aiModel != nullptr);
+    AI_tdstDsgMem* dsgMem = brain->p_stMind->p_stDsgMem;
+    assert(dsgMem != nullptr);
+
+    bool isRayman = (actor == g_DR_rayman->hLinkedObject.p_stActor);
+    bool isGlobal = (actor == g_DR_global->hLinkedObject.p_stActor);
+
+    AI_tdstDsgVarInfo info = aiModel->p_stDsgVar->a_stDsgVarInfo[dsgVarId];
+
+    ImGui::Text("%i", dsgVarId);
+    ImGui::SameLine();
+    ImGui::Text(AI_GetDsgVarTypeString(info.eTypeId));
+
+    if (isRayman) {
+      ImGui::SameLine();
+      ImGui::Text(DV_STR_Rayman[dsgVarId]);
+    }
+    else if (isGlobal) {
+      ImGui::SameLine();
+      ImGui::Text(DV_STR_Global[dsgVarId]);
+    }
+
+    ImGui::SameLine();
+    DrawDsgVar(dsgMem->p_cDsgMemBuffer, info.ulOffsetInDsgMem, info.eTypeId);
 }

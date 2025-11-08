@@ -440,6 +440,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\comportNames.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
+    <ClInclude Include="src\ui\dialogs\engineglobals.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector_actor_brain.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector_actor_dynam.hpp" />
     <ClInclude Include="src\ui\dialogs\menu_cheats.hpp" />
     <ClInclude Include="src\ui\dialogs\dialogs.hpp" />
     <ClInclude Include="src\ui\dialogs\hierarchy.hpp" />
@@ -495,6 +498,11 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\comportNames.cpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
     <ClCompile Include="src\ui\dialogs\aimodel.cpp" />
+    <ClCompile Include="src\ui\dialogs\engineglobals.cpp" />
+    <ClCompile Include="src\ui\dialogs\engineglobals_collisionreport.cpp" />
+    <ClCompile Include="src\ui\dialogs\engineglobals_enginestructure.cpp" />
+    <ClCompile Include="src\ui\dialogs\inspector_actor_brain.cpp" />
+    <ClCompile Include="src\ui\dialogs\inspector_actor_dynam.cpp" />
     <ClCompile Include="src\ui\dialogs\menu_cheats.cpp" />
     <ClCompile Include="src\ui\dialogs\dialogs.cpp" />
     <ClCompile Include="src\ui\dialogs\hierarchy.cpp" />

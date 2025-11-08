@@ -4,22 +4,152 @@
 #include "ui/ui_util.hpp"
 #include "ui/comportNames.hpp"
 #include "ui/settings.hpp"
+#include <ui/custominputs.hpp>
 #include <sstream>
+#include <string>
 
 // C INCLUDE
 #include <ACP_Ray2.h>
 #include <mod/globals.h>
 #include <imgui/imnodes.h>
 #include <mod/ai_strings.h>
-#include <string>
 
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
 bool selectedComportIsReflex = false;
 
-void DR_DLG_AIModel_Draw_Rule(const AI_tdstTreeInterpret& tree)
+// Draw a combo box from a string array and store the selected index directly in a variable
+static void DrawStringCombo(const char* label, const char** items, unsigned long* pValue)
 {
-  const AI_tdstNodeInterpret* node = &tree.p_stNodeInterpret[0];
+  if (!items || !items[0] || !pValue)
+    return;
+
+  // Make sure current value is within bounds
+  unsigned long currentIndex = *pValue;
+
+  // Clip to valid range
+  int maxIndex = 0;
+  while (items[maxIndex] != nullptr) ++maxIndex;
+  if (currentIndex >= (unsigned long)maxIndex)
+    currentIndex = 0;
+
+  const char* currentLabel = items[currentIndex];
+
+  if (ImGui::BeginCombo(label, currentLabel)) {
+    for (int i = 0; items[i] != nullptr; ++i) {
+      bool is_selected = (currentIndex == (unsigned long)i);
+      if (ImGui::Selectable(items[i], is_selected)) {
+        currentIndex = i;
+        *pValue = (unsigned long)i;  // directly update the value
+      }
+      if (is_selected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+}
+
+
+void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
+
+  std::string label = "##param_" + std::to_string((int)node);
+
+  switch (node->eType) {
+
+    case AI_E_ti_KeyWord:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_KeyWordIdStrings, (unsigned long *)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_MetaAction:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_MetaActionStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_Operator:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_OperatorStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_Procedure:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_ProcedureStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_Function:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_FunctionStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_Field:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_FieldStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+    case AI_E_ti_Condition:
+      ImGui::SameLine();
+      DrawStringCombo(label.c_str(), AI_ConditionStrings, (unsigned long*)&node->uParam.ulValue);
+      break;
+
+    case AI_E_ti_PersoRef:
+      ImGui::SameLine();
+      InputPerso(label.c_str(), (HIE_tdstSuperObject**)&node->uParam.pvValue);
+      break;
+    case AI_E_ti_Constant:
+      ImGui::SameLine();
+      ImGui::InputInt(label.c_str(), (int*)&node->uParam.lValue);
+      break;
+    case AI_E_ti_Real:
+      ImGui::SameLine();
+      ImGui::InputFloat(label.c_str(), (float*)&node->uParam.xValue);
+      break;
+    case AI_E_ti_DsgVarRef:
+      ImGui::SameLine();
+      DrawDsgVarId(spo, node->uParam.ulValue);
+      break;
+    case AI_E_ti_DsgVar:
+    case AI_E_ti_Button:
+    case AI_E_ti_ConstantVector:
+    case AI_E_ti_Vector:
+    case AI_E_ti_Mask:
+    case AI_E_ti_Module:
+    case AI_E_ti_DsgVarId:
+    case AI_E_ti_String:
+    case AI_E_ti_LipsSynchroRef:
+    case AI_E_ti_FamilyRef:
+    case AI_E_ti_ActionRef:
+    case AI_E_ti_SuperObjectRef:
+    case AI_E_ti_WayPointRef:
+    case AI_E_ti_TextRef:
+    case AI_E_ti_ComportRef:
+    case AI_E_ti_ModuleRef:
+    case AI_E_ti_SoundEventRef:
+    case AI_E_ti_ObjectTableRef:
+    case AI_E_ti_GameMaterialRef:
+    case AI_E_ti_ParticleGenerator:
+    case AI_E_ti_Color:
+    case AI_E_ti_ModelRef:
+    case AI_E_ti_Light:
+    case AI_E_ti_Caps:
+    case AI_E_ti_Graph:
+    case AI_E_ti_MacroRef:
+    {
+      ImGui::SameLine();
+      ImGui::Text("uParam: 0x%p", node->uParam.pvValue);
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  // Execute button for all nodes
+  std::string execLabel = "Exec##" + std::to_string((uintptr_t)(node));
+
+  ImGui::SameLine();
+  if (ImGui::Button(execLabel.c_str())) {
+    AI_tdstGetSetParam param;
+    AI_fn_p_stEvalTree(spo, node, &param);
+  }
+}
+
+void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tree)
+{
+  AI_tdstNodeInterpret* node = tree->p_stNodeInterpret;
   int stackDepth = 1;
   const AI_tdstNodeInterpret* end = node;
   while (end->eType != AI_E_ti_EndTree) ++end;
@@ -46,9 +176,12 @@ void DR_DLG_AIModel_Draw_Rule(const AI_tdstTreeInterpret& tree)
       ImGui::TreeNodeEx((void*)node,
         ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen,
         "%s", AI_GetNodeString(node));
+
+      DrawNodeOptions(spo, node);
     }
     else {
-      bool open = ImGui::TreeNode((void*)node, "%s", AI_GetNodeString(node));
+      bool open = ImGui::TreeNode((void*)node, "%s", AI_GetTypeInterpretString(node->eType));
+      DrawNodeOptions(spo, node);
       if (open) {
         ++stackDepth;
       }
@@ -60,12 +193,16 @@ void DR_DLG_AIModel_Draw_Rule(const AI_tdstTreeInterpret& tree)
 }
 
 
-void DR_DLG_AIModel_Draw_Comport(AI_tdstComport comport) {
+void DR_DLG_AIModel_Draw_Comport(HIE_tdstSuperObject* spo, AI_tdstComport comport) {
 
   for (int i = 0;i < comport.ucNbRules;i++) {
-    //ComportNodeGraph nodeGraph;
-    //nodeGraph.Render(&comport.a_stRules[i]);
-    DR_DLG_AIModel_Draw_Rule(comport.a_stRules[i]);
+    DR_DLG_AIModel_Draw_Rule(spo, &comport.a_stRules[i]);
+  }
+
+  if (comport.p_stSchedule != nullptr) {
+    ImGui::Separator();
+    ImGui::Text("Schedule:");
+    DR_DLG_AIModel_Draw_Rule(spo, comport.p_stSchedule);
   }
 }
 
@@ -98,7 +235,7 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
   }
 }
 
-void DR_DLG_AIModel_Draw_AIModel(HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model) {
+void DR_DLG_AIModel_Draw_AIModel(HIE_tdstSuperObject* spo, HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model) {
 
 
   // Get the available height of the window's content region
@@ -123,7 +260,7 @@ void DR_DLG_AIModel_Draw_AIModel(HIE_tdstEngineObject* actor, AI_tdstMind* mind,
     
     AI_tdstComport comport = scriptAI->a_stComport[selectedComportIndex];
 
-    DR_DLG_AIModel_Draw_Comport(comport);
+    DR_DLG_AIModel_Draw_Comport(spo, comport);
 
   } else {
     ImGui::Text("Select a rule/reflex on the left");
@@ -143,7 +280,7 @@ void DR_DLG_AIModel_Draw() {
 
       if (actor != nullptr && actor->hBrain != nullptr &&
         actor->hBrain->p_stMind != nullptr && actor->hBrain->p_stMind->p_stAIModel != nullptr) {
-        DR_DLG_AIModel_Draw_AIModel(actor, actor->hBrain->p_stMind, actor->hBrain->p_stMind->p_stAIModel);
+        DR_DLG_AIModel_Draw_AIModel(spo, actor, actor->hBrain->p_stMind, actor->hBrain->p_stMind->p_stAIModel);
       }
       else {
         ImGui::Text("This actor has no brain, mind or AI Model.");

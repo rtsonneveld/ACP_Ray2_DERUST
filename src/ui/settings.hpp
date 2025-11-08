@@ -12,6 +12,7 @@ using json = nlohmann::json;
     X(bool, dlg_stats, false) \
     X(bool, dlg_playback, false) \
     X(bool, dlg_utils, false) \
+    X(bool, dlg_engineglobals, false) \
 /* Options */ \
     X(bool, opt_drawVisuals, false) \
     X(unsigned int, opt_drawCollisionZones, (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD) \
