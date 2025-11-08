@@ -9,6 +9,7 @@
 #include "stats.hpp"
 #include "inspector.hpp"
 #include "aimodel.hpp"
+#include "debugwindow.hpp"
 #include "options.hpp"
 #include "utils.hpp"
 #include "engineglobals.hpp"

@@ -13,6 +13,7 @@
 #include <mod/globals.h>
 #include <imgui/imnodes.h>
 #include <mod/ai_strings.h>
+#include "mod/debugger.h"
 
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
@@ -35,6 +36,7 @@ static void DrawStringCombo(const char* label, const char** items, unsigned long
 
   const char* currentLabel = items[currentIndex];
 
+  ImGui::SetNextItemWidth(150.0f);
   if (ImGui::BeginCombo(label, currentLabel)) {
     for (int i = 0; items[i] != nullptr; ++i) {
       bool is_selected = (currentIndex == (unsigned long)i);
@@ -147,50 +149,90 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
   }
 }
 
+void DrawBreakpointCheckbox(const void * node)
+{
+  bool has_bp = DR_Debugger_HasBreakpoint(node);
+  bool bp_toggle = has_bp;
+
+  // Unique ID for ImGui
+  std::string checkbox_id = "##bp_" + std::to_string((int)node);
+
+  if (ImGui::Checkbox(checkbox_id.c_str(), &bp_toggle)) {
+    if (bp_toggle) DR_Debugger_SetBreakpoint(node);
+    else DR_Debugger_UnsetBreakpoint(node);
+  }
+
+  ImGui::SameLine();
+}
+
+// Helper function to draw a node with optional children
+bool DrawAINode(AI_tdstNodeInterpret* node)
+{
+  // Draw breakpoint checkbox
+  DrawBreakpointCheckbox(node);
+
+  const AI_tdeTypeInterpret eType = node->eType;
+  const AI_tdstNodeInterpret* next = node + 1;
+
+  const bool has_next = (next->eType != AI_E_ti_EndTree);
+  const bool has_children = has_next && (next->ucDepth > node->ucDepth);
+
+  ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+
+  bool isDebugPointer = (g_DR_debuggerInstructionPtr == node);
+  if (isDebugPointer) {
+    flags |= ImGuiTreeNodeFlags_Framed;
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.8f, 0.1f, 0.1f, 0.5f));
+  }
+
+  if (!has_children) {
+    flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+  }
+
+  bool result = ImGui::TreeNodeEx((void*)node, flags, "%s", AI_GetTypeInterpretString(eType));
+
+  if (isDebugPointer) {
+    ImGui::PopStyleColor();
+  }
+
+  if (!has_children) {
+    return false;
+  }
+
+  return result;
+}
+
 void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tree)
 {
   AI_tdstNodeInterpret* node = tree->p_stNodeInterpret;
   int stackDepth = 1;
-  const AI_tdstNodeInterpret* end = node;
-  while (end->eType != AI_E_ti_EndTree) ++end;
 
-  for (;; ++node) {
-    if (node->eType == AI_E_ti_EndTree)
-      break;
-
+  while (node->eType != AI_E_ti_EndTree) {
     const unsigned char depth = node->ucDepth;
 
-    if (depth > stackDepth)
+    if (depth > stackDepth) {
+      ++node;
       continue;
+    }
 
     while (stackDepth > depth) {
       ImGui::TreePop();
       --stackDepth;
     }
 
-    const AI_tdstNodeInterpret* next = node + 1;
-    const bool has_next = (next->eType != AI_E_ti_EndTree);
-    const bool has_children = has_next && (next->ucDepth > depth);
+    bool open = DrawAINode(node);
 
-    if (!has_children) {
-      ImGui::TreeNodeEx((void*)node,
-        ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen,
-        "%s", AI_GetNodeString(node));
+    DrawNodeOptions(spo, node);
 
-      DrawNodeOptions(spo, node);
-    }
-    else {
-      bool open = ImGui::TreeNode((void*)node, "%s", AI_GetTypeInterpretString(node->eType));
-      DrawNodeOptions(spo, node);
-      if (open) {
-        ++stackDepth;
-      }
-    }
+    if (open) ++stackDepth;
+
+    ++node;
   }
 
   while (stackDepth-- > 1)
     ImGui::TreePop();
 }
+
 
 
 void DR_DLG_AIModel_Draw_Comport(HIE_tdstSuperObject* spo, AI_tdstComport comport) {

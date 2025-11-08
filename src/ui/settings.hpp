@@ -6,6 +6,7 @@ using json = nlohmann::json;
 #define SETTINGS_FIELDS \
 /* Dialogs */ \
     X(bool, dlg_aimodel, false) \
+    X(bool, dlg_debugwindow, false) \
     X(bool, dlg_hierarchy, false) \
     X(bool, dlg_inspector, false) \
     X(bool, dlg_options, false) \
