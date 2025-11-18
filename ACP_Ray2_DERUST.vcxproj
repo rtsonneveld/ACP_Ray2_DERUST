@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
@@ -80,6 +80,15 @@ Ray2x.exe -level:water_20 -debug</Command>
       <Command>python "$(ProjectDir)generate_texture_list.py"
 </Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>taskkill /f /im Rayman2.exe
+xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
+cd "D:\Drive\Games\Rayman 2\"
+Ray2x.exe -level:water_20 -debug</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)\force_run_dummy.txt;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -438,7 +447,6 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\shaders\woit_transparencyshader.hpp" />
     <ClInclude Include="src\rendering\textures.hpp" />
     <ClInclude Include="src\rendering\textures_list.hpp" />
-    <ClInclude Include="src\ui\comportNames.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
     <ClInclude Include="src\ui\dialogs\debugwindow.hpp" />
@@ -498,7 +506,8 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\shader.cpp" />
     <ClCompile Include="src\rendering\resourceutil.cpp" />
     <ClCompile Include="src\rendering\textures.cpp" />
-    <ClCompile Include="src\ui\comportNames.cpp" />
+    <ClCompile Include="src\ui\nameLookup.cpp" />
+    <ClCompile Include="src\ui\nameLookup.hpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
     <ClCompile Include="src\ui\dialogs\aimodel.cpp" />
     <ClCompile Include="src\ui\dialogs\debugwindow.cpp" />

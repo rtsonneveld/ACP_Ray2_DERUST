@@ -10,6 +10,7 @@
 #include "ui/ui_bridge.h"
 #include <ACP_Ray2.h>
 #include "mod/globals.h"
+#include <time.h>
 
 static void glfw_error_callback(int error, const char* description)
 {

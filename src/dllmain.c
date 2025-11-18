@@ -138,13 +138,17 @@ void MOD_fn_vEngine()
 
 	DR_Cheats_Apply();
 
-	__try {
-		GAM_fn_vEngine();
-	}
-	__except (LogExceptionFilter(GetExceptionInformation())) {
-		__debugbreak();
+	if (DR_Settings_IsCatchExceptionsEnabled()) {
+		__try {
+			GAM_fn_vEngine();
+		}
+		__except (LogExceptionFilter(GetExceptionInformation())) {
+			__debugbreak();
 
-		g_DR_Playback.pause = TRUE;
+			g_DR_Playback.pause = TRUE;
+		}
+	}	else {
+		GAM_fn_vEngine();
 	}
 
 	if (g_DR_Playback.pause) {
@@ -200,7 +204,7 @@ void MOD_fn_vEngine()
 }
 
 void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
-	SPTXT_vPrintFmtLine("DERUST %s - Press TAB", DERUST_VERSION);
+	SPTXT_vPrintFmtLine("DERUST %s", DERUST_VERSION);
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )

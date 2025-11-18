@@ -2,9 +2,10 @@
 
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
-#include "ui/comportNames.hpp"
+#include "ui/nameLookup.hpp"
 #include "ui/settings.hpp"
 #include <ui/custominputs.hpp>
+#include "ui/ui_bridge.h"
 #include <sstream>
 #include <string>
 
@@ -18,6 +19,16 @@
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
 bool selectedComportIsReflex = false;
+
+void DR_DLG_AiModel_SetSelectedComport(int comportIndex, bool isReflex) {
+  selectedComportIndex = comportIndex;
+  selectedComportIsReflex = isReflex;
+}
+
+bool DR_Settings_IsCatchExceptionsEnabled()
+{
+  return g_DR_settings.opt_tryCatchExceptions;
+}
 
 // Draw a combo box from a string array and store the selected index directly in a variable
 static void DrawStringCombo(const char* label, const char** items, unsigned long* pValue)
@@ -151,6 +162,8 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
 
 void DrawBreakpointCheckbox(const void * node)
 {
+  if (!g_DR_debuggerEnabled) return; 
+
   bool has_bp = DR_Debugger_HasBreakpoint(node);
   bool bp_toggle = has_bp;
 
@@ -166,7 +179,7 @@ void DrawBreakpointCheckbox(const void * node)
 }
 
 // Helper function to draw a node with optional children
-bool DrawAINode(AI_tdstNodeInterpret* node)
+bool DrawAINode(AI_tdstNodeInterpret* node, bool forceOpen)
 {
   // Draw breakpoint checkbox
   DrawBreakpointCheckbox(node);
@@ -189,6 +202,9 @@ bool DrawAINode(AI_tdstNodeInterpret* node)
     flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
   }
 
+  if (forceOpen) {
+    ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+  }
   bool result = ImGui::TreeNodeEx((void*)node, flags, "%s", AI_GetTypeInterpretString(eType));
 
   if (isDebugPointer) {
@@ -207,7 +223,8 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
   AI_tdstNodeInterpret* node = tree->p_stNodeInterpret;
   int stackDepth = 1;
 
-  while (node->eType != AI_E_ti_EndTree) {
+  while (node->eType != AI_E_ti_EndTree)
+  {
     const unsigned char depth = node->ucDepth;
 
     if (depth > stackDepth) {
@@ -220,11 +237,27 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
       --stackDepth;
     }
 
-    bool open = DrawAINode(node);
+    // Determine if this node is on the path to the node currently active in the debugger
+    bool isTarget = (node == g_DR_debuggerInstructionPtr);
+    bool isAncestor = false;
 
+    if (!isTarget) {
+      // Look ahead for the target node
+      AI_tdstNodeInterpret* lookahead = node + 1;
+      while (lookahead->eType != AI_E_ti_EndTree && lookahead->ucDepth > depth) {
+        if (lookahead == g_DR_debuggerInstructionPtr) {
+          isAncestor = true;
+          break;
+        }
+        ++lookahead;
+      }
+    }
+
+    bool open = DrawAINode(node, isAncestor);
     DrawNodeOptions(spo, node);
 
-    if (open) ++stackDepth;
+    if (open)
+      ++stackDepth;
 
     ++node;
   }
@@ -232,7 +265,6 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
   while (stackDepth-- > 1)
     ImGui::TreePop();
 }
-
 
 
 void DR_DLG_AIModel_Draw_Comport(HIE_tdstSuperObject* spo, AI_tdstComport comport) {
@@ -254,9 +286,10 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
 
   if (scriptAI == nullptr) {
     ImGui::BeginDisabled();
-      ImGui::BeginListBox(isReflex ? "Reflexes" : "Comports", size);
-        ImGui::Selectable("No behaviors");
+    if (ImGui::BeginListBox(isReflex ? "Reflexes" : "Comports", size)) {
+      ImGui::Selectable("No behaviors");
       ImGui::EndListBox();
+    }
     ImGui::EndDisabled();
     return;
   }
@@ -266,7 +299,7 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
   if (ImGui::BeginListBox(isReflex ? "Reflexes" : "Comports", size)) {
 
     for (int i = 0;i < scriptAI->ulNbComport;i++) {
-      snprintf(label, sizeof(label), "%s##selection", (isReflex ? GetReflexName(modelName, i) : GetComportName(modelName, i)).c_str());
+      snprintf(label, sizeof(label), "%s##selection", (isReflex ? NameFromIndex(NameType::AIModel_Reflex, modelName, i) : NameFromIndex(NameType::AIModel_Comport, modelName, i)).c_str());
       if (ImGui::Selectable(label, selectedComportIsReflex == isReflex && i == selectedComportIndex)) {
         selectedComportIndex = i;
         selectedComportIsReflex = isReflex;
@@ -277,37 +310,46 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
   }
 }
 
-void DR_DLG_AIModel_Draw_AIModel(HIE_tdstSuperObject* spo, HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model) {
+void DR_DLG_AIModel_Draw_AIModel(HIE_tdstSuperObject* spo, HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model) {// Create a 2-column table that fills the window
 
+  if (ImGui::BeginTable("AIModelTable", 2,
+    ImGuiTableFlags_Resizable |
+    ImGuiTableFlags_NoSavedSettings |
+    ImGuiTableFlags_SizingStretchProp))
+  {
+    // ----- LEFT COLUMN -----
+    ImGui::TableSetupColumn("LeftPane", ImGuiTableColumnFlags_WidthFixed, 300.0f);
+    ImGui::TableNextColumn();
 
-  // Get the available height of the window's content region
-  float leftColumnWidth = 300.0f; // You can adjust this width as needed
+    float availHeight = ImGui::GetContentRegionAvail().y;
+    float listBoxHeight = (availHeight - ImGui::GetStyle().ItemSpacing.y) * 0.5f;
 
-  ImGui::BeginChild("AIModelLeftPane", ImVec2(leftColumnWidth, 0), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+    ImGui::BeginChild("AIModelLeftPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
+    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, false, ImVec2(0, listBoxHeight));
+    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, true, ImVec2(0, listBoxHeight));
+    ImGui::EndChild();
 
-  float availHeight = ImGui::GetContentRegionAvail().y;
-  float listBoxHeight = (availHeight - ImGui::GetStyle().ItemSpacing.y) * 0.5f;
+    // ----- RIGHT COLUMN -----
+    ImGui::TableNextColumn();
 
-  DR_DLG_AIModel_Draw_ComportList(actor, mind, model, false, ImVec2(0, listBoxHeight));
-  DR_DLG_AIModel_Draw_ComportList(actor, mind, model, true, ImVec2(0, listBoxHeight));
+    ImGui::BeginChild("AIModelRightPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
 
-  ImGui::EndChild();
-  
-  ImGui::SameLine();
+    AI_tdstScriptAI* scriptAI = selectedComportIsReflex
+      ? model->a_stScriptAIReflex
+      : model->a_stScriptAIIntel;
 
-  AI_tdstScriptAI* scriptAI = selectedComportIsReflex ? model->a_stScriptAIReflex : model->a_stScriptAIIntel;
+    if (scriptAI && selectedComportIndex < scriptAI->ulNbComport) {
+      AI_tdstComport comport = scriptAI->a_stComport[selectedComportIndex];
+      DR_DLG_AIModel_Draw_Comport(spo, comport);
+    }
+    else {
+      ImGui::Text("Select a rule/reflex on the left");
+    }
 
-  ImGui::BeginChild("AIModelRightPane", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX); 
-  if (scriptAI != nullptr && selectedComportIndex < scriptAI->ulNbComport) {
-    
-    AI_tdstComport comport = scriptAI->a_stComport[selectedComportIndex];
+    ImGui::EndChild();
 
-    DR_DLG_AIModel_Draw_Comport(spo, comport);
-
-  } else {
-    ImGui::Text("Select a rule/reflex on the left");
+    ImGui::EndTable();
   }
-  ImGui::EndChild();
 }
 
 void DR_DLG_AIModel_Draw() {

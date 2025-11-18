@@ -20,6 +20,37 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
     flags |= ImGuiTreeNodeFlags_Leaf;
   }
 
+  bool appearActive = true;
+  bool highlight = false;
+
+  if (spo->ulType == HIE_C_Type_Actor) {
+    if (!(spo->hLinkedObject.p_stActor->hStandardGame->ucMiscFlags & Std_C_MiscFlag_Active) && !(spo->hLinkedObject.p_stActor->hStandardGame->ucMiscFlags & Std_C_MiscFlag_AlwaysActive)) {
+      appearActive = false;
+    }
+  } else if (spo->ulType == HIE_C_Type_Sector) {
+    
+    auto sector = spo->hLinkedObject.p_stSector;
+
+    auto currentSector = GAM_g_stEngineStructure->g_hMainActor->hLinkedObject.p_stActor->hSectInfo->hCurrentSector->hLinkedObject.p_stSector;
+
+    appearActive = false;
+    if (sector == currentSector) {
+
+      appearActive = true;
+      highlight = true;
+    }
+    else {
+
+      auto iterSector = currentSector->stListOfSectorsInActivityInteraction.hFirstElementSta;
+      LST_M_StaticForEach(&currentSector->stListOfSectorsInActivityInteraction, iterSector) {
+        if (iterSector->hPointerOfSectorSO->hLinkedObject.p_stSector == sector) {
+          appearActive = true;
+        }
+      }
+    }
+
+  }
+
   // If the selected actor was an always and is destroyed
   if (g_DR_selectedObject != NULL && g_DR_selectedObject->ulType == HIE_C_Type_Actor && g_DR_selectedObject->hLinkedObject.p_stActor->hStandardGame == NULL) {
     g_DR_selectedObject = NULL;
@@ -49,7 +80,28 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
     label << SPO_Name(spo);
   }
   label << "##tree_" << (int)spo;
+
+  if (!appearActive) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+  }
+  if (highlight) {
+    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(80, 80, 0, 255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(100, 100, 0, 255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(100, 100, 0, 255));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3)); // smaller padding
+    flags |= ImGuiTreeNodeFlags_Framed;
+  }
+
   nodeOpen = ImGui::TreeNodeEx(label.str().c_str(), flags);
+
+  if (!appearActive) {
+    ImGui::PopStyleColor();
+  }
+
+  if (highlight) {
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar();
+  }
 
   bool focused = ImGui::IsItemFocused();
 

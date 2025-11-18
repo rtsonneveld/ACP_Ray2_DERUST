@@ -21,6 +21,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Disable starting cutscenes", nullptr, g_DR_Cheats_DisableStartingCutscenes)) {
     g_DR_Cheats_DisableStartingCutscenes = !g_DR_Cheats_DisableStartingCutscenes;
   }
+  if (ImGui::MenuItem("Disable death animations", nullptr, g_DR_Cheats_DisableDeathAnimations)) {
+    g_DR_Cheats_DisableDeathAnimations = !g_DR_Cheats_DisableDeathAnimations;
+  }
   ImGui::SeparatorText("Flags");
   FlagMenuItem("NoMovies", GB_FLAG_NOMOVIES);
   FlagMenuItem("Hangon (grapple)", GB_FLAG_HANGON);

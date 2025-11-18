@@ -22,19 +22,21 @@ void DR_DLG_Options_Draw() {
 
     const char* inactiveItems[] = { "Visible", "Transparent", "Hidden" };
 
+    ImGui::Checkbox("Try catching exceptions", &g_DR_settings.opt_tryCatchExceptions); 
     ImGui::Checkbox("Draw visual sets", &g_DR_settings.opt_drawVisuals);
-    if (g_DR_settings.opt_drawVisuals) ImGui::BeginDisabled();
-    InputBitField("Draw collision zones", (unsigned long*)&g_DR_settings.opt_drawCollisionZones, BITFIELD_DR_DISPLAYOPTIONS_ZONE, IM_ARRAYSIZE(BITFIELD_DR_DISPLAYOPTIONS_ZONE));
+    ImGui::BeginDisabled(g_DR_settings.opt_drawVisuals); {
+      InputBitField("Draw collision zones", (unsigned long*)&g_DR_settings.opt_drawCollisionZones, BITFIELD_DR_DISPLAYOPTIONS_ZONE, IM_ARRAYSIZE(BITFIELD_DR_DISPLAYOPTIONS_ZONE));
 
-    // Inactive zone visibility dropdown
-    int inactiveZoneSetting = static_cast<int>(g_DR_settings.opt_inactiveZoneVisibility);
-    if (ImGui::Combo("Inactive zone visibility", &inactiveZoneSetting, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
-      g_DR_settings.opt_inactiveZoneVisibility = static_cast<InactiveItemVisibility>(inactiveZoneSetting);
+      // Inactive zone visibility dropdown
+      int inactiveZoneSetting = static_cast<int>(g_DR_settings.opt_inactiveZoneVisibility);
+      if (ImGui::Combo("Inactive zone visibility", &inactiveZoneSetting, inactiveItems, IM_ARRAYSIZE(inactiveItems))) {
+        g_DR_settings.opt_inactiveZoneVisibility = static_cast<InactiveItemVisibility>(inactiveZoneSetting);
+      }
+
+      ImGui::Checkbox("Transparent ZDR walls", &g_DR_settings.opt_transparentZDRWalls);
+      ImGui::Checkbox("Draw no-collision objects", &g_DR_settings.opt_drawNoCollisionObjects);
     }
-
-    ImGui::Checkbox("Transparent ZDR walls", &g_DR_settings.opt_transparentZDRWalls);
-    ImGui::Checkbox("Draw no-collision objects", &g_DR_settings.opt_drawNoCollisionObjects);
-    if (g_DR_settings.opt_drawVisuals) ImGui::EndDisabled();
+    ImGui::EndDisabled();
     ImGui::Checkbox("Draw invisible objects", &g_DR_settings.opt_drawInvisibleObjects);
     ImGui::Checkbox("Draw virtual sectors", &g_DR_settings.opt_drawVirtualSectors);
     ImGui::Checkbox("Draw sector borders", &g_DR_settings.opt_drawSectorBorders);

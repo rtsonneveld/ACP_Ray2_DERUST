@@ -38,6 +38,7 @@ extern "C" {
 extern char g_DR_Cheats_InfiniteHealth;
 extern char g_DR_Cheats_MegaShoots;
 extern char g_DR_Cheats_DisableStartingCutscenes;
+extern char g_DR_Cheats_DisableDeathAnimations;
 
 void DR_Cheats_Apply();
 char DR_Cheats_GetFlag(int index);

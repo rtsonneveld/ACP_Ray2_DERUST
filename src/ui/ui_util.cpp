@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <imgui.h>
+#include "nameLookup.hpp"
 #include <ACP_Ray2.h>
 
 std::string SPO_Name(HIE_tdstSuperObject* spo) {
@@ -56,9 +57,26 @@ std::string SPO_Name(HIE_tdstSuperObject* spo) {
     }
 
   }
+  else if (spo->ulType == HIE_C_Type_Sector) {
+    HIE_tdstSuperObject* fatherSector = *GAM_g_p_stFatherSector;
+    HIE_tdstSuperObject* child = fatherSector->hFirstElementDyn;
+    int sectorIndex = -1;
+
+    LST_M_DynamicForEachIndex(fatherSector, child, sectorIndex) {
+      if (child == spo) {
+        break;
+      }
+    }
+
+    if (sectorIndex >= 0) {
+      label << NameFromIndex(NameType::Level_Sector, _strlwr(GAM_g_stEngineStructure->szLevelName), sectorIndex);
+    }
+    else {
+      label << "Unknown Sector";
+    }
+  }
   else {
     switch (spo->ulType) {
-      case HIE_C_Type_Sector: label << "Sector "; break;
       case HIE_C_Type_IPO: label << "IPO "; break;
       case HIE_C_Type_PO: label << "PO "; break;
       case HIE_C_Type_Actor: label << "Actor "; break;

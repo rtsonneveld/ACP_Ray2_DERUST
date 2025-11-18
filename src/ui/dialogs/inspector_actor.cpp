@@ -4,10 +4,53 @@
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/custominputs.hpp"
+#include "ui/nameLookup.hpp"
 
 // C INCLUDE
 #include "mod/cpa_functions.h"
 #include <ACP_Ray2.h>
+#include <LST.h>
+
+void InputStateSelection(GAM_tdst3dData* h3dData, HIE_tdstState** state, const char * label) {
+  HIE_tdstState* currentState = *state;
+  HIE_tdstState* iter;
+
+  int currentStateNum = -1;
+  int index = 0;
+  LST_M_StaticForEach(&h3dData->h_Family->stForStateArray, iter) {
+    if (iter == currentState) {
+      currentStateNum = index;
+      break;
+    }
+    index++;
+  }
+
+  int i = 0;
+  std::string familyName = HIE_fn_szGetFamilyTypeName(h3dData->h_Family->lObjectFamilyType);
+  std::string previewLabel = NameFromIndex(NameType::Family_State, familyName, currentStateNum) + "##preview";
+  if (ImGui::BeginCombo(label, previewLabel.c_str())) {
+    LST_M_StaticForEach(&h3dData->h_Family->stForStateArray, iter) {
+      bool isSelected = (iter == currentState);
+
+      // Bit string
+      unsigned char bits = iter->ucCustomBits;
+      std::string bitString;
+      for (int b = 7; b >= 0; --b)
+        bitString += (bits & (1 << b)) ? '1' : '0';
+
+      std::string itemLabel = NameFromIndex(NameType::Family_State, familyName, i) + " (" + bitString + ")##" + label;
+
+      if (ImGui::Selectable(itemLabel.c_str(), isSelected)) {
+        *state = iter;
+      }
+      if (isSelected) {
+        ImGui::SetItemDefaultFocus();
+      }
+      i++;
+    }
+    ImGui::EndCombo();
+  }
+}
 
 void DR_DLG_Inspector_Draw_MS_3dData(HIE_tdstEngineObject* actor)
 {
@@ -18,6 +61,13 @@ void DR_DLG_Inspector_Draw_MS_3dData(HIE_tdstEngineObject* actor)
     return;
   }
 
+  InputStateSelection(h3dData, &h3dData->h_InitialState, "h_InitialState");
+  HIE_tdstState* currentState = h3dData->h_CurrentState;
+  InputStateSelection(h3dData, &h3dData->h_CurrentState, "h_CurrentState");
+  if (h3dData->h_CurrentState != currentState) {
+    PLA_fn_bSetNewState(actor->hStandardGame->p_stSuperObject, h3dData->h_CurrentState, true, true);
+  }
+  InputStateSelection(h3dData, &h3dData->h_FirstStateOfAction, "h_FirstStateOfAction");
   // TODO HIE_tdstState* h_InitialState;
   // TODO HIE_tdstState* h_CurrentState;
   // TODO HIE_tdstState* h_FirstStateOfAction;

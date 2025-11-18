@@ -1,17 +1,93 @@
 #include "debugger.h"
+#include "mod/globals.h"
+#include "ui/ui_bridge.h"
 #include <ACP_Ray2.h>
 
 const void* g_DR_breakpoints[MAX_BREAKPOINTS];
 bool g_DR_debuggerEnabled = false;
 bool g_DR_debuggerPaused = false;
+bool g_DR_debuggerStep = false;
 size_t g_DR_breakpoint_count = 0;
+int g_DR_debuggerStepOverDepth = 0;
 const AI_tdstNodeInterpret* g_DR_debuggerInstructionPtr = NULL;
 const HIE_tdstSuperObject* g_DR_debuggerContextSPO = NULL;
 
+void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* nodeToCheck, AI_tdstScriptAI* ai, bool isReflex) {
+  
+  if (ai == NULL) {
+    return;
+  }
+  AI_tdstNodeInterpret* node;
+
+  for (int i = 0;i < ai->ulNbComport;i++) {
+    AI_tdstComport comport = ai->a_stComport[i];
+    for (int j = 0;j < comport.ucNbRules;j++) {
+      node = comport.a_stRules[j].p_stNodeInterpret;
+      while (node->eType != AI_E_ti_EndTree) {
+
+        if (node == nodeToCheck) {
+
+          DR_DLG_AiModel_SetSelectedComport(i, isReflex);
+          return;
+        }
+
+        node++;
+      }
+    }
+
+    if (comport.p_stSchedule == NULL || comport.p_stSchedule->p_stNodeInterpret == NULL) continue;
+    node = comport.p_stSchedule->p_stNodeInterpret;
+
+    while (node->eType != AI_E_ti_EndTree) {
+
+      if (node == nodeToCheck) {
+
+        DR_DLG_AiModel_SetSelectedComport(i, isReflex);
+        return;
+      }
+
+      node++;
+    }
+  }
+
+
+}
+
 AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node, AI_tdstGetSetParam* param) {
 
-  while (DR_Debugger_HasBreakpoint(node)) {
-    DR_UI_Update();
+  if (g_DR_debuggerEnabled) {
+
+    g_DR_debuggerInstructionPtr = node;
+    g_DR_debuggerContextSPO = spo;
+
+    if (DR_Debugger_HasBreakpoint(node)) {
+      g_DR_debuggerPaused = true;
+    }
+
+    if (g_DR_debuggerStepOverDepth > 0) {
+      if (node->ucDepth <= g_DR_debuggerStepOverDepth) {
+        g_DR_debuggerPaused = true;
+        g_DR_debuggerStepOverDepth = 0;
+      }
+    }
+
+    if (g_DR_debuggerPaused) {
+      g_DR_selectedObject = spo; 
+      
+      AI_tdstAIModel* aiModel = spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
+      SelectComportInDialog(spo, node, aiModel->a_stScriptAIIntel, false);
+      SelectComportInDialog(spo, node, aiModel->a_stScriptAIReflex, true);
+    }
+
+    while (g_DR_debuggerPaused) {
+      DR_UI_Update();
+
+      if (g_DR_debuggerStep) {
+        g_DR_debuggerStep = false;
+        break;
+      }
+    }
+
   }
 
   return AI_fn_p_stEvalTree(spo, node, param);
@@ -49,4 +125,31 @@ void DR_Debugger_UnsetBreakpoint(const void* address)
       return;
     }
   }
+}
+
+void DR_Debugger_StepOver()
+{
+  if (!g_DR_debuggerPaused) {
+    return;
+  }
+  g_DR_debuggerPaused = false;
+  if (g_DR_debuggerInstructionPtr != NULL) {
+    g_DR_debuggerStepOverDepth = g_DR_debuggerInstructionPtr->ucDepth;
+  }
+}
+
+void DR_Debugger_StepInto()
+{
+  if (!g_DR_debuggerPaused) {
+    return;
+  }
+  g_DR_debuggerStep = true;
+}
+
+void DR_Debugger_Continue()
+{
+  if (!g_DR_debuggerPaused) {
+    return;
+  }
+  g_DR_debuggerPaused = false;
 }

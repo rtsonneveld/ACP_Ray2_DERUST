@@ -6,6 +6,7 @@
 char g_DR_Cheats_InfiniteHealth = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
+char g_DR_Cheats_DisableDeathAnimations = FALSE;
 
 BOOL DisableObject(HIE_tdstSuperObject* spo) {
   if (spo != NULL) {
@@ -48,6 +49,20 @@ void DR_Cheats_Apply() {
 
         ACT_SetBooleanInArray(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits, GB_FLAG_MEGASHOOT_HIBIT, TRUE);
         ACT_SetBooleanInArray(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits, GB_FLAG_MEGASHOOT_LOBIT, TRUE);
+      }
+    }
+
+    if (g_DR_Cheats_DisableDeathAnimations) {
+      if (g_DR_rayman != NULL) {
+        HIE_tdstEngineObject* actor = g_DR_rayman->hLinkedObject.p_stActor;
+        if (actor->h3dData != NULL) {
+          GAM_tdst3dData* _3dData = actor->h3dData;
+
+          if (_3dData->h_CurrentState == ACT_GetStateByIndex(actor, 161) || _3dData->h_CurrentState == ACT_GetStateByIndex(actor, 162)) {
+            _3dData->ucFlagEndState = 1;
+            _3dData->ucFlagEndOfAnim = 1;
+          }
+        }
       }
     }
 

@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <rendering/shader.hpp>
 #include <rendering/textures.hpp>
-#include <ui/comportNames.hpp>
+#include "ui/nameLookup.hpp"
 
 // C INCLUDE
 #include "mod/globals.h"
@@ -47,18 +47,20 @@ void DR_DLG_Utils_Draw() {
       glm::vec3* glmPos = GetGlmPosition();
 
       ImGui::BeginDisabled(!g_DR_settings.util_showGLM);
-      ImGui::DragFloat3("GLM", &glmPos->x);
-      ImGui::Checkbox("Auto-focus camera on GLM", &focusCameraOnGLM);
-      if (focusCameraOnGLM) {
-        ImGui::DragFloat3("Offset", &glmCameraOffset.x);
-      }
-      if (ImGui::Button("Save GLM position")) {
-        savedGlmPosition = *(GetGlmPosition());
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("Load GLM position")) {
-        glm::vec3* glmPos = GetGlmPosition();
-        *glmPos = savedGlmPosition;
+      {
+        ImGui::DragFloat3("GLM", &glmPos->x);
+        ImGui::Checkbox("Auto-focus camera on GLM", &focusCameraOnGLM);
+        if (focusCameraOnGLM) {
+          ImGui::DragFloat3("Offset", &glmCameraOffset.x);
+        }
+        if (ImGui::Button("Save GLM position")) {
+          savedGlmPosition = *(GetGlmPosition());
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load GLM position")) {
+          glm::vec3* glmPos = GetGlmPosition();
+          *glmPos = savedGlmPosition;
+        }
       }
       ImGui::EndDisabled();
 
@@ -70,8 +72,8 @@ void DR_DLG_Utils_Draw() {
       if (ImGui::Button("Trigger IBG")) {
         HIE_tdstSuperObject** dsgVarPersoGenerated = (HIE_tdstSuperObject**)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_PersoGenerated);
         *dsgVarPersoGenerated = g_DR_global; // DsgVar has to be filled in order for barrel flying to remain active, use a dummy actor that always exists
-        ACT_ChangeComportRule(g_DR_rayman->hLinkedObject.p_stActor, GetComportIndex("YLT_RaymanModel", "YLT_TonneauFuseeComport"));
-        ACT_ChangeComportReflex(g_DR_rayman->hLinkedObject.p_stActor, GetReflexIndex("YLT_RaymanModel", "BNT_TonneauFuseeReflexe"));
+        ACT_ChangeComportRule(g_DR_rayman->hLinkedObject.p_stActor, IndexFromName(NameType::AIModel_Comport, "YLT_RaymanModel", "YLT_TonneauFuseeComport"));
+        ACT_ChangeComportReflex(g_DR_rayman->hLinkedObject.p_stActor, IndexFromName(NameType::AIModel_Reflex, "YLT_RaymanModel", "BNT_TonneauFuseeReflexe"));
         PLA_fn_bSetNewState(g_DR_rayman, ACT_GetStateByIndex(g_DR_rayman->hLinkedObject.p_stActor, 102), true, false);
       }
 

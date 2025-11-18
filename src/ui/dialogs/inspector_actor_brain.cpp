@@ -2,7 +2,7 @@
 #include "inspector_actor_dynam.hpp"
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
-#include "ui/comportNames.hpp"
+#include "ui/nameLookup.hpp"
 #include "ui/custominputs.hpp"
 
 // C INCLUDE
@@ -39,11 +39,11 @@ void DrawComportPicker(HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAI
 
   char* modelName = HIE_fn_szGetObjectModelName(actor->hStandardGame->p_stSuperObject);
   char label[32];
-  snprintf(label, sizeof(label), "%s##preview", (isReflex ? GetReflexName(modelName, activeComport) : GetComportName(modelName, activeComport)).c_str());
+  snprintf(label, sizeof(label), "%s##preview", (isReflex ? NameFromIndex(NameType::AIModel_Reflex, modelName, activeComport) : NameFromIndex(NameType::AIModel_Comport, modelName, activeComport)).c_str());
   if (ImGui::BeginCombo(isReflex ? "Active Reflex" : "Active Comport", label)) {
 
     for (int i = 0;i < scriptAI->ulNbComport;i++) {
-      snprintf(label, sizeof(label), "%s##selection", (isReflex ? GetReflexName(modelName, i) : GetComportName(modelName, i)).c_str());
+      snprintf(label, sizeof(label), "%s##selection", (isReflex ? NameFromIndex(NameType::AIModel_Reflex, modelName, i) : NameFromIndex(NameType::AIModel_Comport, modelName, i)).c_str());
       if (ImGui::Selectable(label, i == activeComport)) {
         AI_fn_ucChangeComportIntell(intelligence, &scriptAI->a_stComport[i]);
       }

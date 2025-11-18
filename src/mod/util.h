@@ -34,7 +34,6 @@ unsigned long ACT_GetNumberOfBooleanInArray(HIE_tdstEngineObject* engineObj, int
 void ACT_ChangeComportRule(HIE_tdstEngineObject* actor, int index);
 void ACT_ChangeComportReflex(HIE_tdstEngineObject* actor, int index);
 HIE_tdstState* ACT_GetStateByIndex(HIE_tdstEngineObject* actor, int stateIndex);
-void ACT_ChangeState(HIE_tdstEngineObject* actor, int stateIndex);
 
 /// <summary>
 /// Sets the transparency of a SuperObject
