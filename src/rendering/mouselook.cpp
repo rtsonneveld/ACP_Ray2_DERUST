@@ -29,7 +29,7 @@ void MouseLook::SetFromUser(GLFWwindow * window) {
   if (pitch > 89.0f) pitch = 89.0f;
   if (pitch < -89.0f) pitch = -89.0f;
 
-  float velocity = speed * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)==GLFW_PRESS ? speedUpMultiplier : 1.0f);
+  float velocity = speed * (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)==GLFW_PRESS ? speedUpMultiplier : glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS ? 1.0f/speedUpMultiplier : 1.0f);
 
   if (glfwGetKey(window, GLFW_KEY_W)) {
     position += forward * velocity;

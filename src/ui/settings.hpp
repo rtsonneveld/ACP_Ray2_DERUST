@@ -21,7 +21,11 @@ using json = nlohmann::json;
     X(InactiveItemVisibility, opt_inactiveZoneVisibility, InactiveItemVisibility::Transparent) \
     X(bool, opt_drawNoCollisionObjects, false) \
     X(bool, opt_drawInvisibleObjects, true) \
-    X(bool, opt_transparentZDRWalls, false) \
+    X(bool, opt_transparentZDRSlopes, false) \
+    X(bool, opt_transparentZDRSlopesInvert, false) \
+    X(float, opt_transparentZDRSlopesMin, 0.7071067812) \
+    X(float, opt_transparentZDRSlopesMax, 0.7071067812) \
+    X(float, opt_transparentZDRSlopesAlpha, 0.5f) \
     X(bool, opt_drawVirtualSectors, false) \
     X(bool, opt_drawSectorBorders, false) \
     X(InactiveItemVisibility, opt_inactiveSectorVisibility, InactiveItemVisibility::Transparent) \
@@ -31,6 +35,7 @@ using json = nlohmann::json;
     X(int, opt_tooFarLimitMinSize, 0) \
     X(int, opt_tooFarLimitMaxSize, 255) \
     X(float, opt_tooFarLimitHideRange, 0.0f) \
+    X(DistanceCheckVisibility, opt_distanceCheckVisibility, DistanceCheckVisibility::FadeOut) \
 /* Utilities */ \
     X(bool, util_showGLM, false) \
     /* Format: X(type, name, default_value) */

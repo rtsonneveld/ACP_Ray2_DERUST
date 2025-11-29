@@ -25,6 +25,7 @@ AI_tdstNodeInterpret* MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI_
 bool DR_Debugger_HasBreakpoint(const void* address);
 void DR_Debugger_SetBreakpoint(const void* address);
 void DR_Debugger_UnsetBreakpoint(const void* address);
+void DR_Debugger_SelectObjectAndComport(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node);
 void DR_Debugger_StepOver();
 void DR_Debugger_StepInto();
 void DR_Debugger_Continue();

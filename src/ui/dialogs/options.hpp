@@ -7,6 +7,13 @@ enum class InactiveItemVisibility : unsigned int
   Hidden = 2
 };
 
+enum class DistanceCheckVisibility : unsigned int
+{
+  Visible = 0,
+  FadeOut = 1,
+  Hidden = 2
+};
+
 enum class CollisionZoneMask : unsigned int
 {
   ZDM = 1 << 0,

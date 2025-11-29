@@ -1,5 +1,6 @@
 #include "debugger.h"
 #include "mod/globals.h"
+#include "mod/ai_distancechecks.h"
 #include "ui/ui_bridge.h"
 #include <ACP_Ray2.h>
 
@@ -53,12 +54,20 @@ void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* node
 
 }
 
+void DR_Debugger_SelectObjectAndComport(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
+  g_DR_selectedObject = spo;
+
+  AI_tdstAIModel* aiModel = spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
+  SelectComportInDialog(spo, node, aiModel->a_stScriptAIIntel, false);
+  SelectComportInDialog(spo, node, aiModel->a_stScriptAIReflex, true);
+}
+
 AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node, AI_tdstGetSetParam* param) {
 
-  if (g_DR_debuggerEnabled) {
+  g_DR_debuggerInstructionPtr = node;
+  g_DR_debuggerContextSPO = spo;
 
-    g_DR_debuggerInstructionPtr = node;
-    g_DR_debuggerContextSPO = spo;
+  if (g_DR_debuggerEnabled) {
 
     if (DR_Debugger_HasBreakpoint(node)) {
       g_DR_debuggerPaused = true;
@@ -72,11 +81,7 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
     }
 
     if (g_DR_debuggerPaused) {
-      g_DR_selectedObject = spo; 
-      
-      AI_tdstAIModel* aiModel = spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
-      SelectComportInDialog(spo, node, aiModel->a_stScriptAIIntel, false);
-      SelectComportInDialog(spo, node, aiModel->a_stScriptAIReflex, true);
+      DR_Debugger_SelectObjectAndComport(spo, node);
     }
 
     while (g_DR_debuggerPaused) {

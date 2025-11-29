@@ -1062,6 +1062,9 @@
     <ClInclude Include="src\mod\debugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\mod\ai_distancechecks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1230,6 +1233,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\nameLookup.hpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\ai_distancechecks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1757,6 +1763,12 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\toofar.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_ai.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\col_ai_inactive.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

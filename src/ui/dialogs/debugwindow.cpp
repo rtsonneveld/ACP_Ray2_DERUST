@@ -2,6 +2,8 @@
 #include <ui/settings.hpp>
 #include <imgui.h>
 
+int manualBreakpointAddress = 0;
+
 void DR_DLG_DebugWindow_Draw() {
   if (!g_DR_settings.dlg_debugwindow) return;
 
@@ -52,10 +54,19 @@ void DR_DLG_DebugWindow_Draw() {
 
       ImGui::TableNextColumn();
       {
-        ImGui::BeginDisabled(!g_DR_debuggerPaused);
 
         ImGui::BeginChild("DebuggerRightColumn", ImVec2(0, 0), ImGuiChildFlags_Borders);
         ImGui::Text("Breakpoints");
+
+        ImGui::SetNextItemWidth(80.0f);
+        ImGui::InputScalar("Address", ImGuiDataType_U32, &manualBreakpointAddress, nullptr, nullptr,
+          "%X", ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::SameLine();
+        if (ImGui::Button("Add manual breakpoint")) {
+          DR_Debugger_SetBreakpoint((const void*)manualBreakpointAddress);
+          manualBreakpointAddress = 0;
+        }
+
         for (size_t i = 0; i < g_DR_breakpoint_count; ++i) {
           ImGui::BulletText("0x%p", g_DR_breakpoints[i]);
           ImGui::SameLine();
@@ -66,8 +77,6 @@ void DR_DLG_DebugWindow_Draw() {
           }
         }
         ImGui::EndChild();
-        
-        ImGui::EndDisabled();
       }
 
       ImGui::EndTable();

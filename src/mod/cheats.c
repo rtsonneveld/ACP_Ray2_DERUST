@@ -52,7 +52,7 @@ void DR_Cheats_Apply() {
       }
     }
 
-    if (g_DR_Cheats_DisableDeathAnimations) {
+    if (g_DR_Cheats_DisableDeathAnimations || *GAM_g_ucIsEdInGhostMode) {
       if (g_DR_rayman != NULL) {
         HIE_tdstEngineObject* actor = g_DR_rayman->hLinkedObject.p_stActor;
         if (actor->h3dData != NULL) {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -123,6 +123,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="imgui\imnodes_internal.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="src\mod\ai_distancechecks.h" />
     <ClInclude Include="src\mod\ai_strings.h" />
     <ClInclude Include="src\mod\cheats.h" />
     <ClInclude Include="src\mod\debugger.h" />
@@ -471,6 +472,7 @@ Ray2x.exe -level:learn_31</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imnodes.cpp" />
+    <ClCompile Include="src\mod\ai_distancechecks.c" />
     <ClCompile Include="src\mod\ai_strings.c" />
     <ClCompile Include="src\mod\cheats.c" />
     <ClCompile Include="src\mod\debugger.c" />
@@ -684,6 +686,8 @@ Ray2x.exe -level:learn_31</Command>
     <ResourceCompile Include="ACP_Ray2_DERUST.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="resources\col_ai.png" />
+    <Image Include="resources\col_ai_inactive.png" />
     <Image Include="resources\col_bounce.png" />
     <Image Include="resources\col_climb.png" />
     <Image Include="resources\col_default.png" />

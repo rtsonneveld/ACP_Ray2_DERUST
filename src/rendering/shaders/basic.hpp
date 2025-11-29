@@ -25,11 +25,15 @@ uniform vec4 maxBrightness = vec4(1.1, 1.1, 1.1, 1.0);
 uniform vec4 uColor = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float uAlphaMult = 1.0;
 uniform bool uOpaquePass = false;
-uniform bool transparentWalls = false;
+uniform float transparentSlopesMin = 0.0;
+uniform float transparentSlopesMax = 1.0;
+uniform float transparentSlopesAlpha = 1.0;
+uniform bool transparentSlopesInvert = false;
 
 layout(binding = 0) uniform sampler2D tex1;
 layout(binding = 1) uniform sampler2D tex2;
 uniform bool useSecondTexture = false;
+uniform bool isSelected = false;
 
 uniform vec3 uvScale = vec3(1.0, 1.0, 1.0);
 uniform float wireThickness = 1.5;
@@ -116,13 +120,25 @@ void main() {
     out_col *= mix(minBrightness, maxBrightness, diff);
     out_col.a *= uAlphaMult;
 
-    if (transparentWalls && faceNorm.z < 0.70710678) {
-        out_col.a *= 0.5;
+    if (transparentSlopesAlpha < 1.0) {
+      if ((faceNorm.z >= transparentSlopesMin && faceNorm.z <= transparentSlopesMax) != transparentSlopesInvert) {
+        out_col.a *= transparentSlopesAlpha;
+      }
     }
-
+ 
     // --- Wireframe overlay ---
     float edge = edgeFactor();
     out_col = mix(vec4(out_col.rgb * 0.5, out_col.a), out_col, edge);
+
+    // --- Selection glow ---
+    if (isSelected) {
+        // Yellow outline
+        vec3 outlineColor = vec3(1.0, 1.0, 0.0); // pure yellow
+        float outlineStrength = 1.0-edge; // only at the edges
+        out_col.rgb = mix(out_col.rgb, outlineColor, outlineStrength);
+
+        out_col.rgb += outlineColor * 0.3;
+    }
 
     // --- Opaque Pass ---
     if (uOpaquePass) {

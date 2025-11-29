@@ -192,7 +192,7 @@ bool DrawAINode(AI_tdstNodeInterpret* node, bool forceOpen)
 
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
 
-  bool isDebugPointer = (g_DR_debuggerInstructionPtr == node);
+  bool isDebugPointer = (g_DR_debuggerInstructionPtr == node && g_DR_debuggerPaused);
   if (isDebugPointer) {
     flags |= ImGuiTreeNodeFlags_Framed;
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.8f, 0.1f, 0.1f, 0.5f));

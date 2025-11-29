@@ -11,10 +11,12 @@
 #include "mod/globals.h"
 #include "mod/dsgvarnames.h"
 #include "mod/util.h"
+#include "mod/ai_distancechecks.h"
 #include <ACP_Ray2.h>
 #include <rendering/scene.hpp>
 
 Mesh glmCube;
+Mesh distanceSphere;
 glm::vec3 savedGlmPosition;
 bool focusCameraOnGLM = false;
 glm::vec3 glmCameraOffset = glm::vec3(1, 1, 1);
@@ -30,6 +32,7 @@ glm::vec3* GetGlmPosition() {
 
 void DR_DLG_Utils_Init() {
   glmCube = Mesh::createCube(glm::vec3(0.1, 0.1, 0.885594));
+  distanceSphere = Mesh::createSphere();
 }
 
 void DR_DLG_Utils_Draw() {
@@ -85,6 +88,34 @@ void DR_DLG_Utils_Draw() {
   ImGui::End();
 }
 
+void DrawDistanceChecks(Shader* shader) {
+
+  glm::mat4 matrix;
+
+  for (int i = 0; i < DR_DistanceCheckCount; i++) {
+
+    DistanceCheckEntry entry = distanceChecks[i];
+    matrix = glm::translate(glm::mat4(1.0f), glm::vec3(entry.x, entry.y, entry.z));
+    matrix = glm::scale(matrix, glm::vec3(entry.radius, entry.radius, entry.radius));
+
+    shader->use();
+    shader->setMat4("uModel", matrix);
+    shader->setTex2D("tex1", entry.lifetime == 0 ? Textures::ColAi : Textures::ColAiInactive, 0);
+    shader->setVec3("uvScale", glm::vec3(entry.radius));
+    if (g_DR_settings.opt_distanceCheckVisibility == DistanceCheckVisibility::FadeOut) {
+      float lifeFactor = (float)entry.lifetime / DR_DISTANCECHECKS_MAXLIFETIME;
+      shader->setFloat("uAlphaMult", 0.5f - lifeFactor * 0.5f);
+    } else {
+      shader->setFloat("uAlphaMult", 0.5f);
+    }
+
+    distanceSphere.draw();
+
+    shader->setVec3("uvScale", glm::vec3(1));
+    shader->setFloat("uAlphaMult", 1.0f);
+  }
+}
+
 void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
 
   if (focusCameraOnGLM) {
@@ -109,5 +140,9 @@ void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
   if (glmPos != glm::vec3(0)) {
 
     glmCube.draw();
+  }
+
+  if (g_DR_settings.opt_distanceCheckVisibility != DistanceCheckVisibility::Hidden) {
+    DrawDistanceChecks(shader);
   }
 }

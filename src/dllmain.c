@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include "mod/cpa_functions.h"
+#include "mod/ai_distancechecks.h"
 #include "mod/util.h"
 #include "mod/state.h"
 #include "mod/savestates.h"
@@ -105,7 +106,7 @@ void MOD_fn_vChooseTheGoodDesInit() {
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;
 	}
-
+	DR_DistanceChecks_Reset();
 	DR_UI_OnMapExit();
 
 	GAM_fn_vChooseTheGoodDesInit();
@@ -137,6 +138,16 @@ void MOD_fn_vEngine()
 	}
 
 	DR_Cheats_Apply();
+	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
+		DR_DistanceChecks_Update();
+	}
+	
+	int oldTickPerMs = GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs;
+	if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge)) {
+
+		GAM_g_stEngineStructure->stEngineTimer.ulUsefulDeltaTime *= 4;
+		GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs /= 4;
+	}
 
 	if (DR_Settings_IsCatchExceptionsEnabled()) {
 		__try {
@@ -146,6 +157,10 @@ void MOD_fn_vEngine()
 			__debugbreak();
 
 			g_DR_Playback.pause = TRUE;
+			g_DR_debuggerEnabled = TRUE;
+			g_DR_debuggerPaused = TRUE;
+
+			DR_Debugger_SelectObjectAndComport(g_DR_debuggerContextSPO, g_DR_debuggerInstructionPtr);
 		}
 	}	else {
 		GAM_fn_vEngine();
@@ -201,6 +216,8 @@ void MOD_fn_vEngine()
 	}
 
 	DR_UI_Update();
+
+	GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs = oldTickPerMs;
 }
 
 void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
@@ -223,6 +240,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
+			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lCreateHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
 			FHK_fn_lCreateHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);

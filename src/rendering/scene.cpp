@@ -156,8 +156,11 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
 
   if (collSet->hZdr != nullptr && IsCollisionZoneEnabled(CollisionZoneMask::ZDR)) {
 
-    if (g_DR_settings.opt_transparentZDRWalls) {
-      shader->setBool("transparentWalls", TRUE);
+    if (g_DR_settings.opt_transparentZDRSlopes) {
+      shader->setFloat("transparentSlopesAlpha", g_DR_settings.opt_transparentZDRSlopesAlpha);
+      shader->setFloat("transparentSlopesMin", g_DR_settings.opt_transparentZDRSlopesMin);
+      shader->setFloat("transparentSlopesMax", g_DR_settings.opt_transparentZDRSlopesMax);
+      shader->setBool("transparentSlopesInvert", g_DR_settings.opt_transparentZDRSlopesInvert);
     }
 
     GeometricObjectMesh ipoMeshCollision = *GeometricObjectMesh::get(collSet->hZdr);
@@ -167,7 +170,8 @@ void Scene::renderPhysicalObjectCollision(Shader* shader, PO_tdstPhysicalObject*
     ipoMeshCollision.draw(shader, ZDX_C_ucTypeZdr);
     glDisable(GL_CULL_FACE);
 
-    shader->setBool("transparentWalls", FALSE);
+    shader->setFloat("transparentSlopesAlpha", 1.0f);
+    shader->setBool("transparentSlopesInvert", false);
   }
 }
 
@@ -389,7 +393,16 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
 
   HIE_tdstSuperObject* child;
   LST_M_DynamicForEach(spo, child) {
-    renderSPO(shader, child, activeSector, view, proj, mainCharPos);
+
+    if (child == g_DR_selectedObject) {
+      shader->setBool("isSelected", TRUE);
+    }
+
+    renderSPO(shader, child, activeSector, view, proj, mainCharPos); // Draw all children as "selected"
+
+    if (child == g_DR_selectedObject) {
+      shader->setBool("isSelected", FALSE);
+    }
   }
 }
 
