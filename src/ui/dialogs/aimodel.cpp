@@ -100,7 +100,7 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
 
     case AI_E_ti_PersoRef:
       ImGui::SameLine();
-      InputPerso(label.c_str(), (HIE_tdstSuperObject**)&node->uParam.pvValue);
+      InputPerso(label.c_str(), (HIE_tdstEngineObject**)&node->uParam.pvValue);
       break;
     case AI_E_ti_Constant:
       ImGui::SameLine();

@@ -15,6 +15,8 @@ DNM_tdstDynamicsBaseBlock dynamicsBase;
 DNM_tdstDynamicsAdvancedBlock dynamicsAdvanced;
 DNM_tdstDynamicsComplexBlock dynamicsComplex;
 
+DNM_tdstDynamics savedDynamics;
+
 #include "imgui.h"
 
 void DrawObstacle(const char* label, DNM_tdstObstacle obs, bool collision)
@@ -114,6 +116,15 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
   DNM_tdstDynamics* dynamics = dynam->p_stDynamics;
   if (dynamics != nullptr) {
     if (ImGui::CollapsingHeader("Dynamics")) {
+
+      if (ImGui::Button("Save")) {
+        savedDynamics = *dynamics;
+      } ImGui::SameLine();
+      if (ImGui::Button("Load")) {
+        dynam->p_stDynamics->stDynamicsBase = savedDynamics.stDynamicsBase;
+        dynam->p_stDynamics->stDynamicsAdvanced = savedDynamics.stDynamicsAdvanced;
+        dynam->p_stDynamics->stDynamicsComplex = savedDynamics.stDynamicsComplex;
+      }
 
       ImGui::Checkbox("Force overwrite", &forceOverwriteDynam);
 

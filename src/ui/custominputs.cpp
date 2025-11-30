@@ -3,6 +3,7 @@
 #include "ui/ui_util.hpp"
 #include <string>
 #include <algorithm>
+#include <functional>
 // C INCLUDES
 #include <ACP_Ray2.h>
 #include "mod/ai_strings.h"
@@ -299,15 +300,18 @@ void InputGameMaterial(GMT_tdstGameMaterial* mat)
   InputCollideMaterial(mat->hCollideMaterial);
 }
 
-
-void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
+// Core implementation - ALL shared logic lives here
+static void InputPerso_Internal(
+  const char* label,
+  HIE_tdstSuperObject* currentSpo,
+  const std::function<void(HIE_tdstSuperObject*)>& writeBack
+) {
   static char searchBuffer[128] = "";
-  HIE_tdstSuperObject* spo = *p_data;
 
   // Make combo wider
-  ImGui::SetNextItemWidth(300.0f); // adjust width as needed
+  ImGui::SetNextItemWidth(300.0f);
 
-  if (ImGui::BeginCombo(label, (spo != nullptr ? SPO_Name(spo).c_str() : "null"), ImGuiComboFlags_HeightLarge)) {
+  if (ImGui::BeginCombo(label, (currentSpo ? SPO_Name(currentSpo).c_str() : "null"), ImGuiComboFlags_HeightLarge)) {
 
     // Reset search on open
     if (ImGui::IsWindowAppearing()) {
@@ -315,14 +319,13 @@ void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
       ImGui::SetKeyboardFocusHere();
     }
 
-    // Floating search box
+    // Search input
     ImGui::PushItemWidth(-1);
     ImGui::InputTextWithHint("##search", "Search...", searchBuffer, IM_ARRAYSIZE(searchBuffer));
     ImGui::PopItemWidth();
-
     ImGui::Separator();
 
-    // Scrollable region
+    // Scrollable area
     ImGui::BeginChild("##combo_scroll", ImVec2(0, 200), false, ImGuiWindowFlags_HorizontalScrollbar);
 
     std::string searchLower(searchBuffer);
@@ -330,20 +333,24 @@ void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
 
     // Null option
     if (std::string("null").find(searchLower) != std::string::npos) {
-      if (ImGui::Selectable("null", spo == nullptr)) {
-        *p_data = nullptr;
-        ImGui::CloseCurrentPopup(); // close combo on selection
+      if (ImGui::Selectable("null", currentSpo == nullptr)) {
+        writeBack(nullptr);
+        ImGui::CloseCurrentPopup();
       }
     }
 
+    // Actor list
     HIE_M_ForEachActor(actor) {
+
       std::string nameLower = SPO_Name(actor);
       std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
 
       if (nameLower.find(searchLower) != std::string::npos) {
-        if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == spo)) {
-          *p_data = actor;
-          ImGui::CloseCurrentPopup(); // close combo on selection
+
+        if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == currentSpo)) {
+
+          writeBack(actor);
+          ImGui::CloseCurrentPopup();
         }
       }
     }
@@ -351,6 +358,34 @@ void InputPerso(const char* label, HIE_tdstSuperObject** p_data) {
     ImGui::EndChild();
     ImGui::EndCombo();
   }
+}
+
+void InputPerso(const char* label, HIE_tdstSuperObject** p_spo) {
+
+  InputPerso_Internal(
+    label,
+    *p_spo,                            // read current SPO
+    [&](HIE_tdstSuperObject* newSpo) { // write back SPO
+      *p_spo = newSpo;
+    }
+  );
+}
+
+void InputPerso(const char* label, HIE_tdstEngineObject** p_actor) {
+
+  HIE_tdstSuperObject* currentSpo =
+    (*p_actor ? (*p_actor)->hStandardGame->p_stSuperObject : nullptr);
+
+  InputPerso_Internal(
+    label,
+    currentSpo,                        // read current SPO
+    [&](HIE_tdstSuperObject* newSpo) { // write back SPO
+      if (newSpo)
+        *p_actor = newSpo->hLinkedObject.p_stActor;
+      else
+        *p_actor = nullptr;
+    }
+  );
 }
 
 static void InputVector3(const char* label, char* buffer, int offsetInBuffer = 0) {

@@ -83,7 +83,7 @@ void DR_RemoveLoadScreens() {
 
 int timer = 0;
 
-LRESULT MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long lParam) {
+LRESULT CALLBACK MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long lParam) {
 
 	LRESULT lResult = GAM_fn_WndProc(hWnd, uMsg, wParam, lParam);
 	switch (uMsg) {
