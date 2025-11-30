@@ -20,6 +20,11 @@
 // Global module handle
 HMODULE g_hModule;
 
+// Thread
+HANDLE g_hUIThread = NULL;
+HANDLE g_hFrameEvent = NULL;
+volatile BOOL g_bRunning = true;
+
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
 {
 
@@ -129,14 +134,29 @@ LONG LogExceptionFilter(PEXCEPTION_POINTERS ep) {
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-
-void MOD_fn_vEngine()
+DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 {
 	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle(), g_hModule) != 0) {
 		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
 
+	while (g_bRunning)
+	{
+		// Wait until the game loop signals a new frame
+		WaitForSingleObject(g_hFrameEvent, INFINITE);
+
+		// Now process the UI update
+		DR_UI_Update();
+	}
+
+	DR_UI_DeInit();
+
+	return 0;
+}
+
+void MOD_fn_vEngine()
+{
 	DR_Cheats_Apply();
 	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
 		DR_DistanceChecks_Update();
@@ -215,9 +235,9 @@ void MOD_fn_vEngine()
 		}
 	}
 
-	DR_UI_Update();
-
 	GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs = oldTickPerMs;
+
+	SetEvent(g_hFrameEvent);
 }
 
 void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
@@ -233,9 +253,18 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			g_hModule = hModule;
 
 			AllocConsole();
+
 			FILE* f;
 			freopen_s(&f, "CONOUT$", "w", stdout);
 			freopen_s(&f, "CONOUT$", "w", stderr);
+
+			g_hFrameEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+			g_hUIThread = CreateThread(
+				NULL, 0,
+				(LPTHREAD_START_ROUTINE)DR_UI_ThreadMain,
+				NULL, 0, NULL
+			);
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
@@ -259,7 +288,13 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			SPTXT_vDeInit();
-			DR_UI_DeInit();
+
+			g_bRunning = false;
+			SetEvent(g_hFrameEvent);
+
+			WaitForSingleObject(g_hUIThread, INFINITE);
+			CloseHandle(g_hUIThread);
+			CloseHandle(g_hFrameEvent);
 
 			break;
 

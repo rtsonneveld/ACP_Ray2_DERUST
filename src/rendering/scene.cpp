@@ -462,6 +462,8 @@ void generateRenderTextures(int display_w, int display_h) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+glm::vec3 mainCharPos;
+
 void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj) {
 
 
@@ -477,7 +479,9 @@ void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4&
   geometryShader->setFloat("uAlphaMult", 1.0f);
   geometryShader->setFloat("falloffDistance", 0.0f);
 
-  glm::vec3 mainCharPos = ToGLMVec(GAM_g_stEngineStructure->g_hMainActor->p_stGlobalMatrix->stPos);
+  if (GAM_g_stEngineStructure->g_hMainActor != nullptr) {
+    mainCharPos = ToGLMVec(GAM_g_stEngineStructure->g_hMainActor->p_stGlobalMatrix->stPos);
+  }
 
   renderSPO(geometryShader, *GAM_g_p_stFatherSector, true, view, proj, mainCharPos);
   renderSPO(geometryShader, *GAM_g_p_stDynamicWorld, true, view, proj, mainCharPos);

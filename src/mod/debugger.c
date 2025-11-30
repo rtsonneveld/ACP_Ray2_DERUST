@@ -13,6 +13,8 @@ int g_DR_debuggerStepOverDepth = 0;
 const AI_tdstNodeInterpret* g_DR_debuggerInstructionPtr = NULL;
 const HIE_tdstSuperObject* g_DR_debuggerContextSPO = NULL;
 
+extern HANDLE g_hFrameEvent;
+
 void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* nodeToCheck, AI_tdstScriptAI* ai, bool isReflex) {
   
   if (ai == NULL) {
@@ -85,7 +87,8 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
     }
 
     while (g_DR_debuggerPaused) {
-      DR_UI_Update();
+      
+      SetEvent(g_hFrameEvent);
 
       if (g_DR_debuggerStep) {
         g_DR_debuggerStep = false;
