@@ -16,6 +16,7 @@
 #include <rendering/scene.hpp>
 
 Mesh glmCube;
+Mesh directionPlane;
 Mesh distanceSphere;
 glm::vec3 savedGlmPosition;
 bool focusCameraOnGLM = false;
@@ -32,6 +33,7 @@ glm::vec3* GetGlmPosition() {
 
 void DR_DLG_Utils_Init() {
   glmCube = Mesh::createCube(glm::vec3(0.1, 0.1, 0.885594));
+  directionPlane = Mesh::createQuad(1000.0f, 1000.0f);
   distanceSphere = Mesh::createSphere();
 }
 
@@ -72,6 +74,8 @@ void DR_DLG_Utils_Draw() {
 
     if (ImGui::BeginTabItem("Misc")) {
 
+      ImGui::Checkbox("Visualize Rayman's direction", &g_DR_settings.util_showDirection);
+
       if (ImGui::Button("Trigger IBG")) {
         HIE_tdstSuperObject** dsgVarPersoGenerated = (HIE_tdstSuperObject**)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_PersoGenerated);
         *dsgVarPersoGenerated = g_DR_global; // DsgVar has to be filled in order for barrel flying to remain active, use a dummy actor that always exists
@@ -86,6 +90,26 @@ void DR_DLG_Utils_Draw() {
     ImGui::EndTabBar();
   }
   ImGui::End();
+}
+
+
+void DrawRaymanDirection(Shader* shader) {
+
+  if (g_DR_rayman == nullptr) return;
+  glm::mat4 matrix = ToGLMMat4(*g_DR_rayman->p_stGlobalMatrix);
+
+  matrix = glm::rotate(matrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+  shader->use();
+  shader->setMat4("uModel", matrix);
+  shader->setTex2D("tex1", Textures::ColBounce, 0);
+  shader->setVec3("uvScale", glm::vec3(1,1,1));
+  shader->setFloat("uAlphaMult", 0.5f);
+
+  directionPlane.draw();
+
+  shader->setVec3("uvScale", glm::vec3(1));
+  shader->setFloat("uAlphaMult", 1.0f);
 }
 
 void DrawDistanceChecks(Shader* shader) {
@@ -116,8 +140,7 @@ void DrawDistanceChecks(Shader* shader) {
   }
 }
 
-void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
-
+void DrawGLM(Scene * scene, Shader * shader) {
   if (focusCameraOnGLM) {
     glm::vec3 glmPos = *(GetGlmPosition());
     if (glmPos != glm::vec3(0)) {
@@ -125,7 +148,6 @@ void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
     }
   }
 
-  shader->use();
 
   auto glmPos = *(GetGlmPosition());
 
@@ -141,8 +163,21 @@ void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
 
     glmCube.draw();
   }
+}
+
+void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
+
+  shader->use();
+
+  if (g_DR_settings.util_showGLM) {
+    DrawGLM(scene, shader);
+  }
 
   if (g_DR_settings.opt_distanceCheckVisibility != DistanceCheckVisibility::Hidden) {
     DrawDistanceChecks(shader);
+  }
+
+  if (g_DR_settings.util_showDirection) {
+    DrawRaymanDirection(shader);
   }
 }

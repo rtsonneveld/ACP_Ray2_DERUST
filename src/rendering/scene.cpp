@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include "mod/globals.h"
 #include "mod/util.h"
+#include "mod/cheats.h"
 #include <ui/dialogs/inspector.hpp>
 #include <ui/dialogs/options.hpp>
 #include <ui/dialogs/utils.hpp>
@@ -388,6 +389,7 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
     shader->setMat4("uModel", debugSphereModelMatrix);
     shader->setVec4("uColor", COLOR_DEFAULT);
     shader->setTex2D("tex1", Textures::ColDefault, 0);
+    shader->setBool("useSecondTexture", false);
     sphere.draw(shader);
   }
 
@@ -549,6 +551,7 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
     if (wasTeleporting) {
       wasTeleporting = false;
       *GAM_g_ucIsEdInGhostMode = false;
+      DR_Cheats_SavePosition();
     }
   }
 

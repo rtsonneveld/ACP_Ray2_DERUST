@@ -1,6 +1,7 @@
 #include "menu_cheats.hpp"
 #include <mod/cheats.h>
 #include <imgui.h>
+#include <ACP_Ray2.h>
 
 void FlagMenuItem(const char* label, int index)
 {
@@ -23,6 +24,15 @@ void DR_DLG_Cheats_Draw() {
   }
   if (ImGui::MenuItem("Disable death animations", nullptr, g_DR_Cheats_DisableDeathAnimations)) {
     g_DR_Cheats_DisableDeathAnimations = !g_DR_Cheats_DisableDeathAnimations;
+  }
+  if (ImGui::MenuItem("Activate void")) {
+    *AI_g_bInGameMenu = TRUE;
+  }
+  if (ImGui::MenuItem("Automatic perfect void", nullptr, g_DR_Cheats_AutoVoid)) {
+    g_DR_Cheats_AutoVoid = !g_DR_Cheats_AutoVoid;
+  }
+  if (ImGui::MenuItem("Freeze progress", nullptr, g_DR_Cheats_FreezeProgress)) {
+    g_DR_Cheats_FreezeProgress = !g_DR_Cheats_FreezeProgress;
   }
   ImGui::SeparatorText("Flags");
   FlagMenuItem("NoMovies", GB_FLAG_NOMOVIES);

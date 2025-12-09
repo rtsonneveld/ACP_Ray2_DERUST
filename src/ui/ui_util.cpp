@@ -13,8 +13,12 @@ std::string SPO_Name(HIE_tdstSuperObject* spo) {
   if (spo->ulType == HIE_C_Type_Actor) {
 
     HIE_tdstEngineObject* actor = HIE_M_hSuperObjectGetActor(spo);
-    if (actor == nullptr || actor->hStandardGame == nullptr) {
+    if (actor == nullptr) {
       label << "null";
+      return label.str();
+    }
+    if (actor->hStandardGame == nullptr) {
+      label << "invalid (" << std::hex << (int)actor << ")";
       return label.str();
     }
     GAM_tdxObjectType lPersonalType = HIE_M_lActorGetPersonalType(actor);

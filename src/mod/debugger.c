@@ -1,5 +1,6 @@
 #include "debugger.h"
 #include "mod/globals.h"
+#include "ai_dump.h"
 #include "mod/ai_distancechecks.h"
 #include "ui/ui_bridge.h"
 #include <ACP_Ray2.h>
@@ -75,7 +76,7 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
       g_DR_debuggerPaused = true;
     }
 
-    if (g_DR_debuggerStepOverDepth > 0) {
+    if (g_DR_debuggerStepOverDepth > 0)  {
       if (node->ucDepth <= g_DR_debuggerStepOverDepth) {
         g_DR_debuggerPaused = true;
         g_DR_debuggerStepOverDepth = 0;
@@ -96,6 +97,19 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
       }
     }
 
+  }
+
+  if (DR_AIDUMP_IsActive()) {
+    AI_tdstMind* mind = spo->hLinkedObject.p_stActor->hBrain->p_stMind;
+
+    if (node->eType == AI_E_ti_Procedure) { 
+
+      DR_AIDUMP_AddNode(spo,
+        mind->p_stIntelligence != NULL && mind->bDoingIntel == 1 ? mind->p_stIntelligence->p_stCurrentComport : NULL,
+        mind->p_stReflex != NULL && mind->bDoingIntel == 0 ? mind->p_stReflex->p_stCurrentComport : NULL,
+        node, param);
+
+    }
   }
 
   return AI_fn_p_stEvalTree(spo, node, param);

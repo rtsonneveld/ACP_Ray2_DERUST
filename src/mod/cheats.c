@@ -7,6 +7,23 @@ char g_DR_Cheats_InfiniteHealth = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 char g_DR_Cheats_DisableDeathAnimations = FALSE;
+char g_DR_Cheats_AutoVoid = FALSE;
+char g_DR_Cheats_FreezeProgress = FALSE;
+
+DNM_tdstDynamics savedPosition;
+BOOL resetGhostMode;
+BOOL hasSavedPosition = FALSE;
+
+#define GLOBAL_BITS_ARRAYSIZE 45
+unsigned int frozenProgress[GLOBAL_BITS_ARRAYSIZE];
+
+char frozenProgressInitialized = FALSE;
+
+#define ComboAction IPT_E_Entry_Action_Affiche_Jauge
+
+#define BNT_St_ry_meurt 161
+#define BNT_St_ry_naissance 162
+#define CHG_St_ry_inf_start 142
 
 BOOL DisableObject(HIE_tdstSuperObject* spo) {
   if (spo != NULL) {
@@ -36,7 +53,52 @@ BOOL DisableObjectOfPersonalType(const char* personalType)
   return DisableObject(spo);
 }
 
+void DR_Cheats_SavePosition() {
+  savedPosition = *g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics;
+  hasSavedPosition = TRUE;
+}
+
+void DR_Cheats_LoadPosition() {
+
+  if (!hasSavedPosition) return;
+
+  ACT_Teleport(g_DR_rayman, savedPosition.stDynamicsBase.stCurrentMatrix.stPos);
+  *g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics = savedPosition;
+  *GAM_g_ucIsEdInGhostMode = TRUE;
+  resetGhostMode = TRUE;
+}
+
+void DR_Cheats_ResetSavedPosition() {
+  hasSavedPosition = FALSE;
+}
+
 void DR_Cheats_Apply() {
+
+    if (g_DR_Cheats_FreezeProgress) {
+
+      tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
+
+      if (array) {
+
+          for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
+
+            if (i >= array->ucMaxSize) break;
+
+            if (!frozenProgressInitialized) {
+              frozenProgress[i] = array->d_ArrayElement[i].ulValue;
+            }
+            else {
+              array->d_ArrayElement[i].ulValue = frozenProgress[i];
+            }
+          }
+
+          frozenProgressInitialized = TRUE;
+      }
+    }
+    else {
+      frozenProgressInitialized = FALSE;
+    }
+
     if (g_DR_Cheats_InfiniteHealth) {
         if (g_DR_rayman != NULL) {
           GAM_tdstStandardGame* stdGame = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame;
@@ -58,9 +120,30 @@ void DR_Cheats_Apply() {
         if (actor->h3dData != NULL) {
           GAM_tdst3dData* _3dData = actor->h3dData;
 
-          if (_3dData->h_CurrentState == ACT_GetStateByIndex(actor, 161) || _3dData->h_CurrentState == ACT_GetStateByIndex(actor, 162)) {
+          if (_3dData->h_CurrentState == ACT_GetStateByIndex(actor, BNT_St_ry_meurt) ||
+              _3dData->h_CurrentState == ACT_GetStateByIndex(actor, BNT_St_ry_naissance) ||
+              _3dData->h_CurrentState == ACT_GetStateByIndex(actor, CHG_St_ry_inf_start)) {
             _3dData->ucFlagEndState = 1;
             _3dData->ucFlagEndOfAnim = 1;
+
+            *(int*)(ACT_DsgVarPtr(actor, DV_RAY_INTERN_Tmp)) = 0;
+          }
+        }
+      }
+    }
+
+    if (g_DR_Cheats_AutoVoid) {
+      if (g_DR_rayman != NULL) {
+        HIE_tdstEngineObject* actor = g_DR_rayman->hLinkedObject.p_stActor;
+        if (actor->h3dData != NULL) {
+          GAM_tdst3dData* _3dData = actor->h3dData;
+
+          if (_3dData->h_CurrentState == ACT_GetStateByIndex(actor, BNT_St_ry_meurt)) {
+
+            if (_3dData->uwCurrentFrame >= _3dData->h_CurrentState->p_stAnim->uwNumberOfFrames-1) {
+              IPT_g_stInputStructure->d_stEntryElementArray[IPT_E_Entry_Action_Menu_Entrer].lState = 2;
+              IPT_g_stInputStructure->d_stEntryElementArray[IPT_E_Entry_Action_Menu_Entrer].bIsActivate = TRUE;
+            }
           }
         }
       }
@@ -92,6 +175,20 @@ void DR_Cheats_Apply() {
       if (spiralDoor != NULL) {
         int* dsgVar0 = (int*)ACT_DsgVarPtr(spiralDoor->hLinkedObject.p_stActor, 0);
         *dsgVar0 = 0;
+      }
+    }
+
+    if (resetGhostMode) {
+      resetGhostMode = FALSE;
+      *GAM_g_ucIsEdInGhostMode = FALSE;
+    }
+
+    if (IPT_M_bActionIsValidated(ComboAction) && g_DR_rayman != NULL) {
+      if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Tirer)) {
+        DR_Cheats_SavePosition();
+      }
+      if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Sauter)) {
+        DR_Cheats_LoadPosition();
       }
     }
 }

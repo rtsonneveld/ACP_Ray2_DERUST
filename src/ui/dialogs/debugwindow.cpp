@@ -1,8 +1,103 @@
+﻿#include <fstream>
+#include <sstream>
+#include <string>
 #include "debugwindow.hpp"
 #include <ui/settings.hpp>
+#include <ui/ui_util.hpp>
+#include "mod/ai_strings.h"
 #include <imgui.h>
 
+#include <mod/ai_dump.h>
+#include <ui/nameLookup.hpp>
+
 int manualBreakpointAddress = 0;
+
+static std::string MakeFrameHeader(int frame) {
+  std::ostringstream oss;
+  oss << "========-------- Frame " << frame << " --------========";
+  return oss.str();
+}
+
+static std::string MakeSpoHeader(std::string name) {
+  std::ostringstream oss;
+  oss << " -------- " << name << " --------"; 
+  return oss.str();
+}
+
+void SaveAiDump() {
+  int itemCount = DR_AIDUMP_GetLogCount();
+  if (itemCount == 0) return;
+
+  // determine final frame number (for filename)
+  int lastFrame = DR_AIDUMP_GetLogItem(itemCount-1).Frame;
+
+  // filename
+  std::ostringstream filename;
+  filename << "AI DUMP " << lastFrame << ".txt";
+
+  std::ofstream file(filename.str());
+  if (!file.is_open()) return;
+
+  int currentFrame = -1;
+  HIE_tdstSuperObject* currentSPO = nullptr;
+  AI_tdstComport* currentComport = nullptr;
+  AI_tdstComport* currentReflex = nullptr;
+
+  for (int i = 0; i < itemCount; i++) {
+
+    LogItem item = DR_AIDUMP_GetLogItem(i);
+
+    // New frame → write frame header
+    if (item.Frame != currentFrame) {
+      currentFrame = item.Frame;
+      file << MakeFrameHeader(currentFrame) << "\n";
+    }
+
+    // New SPO → write spo name header
+    if (item.Spo != currentSPO) {
+      currentSPO = item.Spo;
+      std::string name = SPO_Name(item.Spo);
+      file << MakeSpoHeader(name) << "\n";
+    }
+
+    if (item.Comport != currentComport && item.Spo->hLinkedObject.p_stActor->hBrain != NULL) {
+      currentComport = item.Comport;
+
+      if (currentComport != nullptr) {
+        AI_tdstAIModel* aiModel = item.Spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
+        for (int i = 0;i < aiModel->a_stScriptAIIntel->ulNbComport;i++) {
+          if (currentComport == &aiModel->a_stScriptAIIntel->a_stComport[i]) {
+            file << " Comport[" << i << "]: " << NameFromIndex(NameType::AIModel_Comport, HIE_fn_szGetObjectModelName(item.Spo), i) << "\n";
+            break;
+          }
+        }
+      }
+    }
+
+    if (item.Reflex != currentReflex && item.Spo->hLinkedObject.p_stActor->hBrain != NULL) {
+      currentReflex = item.Reflex;
+
+      if (currentReflex != nullptr) {
+        AI_tdstAIModel* aiModel = item.Spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
+        for (int i = 0;i < aiModel->a_stScriptAIReflex->ulNbComport;i++) {
+          if (currentReflex == &aiModel->a_stScriptAIReflex->a_stComport[i]) {
+            file << " Reflex[" << i << "]: " << NameFromIndex(NameType::AIModel_Reflex, HIE_fn_szGetObjectModelName(item.Spo), i) << "\n";
+            break;
+          }
+        }
+      }
+    }
+
+    // indentation
+    int depth = item.Node ? item.Node->ucDepth : 0;
+    for (int d = 0; d < depth; d++)
+      file << "  "; // 2 spaces per depth
+
+    // node string
+    const char* str = AI_GetNodeString(item.Node);
+    file << (str ? str : "<null>") << "\n";
+  }
+}
 
 void DR_DLG_DebugWindow_Draw() {
   if (!g_DR_settings.dlg_debugwindow) return;
@@ -19,6 +114,17 @@ void DR_DLG_DebugWindow_Draw() {
       ImGui::TableNextColumn();
       {
         ImGui::BeginChild("DebuggerLeftColumn", ImVec2(0, 0), ImGuiChildFlags_Borders);
+
+        if (!DR_AIDUMP_IsActive()) {
+          if (ImGui::Button("Start Recording")) {
+            DR_AIDUMP_Start();
+          }
+        } else {
+          if (ImGui::Button("Stop Recording")) {
+            DR_AIDUMP_Stop();
+            SaveAiDump();
+          }
+        }
 
         ImGui::Checkbox("Enable Debugger", &g_DR_debuggerEnabled);
         if (!g_DR_debuggerEnabled) {

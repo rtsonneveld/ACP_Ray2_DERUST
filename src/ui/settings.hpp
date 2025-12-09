@@ -38,6 +38,7 @@ using json = nlohmann::json;
     X(DistanceCheckVisibility, opt_distanceCheckVisibility, DistanceCheckVisibility::FadeOut) \
 /* Utilities */ \
     X(bool, util_showGLM, false) \
+    X(bool, util_showDirection, false) \
     /* Format: X(type, name, default_value) */
 
 struct DR_Settings {

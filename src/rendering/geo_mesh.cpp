@@ -2,15 +2,23 @@
 #include "cpa_glm_util.hpp"
 #include "textures.hpp"
 #include <GLFW//glfw3.h>
+#include <shared_mutex>
 
 // Cache
 std::unordered_map<GEO_tdstGeometricObject*, std::shared_ptr<GeometricObjectMesh>> GeometricObjectMesh::cache;
 
+static std::shared_mutex cacheMutex;
+
 void GeometricObjectMesh::clearCache() {
+
+  std::unique_lock lock(cacheMutex);
   cache.clear();
 }
 
 std::shared_ptr<GeometricObjectMesh> GeometricObjectMesh::get(GEO_tdstGeometricObject* po) {
+
+  std::shared_lock lock(cacheMutex);
+
   auto it = cache.find(po);
   if (it != cache.end()) {
     return it->second;

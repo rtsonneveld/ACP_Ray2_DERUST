@@ -533,7 +533,7 @@ const std::unordered_map<std::string, std::vector<std::string>> comportRulNames 
     {"Alw_Fumee_model", { "SUN_Nuage_init", "SUN_pluie", "SUN_fumee_go" } },
     {"Alw_Lums_Model", { "STH_lum_init", "STH_lum_deplacement", "STH_lum_virevolte", "FRG_Lum_Rien", "STN_Lums_vert_go", "STN_Lums_vert_catch" } },
     {"Alw_Plouf_Model", { "SUN_Plouf_Init", "SUN_Alw_Sillage", "SUN_Alw_Gerbe", "FRH_rond_seul", "FRH_rond_multiple" } },
-    {"Alw_Projectile_Rayman_model", { "YLT_PoingInit", "YLT_Shoot", "BNT_PoingGrappin", "BNT_PoingGrappinInit", "FRD_GrappinBisInit", "FRD_GrappinBisOnMeTire", "FRD_GrappinBisTireObjet", "FRD_GrappinBisFin" } },
+    {"Alw_Projectile_Rayman_Model", { "YLT_PoingInit", "YLT_Shoot", "BNT_PoingGrappin", "BNT_PoingGrappinInit", "FRD_GrappinBisInit", "FRD_GrappinBisOnMeTire", "FRD_GrappinBisTireObjet", "FRD_GrappinBisFin" } },
     {"Alw_Projectile_model", { "CHR_init", "CHR_go", "JAC_mort", "DS1_GoSpecialNav" } },
     {"BNT_BancDePetitsPiranhasTeigneux", { "MIC_BancPir_Init", "MIC_BancPir_MiaMiam" } },
     {"BNT_EnferDeDante", { "BNT_Comport_InitDante", "MIC_Comport_Flamme" } },

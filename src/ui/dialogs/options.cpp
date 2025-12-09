@@ -89,6 +89,12 @@ void DR_DLG_Options_Draw() {
       g_DR_settings.opt_transparentZDRSlopesMax = 0.7071067812f;
       g_DR_settings.opt_transparentZDRSlopesInvert = TRUE;
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Only GLM floors")) {
+      g_DR_settings.opt_transparentZDRSlopesMin = 0.7071067812f;
+      g_DR_settings.opt_transparentZDRSlopesMax = 0.910f;
+      g_DR_settings.opt_transparentZDRSlopesInvert = TRUE;
+    }
 
     ImGui::DragFloat("Alpha", &g_DR_settings.opt_transparentZDRSlopesAlpha, 0.01f, 0.f, 1.f);
     ImGui::EndDisabled();

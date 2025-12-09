@@ -106,13 +106,28 @@ LRESULT CALLBACK MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wPa
 	return lResult;
 }
 
+void MOD_fn_vChooseTheGoodInit() {
+
+	bool deadLoop = FALSE;
+
+	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeDeadLoop) {
+		deadLoop = TRUE;
+	}
+
+	GAM_fn_vChooseTheGoodInit();
+
+	if (deadLoop) {
+		DR_Cheats_LoadPosition();
+	}
+}
 
 void MOD_fn_vChooseTheGoodDesInit() {
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;
+		DR_Cheats_ResetSavedPosition();
+		DR_UI_OnMapExit();
 	}
 	DR_DistanceChecks_Reset();
-	DR_UI_OnMapExit();
 
 	GAM_fn_vChooseTheGoodDesInit();
 }
@@ -163,7 +178,7 @@ void MOD_fn_vEngine()
 	}
 	
 	int oldTickPerMs = GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs;
-	if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge)) {
+	if (IPT_M_bActionIsValidated(IPT_E_Entry_DisplayRaster)) { // F10
 
 		GAM_g_stEngineStructure->stEngineTimer.ulUsefulDeltaTime *= 4;
 		GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs /= 4;
@@ -271,6 +286,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
 			FHK_fn_lCreateHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
 			FHK_fn_lCreateHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
 			FHK_fn_lCreateHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);

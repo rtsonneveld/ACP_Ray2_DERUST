@@ -39,11 +39,16 @@ extern char g_DR_Cheats_InfiniteHealth;
 extern char g_DR_Cheats_MegaShoots;
 extern char g_DR_Cheats_DisableStartingCutscenes;
 extern char g_DR_Cheats_DisableDeathAnimations;
+extern char g_DR_Cheats_AutoVoid;
+extern char g_DR_Cheats_FreezeProgress;
 
 void DR_Cheats_Apply();
 char DR_Cheats_GetFlag(int index);
 void DR_Cheats_ToggleFlag(int index);
 void DR_Cheats_SetFlag(int index, char state);
+void DR_Cheats_SavePosition();
+void DR_Cheats_LoadPosition();
+void DR_Cheats_ResetSavedPosition();
 
 #ifdef __cplusplus
     }
