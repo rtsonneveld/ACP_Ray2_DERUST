@@ -8,7 +8,32 @@
 // C INCLUDE
 #include "mod/globals.h"
 
-void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
+void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name, const std::string& search) {
+
+  std::string spoName = (name != nullptr) ? name : SPO_Name(spo);
+  std::string spoNameLower = spoName;
+  std::transform(spoNameLower.begin(), spoNameLower.end(), spoNameLower.begin(), ::tolower);
+
+  bool matches = (search.empty() || spoNameLower.find(search) != std::string::npos);
+
+  // Check children for match
+  bool childMatches = false;
+  if (!search.empty()) {
+    HIE_tdstSuperObject* child;
+    LST_M_DynamicForEach(spo, child) {
+      std::string childName = SPO_Name(child);
+      std::transform(childName.begin(), childName.end(), childName.begin(), ::tolower);
+
+      if (childName.find(search) != std::string::npos) {
+        childMatches = true;
+        break;
+      }
+    }
+  }
+
+  // If neither this node nor any child matches — hide it
+  if (!matches && !childMatches) return;
+
   int childCount = LST_M_DynamicGetNbOfElements(spo);
 
     ImGuiTreeNodeFlags flags =
@@ -115,21 +140,30 @@ void DR_DLG_Hierarchy_SPO(HIE_tdstSuperObject* spo, const char* name) {
 
     HIE_tdstSuperObject* child;
     LST_M_DynamicForEach(spo, child) {
-      DR_DLG_Hierarchy_SPO(child, nullptr);
+      DR_DLG_Hierarchy_SPO(child, nullptr, search);
     }
 
     ImGui::TreePop();
   }
 }
 
+static char searchBuf[128] = "";
+
 void DR_DLG_Hierarchy_Draw() {
 
   if (!g_DR_settings.dlg_hierarchy) return;
 
   if (ImGui::Begin("Hierarchy", &g_DR_settings.dlg_hierarchy, ImGuiWindowFlags_NoCollapse)) {
-    DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World");
-    DR_DLG_Hierarchy_SPO(*GAM_g_p_stInactiveDynamicWorld, "Inactive Dynamic World");
-    DR_DLG_Hierarchy_SPO(*GAM_g_p_stFatherSector, "Father Sector");
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::InputTextWithHint("##hierarchy_search", "Search...", searchBuf, sizeof(searchBuf));
+
+    std::string search = searchBuf;
+    std::transform(search.begin(), search.end(), search.begin(), ::tolower);
+
+    DR_DLG_Hierarchy_SPO(*GAM_g_p_stDynamicWorld, "Dynamic World", search);
+    DR_DLG_Hierarchy_SPO(*GAM_g_p_stInactiveDynamicWorld, "Inactive Dynamic World", search);
+    DR_DLG_Hierarchy_SPO(*GAM_g_p_stFatherSector, "Father Sector", search);
   }
   ImGui::End();
 }

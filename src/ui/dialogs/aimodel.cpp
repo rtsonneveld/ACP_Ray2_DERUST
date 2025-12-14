@@ -18,11 +18,21 @@
 
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
-bool selectedComportIsReflex = false;
+SelectedComportType selectedComportType = SelectedComportType::Intelligence;
 
-void DR_DLG_AiModel_SetSelectedComport(int comportIndex, bool isReflex) {
+void DR_DLG_AiModel_SetSelectedComport_Intelligence(int comportIndex) {
   selectedComportIndex = comportIndex;
-  selectedComportIsReflex = isReflex;
+  selectedComportType = SelectedComportType::Intelligence;
+}
+
+void DR_DLG_AiModel_SetSelectedComport_Reflex(int comportIndex) {
+  selectedComportIndex = comportIndex;
+  selectedComportType = SelectedComportType::Reflex;
+}
+
+void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex) {
+  selectedComportIndex = comportIndex;
+  selectedComportType = SelectedComportType::Macro;
 }
 
 bool DR_Settings_IsCatchExceptionsEnabled()
@@ -63,7 +73,7 @@ static void DrawStringCombo(const char* label, const char** items, unsigned long
 }
 
 
-void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
+void DrawNodeOptions(HIE_tdstSuperObject* spo, HIE_tdstSuperObject* context, AI_tdstNodeInterpret* node) {
 
   std::string label = "##param_" + std::to_string((int)node);
 
@@ -112,7 +122,7 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
       break;
     case AI_E_ti_DsgVarRef:
       ImGui::SameLine();
-      DrawDsgVarId(spo, node->uParam.ulValue);
+      DrawDsgVarId(context, node->uParam.ulValue);
       break;
     case AI_E_ti_DsgVar:
     case AI_E_ti_Button:
@@ -218,10 +228,12 @@ bool DrawAINode(AI_tdstNodeInterpret* node, bool forceOpen)
   return result;
 }
 
-void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tree)
+void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node)
 {
-  AI_tdstNodeInterpret* node = tree->p_stNodeInterpret;
   int stackDepth = 1;
+
+  HIE_tdstSuperObject* context = spo;
+  int dotOperatorStackDepth = 1;
 
   while (node->eType != AI_E_ti_EndTree)
   {
@@ -235,6 +247,14 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
     while (stackDepth > depth) {
       ImGui::TreePop();
       --stackDepth;
+    }
+
+    if (node->eType == AI_E_ti_Operator && node->uParam.cValue == AI_E_op_Dot) {
+      dotOperatorStackDepth = stackDepth;
+      context = ((HIE_tdstEngineObject*)(node+1)->uParam.pvValue)->hStandardGame->p_stSuperObject;
+    }
+    else if (stackDepth < dotOperatorStackDepth) {
+      context = spo;
     }
 
     // Determine if this node is on the path to the node currently active in the debugger
@@ -254,7 +274,7 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
     }
 
     bool open = DrawAINode(node, isAncestor);
-    DrawNodeOptions(spo, node);
+    DrawNodeOptions(spo, context, node);
 
     if (open)
       ++stackDepth;
@@ -270,23 +290,47 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstTreeInterpret* tr
 void DR_DLG_AIModel_Draw_Comport(HIE_tdstSuperObject* spo, AI_tdstComport comport) {
 
   for (int i = 0;i < comport.ucNbRules;i++) {
-    DR_DLG_AIModel_Draw_Rule(spo, &comport.a_stRules[i]);
+    DR_DLG_AIModel_Draw_Rule(spo, comport.a_stRules[i].p_stNodeInterpret);
   }
 
   if (comport.p_stSchedule != nullptr) {
     ImGui::Separator();
     ImGui::Text("Schedule:");
-    DR_DLG_AIModel_Draw_Rule(spo, comport.p_stSchedule);
+    DR_DLG_AIModel_Draw_Rule(spo, comport.p_stSchedule->p_stNodeInterpret);
   }
 }
 
-void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model, bool isReflex, const ImVec2& size) {
+void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* mind, AI_tdstAIModel* model, SelectedComportType comportType, const ImVec2& size) {
 
-  AI_tdstScriptAI* scriptAI = isReflex ? model->a_stScriptAIReflex : model->a_stScriptAIIntel;
+  int comportNum = 0;
+  const char* listBoxLabel = "";
 
-  if (scriptAI == nullptr) {
+  if (model == nullptr) {
     ImGui::BeginDisabled();
-    if (ImGui::BeginListBox(isReflex ? "Reflexes" : "Comports", size)) {
+    if (ImGui::BeginListBox(listBoxLabel, size)) {
+      ImGui::Selectable("No model");
+      ImGui::EndListBox();
+    }
+    ImGui::EndDisabled();
+    return;
+  }
+  
+  switch (comportType) {
+    case SelectedComportType::Intelligence:
+      listBoxLabel = "Comports";
+      comportNum = model->a_stScriptAIIntel != nullptr ? model->a_stScriptAIIntel->ulNbComport : 0; break;
+    case SelectedComportType::Reflex:
+      listBoxLabel = "Reflexes";
+      comportNum = model->a_stScriptAIReflex != nullptr ? model->a_stScriptAIReflex->ulNbComport : 0; break;
+    case SelectedComportType::Macro:
+      listBoxLabel = "Macros";
+      comportNum = model->p_stListOfMacro != nullptr ? model->p_stListOfMacro->ucNbMacro : 0; break;
+  }
+
+
+  if (comportNum == 0) {
+    ImGui::BeginDisabled();
+    if (ImGui::BeginListBox(listBoxLabel, size)) {
       ImGui::Selectable("No behaviors");
       ImGui::EndListBox();
     }
@@ -296,13 +340,22 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
 
   char* modelName = HIE_fn_szGetObjectModelName(actor->hStandardGame->p_stSuperObject);
   char label[32];
-  if (ImGui::BeginListBox(isReflex ? "Reflexes" : "Comports", size)) {
+  if (ImGui::BeginListBox(listBoxLabel, size)) {
 
-    for (int i = 0;i < scriptAI->ulNbComport;i++) {
-      snprintf(label, sizeof(label), "%s##selection", (isReflex ? NameFromIndex(NameType::AIModel_Reflex, modelName, i) : NameFromIndex(NameType::AIModel_Comport, modelName, i)).c_str());
-      if (ImGui::Selectable(label, selectedComportIsReflex == isReflex && i == selectedComportIndex)) {
+    for (int i = 0;i < comportNum; i++) {
+
+      std::string itemLabel;
+
+      switch (comportType) {
+        case SelectedComportType::Intelligence: itemLabel = NameFromIndex(NameType::AIModel_Comport, modelName, i); break;
+        case SelectedComportType::Reflex: itemLabel = NameFromIndex(NameType::AIModel_Reflex, modelName, i); break;
+        case SelectedComportType::Macro: itemLabel = "Macro " + std::to_string(i); break;
+      }
+
+      snprintf(label, sizeof(label), "%s##selection", itemLabel.c_str());
+      if (ImGui::Selectable(label, selectedComportType == comportType && i == selectedComportIndex)) {
         selectedComportIndex = i;
-        selectedComportIsReflex = isReflex;
+        selectedComportType = comportType;
       }
     }
 
@@ -325,8 +378,9 @@ void DR_DLG_AIModel_Draw_AIModel(HIE_tdstSuperObject* spo, HIE_tdstEngineObject*
     float listBoxHeight = (availHeight - ImGui::GetStyle().ItemSpacing.y) * 0.5f;
 
     ImGui::BeginChild("AIModelLeftPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
-    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, false, ImVec2(0, listBoxHeight));
-    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, true, ImVec2(0, listBoxHeight));
+    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, SelectedComportType::Intelligence, ImVec2(0, listBoxHeight));
+    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, SelectedComportType::Reflex, ImVec2(0, listBoxHeight));
+    DR_DLG_AIModel_Draw_ComportList(actor, mind, model, SelectedComportType::Macro, ImVec2(0, listBoxHeight));
     ImGui::EndChild();
 
     // ----- RIGHT COLUMN -----
@@ -334,16 +388,27 @@ void DR_DLG_AIModel_Draw_AIModel(HIE_tdstSuperObject* spo, HIE_tdstEngineObject*
 
     ImGui::BeginChild("AIModelRightPane", ImVec2(0, 0), ImGuiChildFlags_Borders);
 
-    AI_tdstScriptAI* scriptAI = selectedComportIsReflex
-      ? model->a_stScriptAIReflex
-      : model->a_stScriptAIIntel;
+    if (selectedComportType != SelectedComportType::Macro) {
 
-    if (scriptAI && selectedComportIndex < scriptAI->ulNbComport) {
-      AI_tdstComport comport = scriptAI->a_stComport[selectedComportIndex];
-      DR_DLG_AIModel_Draw_Comport(spo, comport);
+      AI_tdstScriptAI* scriptAI = selectedComportType == SelectedComportType::Intelligence ? model->a_stScriptAIIntel : model->a_stScriptAIReflex;
+
+      if (scriptAI && selectedComportIndex < scriptAI->ulNbComport) {
+        AI_tdstComport comport = scriptAI->a_stComport[selectedComportIndex];
+        DR_DLG_AIModel_Draw_Comport(spo, comport);
+      }
+      else {
+        ImGui::Text("Select an item on the left");
+      }
     }
     else {
-      ImGui::Text("Select a rule/reflex on the left");
+      AI_tdstListOfMacro* macroList = model->p_stListOfMacro;
+
+      if (macroList && selectedComportIndex < macroList->ucNbMacro) {
+        DR_DLG_AIModel_Draw_Rule(spo, macroList->p_stMacro[selectedComportIndex].p_stInitTree->p_stNodeInterpret);
+      }
+      else {
+        ImGui::Text("Select an item on the left");
+      }
     }
 
     ImGui::EndChild();

@@ -16,6 +16,31 @@ const HIE_tdstSuperObject* g_DR_debuggerContextSPO = NULL;
 
 extern HANDLE g_hFrameEvent;
 
+
+void SelectMacroInDialog(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* nodeToCheck, AI_tdstListOfMacro* macroList) {
+
+  if (macroList == NULL) {
+    return;
+  }
+  AI_tdstNodeInterpret* node;
+
+  for (int i = 0;i < macroList->ucNbMacro;i++) {
+    AI_tdstMacro macro = macroList->p_stMacro[i];
+    node = macro.p_stInitTree->p_stNodeInterpret;
+    while (node->eType != AI_E_ti_EndTree) {
+
+      if (node == nodeToCheck) {
+
+        DR_DLG_AiModel_SetSelectedComport_Macro(i);
+        return;
+      }
+
+      node++;
+    }
+  }
+
+}
+
 void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* nodeToCheck, AI_tdstScriptAI* ai, bool isReflex) {
   
   if (ai == NULL) {
@@ -31,7 +56,10 @@ void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* node
 
         if (node == nodeToCheck) {
 
-          DR_DLG_AiModel_SetSelectedComport(i, isReflex);
+          if (isReflex)
+            DR_DLG_AiModel_SetSelectedComport_Reflex(i);
+          else
+            DR_DLG_AiModel_SetSelectedComport_Intelligence(i);
           return;
         }
 
@@ -46,7 +74,10 @@ void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* node
 
       if (node == nodeToCheck) {
 
-        DR_DLG_AiModel_SetSelectedComport(i, isReflex);
+        if (isReflex)
+          DR_DLG_AiModel_SetSelectedComport_Reflex(i);
+        else
+          DR_DLG_AiModel_SetSelectedComport_Intelligence(i);
         return;
       }
 
@@ -63,6 +94,7 @@ void DR_Debugger_SelectObjectAndComport(HIE_tdstSuperObject* spo, AI_tdstNodeInt
   AI_tdstAIModel* aiModel = spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
   SelectComportInDialog(spo, node, aiModel->a_stScriptAIIntel, false);
   SelectComportInDialog(spo, node, aiModel->a_stScriptAIReflex, true);
+  SelectMacroInDialog(spo, node, aiModel->p_stListOfMacro);
 }
 
 AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node, AI_tdstGetSetParam* param) {
