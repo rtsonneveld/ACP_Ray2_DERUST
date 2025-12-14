@@ -119,6 +119,7 @@ Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="imgui\imnodes.h" />
     <ClInclude Include="imgui\imnodes_internal.h" />
     <ClInclude Include="include\stb_image.h" />
@@ -472,6 +473,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="imgui\imnodes.cpp" />
     <ClCompile Include="src\mod\ai_distancechecks.c" />
     <ClCompile Include="src\mod\ai_dump.c" />

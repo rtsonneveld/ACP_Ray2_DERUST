@@ -21,9 +21,11 @@ static void glfw_error_callback(int error, const char* description)
 char ui_initialized = 0;
 
 // Handles
-GLFWwindow* window;
+HWND   window_r2;
+HDC    g_hDC = nullptr;
+HGLRC  g_hGLRC = nullptr;
+
 ImGuiIO* io;
-HWND window_r2;
 
 ImVec2 lastCentralNodePos;
 ImVec2 lastCentralNodeSize;
@@ -31,50 +33,63 @@ ImVec2 lastCentralNodeSize;
 // 3D Scene
 Scene scene;
 
-// Main code
+static bool CreateOpenGLContext(HWND hwnd)
+{
+  g_hDC = GetDC(hwnd);
+  if (!g_hDC)
+    return false;
+
+  PIXELFORMATDESCRIPTOR pfd = {};
+  pfd.nSize = sizeof(pfd);
+  pfd.nVersion = 1;
+  pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+  pfd.iPixelType = PFD_TYPE_RGBA;
+  pfd.cColorBits = 32;
+  pfd.cDepthBits = 24;
+  pfd.cStencilBits = 8;
+
+  int pf = ChoosePixelFormat(g_hDC, &pfd);
+  if (!pf || !SetPixelFormat(g_hDC, pf, &pfd))
+    return false;
+
+  g_hGLRC = wglCreateContext(g_hDC);
+  if (!g_hGLRC)
+    return false;
+
+  if (!wglMakeCurrent(g_hDC, g_hGLRC))
+    return false;
+
+  return true;
+}
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+bool DR_UI_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+  {
+    // If ImGui handled it, optionally swallow it
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
 int DR_UI_Init(HWND a_window_r2, HMODULE module)
 {
-  if (ui_initialized) {
+  if (ui_initialized)
     return 0;
-  }
 
   window_r2 = a_window_r2;
 
-  glfwSetErrorCallback(glfw_error_callback);
-  if (!glfwInit())
+  if (!CreateOpenGLContext(window_r2))
     return 1;
 
-  // Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-    // GL ES 2.0 + GLSL 100
-  const char* glsl_version = "#version 100";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(__APPLE__)
-    // GL 3.2 + GLSL 150
-  const char* glsl_version = "#version 150";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-#else
-    // GL 3.0 + GLSL 130
-  const char* glsl_version = "#version 130";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif
-
-  // Transparent window
-
-  auto monitor = glfwGetPrimaryMonitor();
-  const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-  window = glfwCreateWindow(1280, 1024, "DERUST Main Window", NULL, NULL);
-  if (window == nullptr)
+  // Load OpenGL
+  if (!gladLoadGL())
     return 1;
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(1); // Enable vsync
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -82,98 +97,90 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
   ImPlot::CreateContext();
   ImNodes::CreateContext();
 
-  io = &ImGui::GetIO(); (void)io;
-  io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+  io = &ImGui::GetIO();
+  io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  LONG lStyle = GetWindowLong(a_window_r2, GWL_STYLE);
-  lStyle &= ~(WS_BORDER | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX);
-  lStyle |= WS_CHILD;
-  SetWindowLong(a_window_r2, GWL_STYLE, lStyle);
-
-  // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
-  // Setup Platform/Renderer backends
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init(glsl_version);
-
-  // Init OpenGL loader (GLAD)
-  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+  // Initialize ImGui backends
+  ImGui_ImplWin32_Init(window_r2);
+  if (!ImGui_ImplOpenGL3_Init("#version 130")) {
+    MessageBox(nullptr, L"ImGui_ImplOpenGL3_Init failed", L"Error", MB_OK);
+    return 1;
+  }
 
   Textures::LoadAllTextures(module);
-
   scene.init();
 
-  // Load settings from file
   DR_LoadSettings();
-  DR_DLG_Init(a_window_r2);
+  DR_DLG_Init(window_r2);
 
   ui_initialized = 1;
   return 0;
 }
 
+
 void DR_UI_OnMapExit() {
   GeometricObjectMesh::clearCache();
 }
 
-void DR_UI_Update() {
-
-  glfwPollEvents();
-  if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
-  {
-    ImGui_ImplGlfw_Sleep(10);
-    return;
-  }
-
+void DR_UI_Update()
+{
   ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
+  ImGui_ImplWin32_NewFrame();
   ImGui::NewFrame();
-  
-  ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
-  ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
+
+  ImGuiID id = ImGui::DockSpaceOverViewport(
+    0, nullptr,
+    ImGuiDockNodeFlags_NoDockingInCentralNode |
+    ImGuiDockNodeFlags_PassthruCentralNode);
 
   // Background text
   {
     ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-
-    ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
     ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
-    ImU32 color = IM_COL32(255, 255, 255, 255);
-    drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
+    drawList->AddText(pos, IM_COL32(255, 255, 255, 255),
+      "RMB for mouselook, ESC to reset camera");
   }
 
   DR_DLG_Draw(window_r2);
 
   ImGui::Render();
 
-  int display_w, display_h;
-  glfwGetFramebufferSize(window, &display_w, &display_h);
+  RECT rc;
+  GetClientRect(window_r2, &rc);
+  int display_w = rc.right - rc.left;
+  int display_h = rc.bottom - rc.top;
 
-  scene.render(window, display_w, display_h);
+  scene.render(nullptr, display_w, display_h);
 
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-  if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-  {
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
-  }
-
-  glfwSwapBuffers(window);
+  SwapBuffers(g_hDC);
 }
 
-void DR_UI_DeInit() {
-  
+void DR_UI_DeInit()
+{
   DR_SaveSettings();
 
-  // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImPlot::DestroyContext();
-  ImGui::DestroyContext();
-  ImNodes::DestroyContext();
+  ImGui_ImplWin32_Shutdown();
 
-  glfwDestroyWindow(window);
-  glfwTerminate();
+  ImPlot::DestroyContext();
+  ImNodes::DestroyContext();
+  ImGui::DestroyContext();
+
+  if (g_hGLRC)
+  {
+    wglMakeCurrent(nullptr, nullptr);
+    wglDeleteContext(g_hGLRC);
+    g_hGLRC = nullptr;
+  }
+
+  if (g_hDC)
+  {
+    ReleaseDC(window_r2, g_hDC);
+    g_hDC = nullptr;
+  }
 }

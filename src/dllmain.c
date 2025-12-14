@@ -88,16 +88,28 @@ void DR_RemoveLoadScreens() {
 
 int timer = 0;
 
-LRESULT CALLBACK MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long lParam) {
 
+LRESULT CALLBACK MOD_fn_WndProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam)
+{
+	if (DR_UI_WndProc(hWnd, uMsg, wParam, lParam))
+    return TRUE;
+
+	// 2. Call the original game WndProc
 	LRESULT lResult = GAM_fn_WndProc(hWnd, uMsg, wParam, lParam);
-	switch (uMsg) {
-		case WM_SHOWWINDOW:
+
+	// 3. Your existing behavior
+	switch (uMsg)
+	{
+	case WM_SHOWWINDOW:
 		if (wParam)
 			ShowCursor(TRUE);
 		break;
 
-		case WM_ACTIVATE:
+	case WM_ACTIVATE:
 		if (wParam > 0)
 			ShowCursor(TRUE);
 		break;
@@ -151,7 +163,13 @@ LONG LogExceptionFilter(PEXCEPTION_POINTERS ep) {
 
 DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 {
-	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle(), g_hModule) != 0) {
+	HWND windowHandle = INVALID_HANDLE_VALUE;
+	
+	while (windowHandle == INVALID_HANDLE_VALUE) {
+		windowHandle = (HWND)GAM_fn_hGetWindowHandle();
+	}
+
+	if (DR_UI_Init(windowHandle, g_hModule) != 0) {
 		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
