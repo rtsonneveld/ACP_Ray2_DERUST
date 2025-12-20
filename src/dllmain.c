@@ -1,5 +1,6 @@
 // All files inside mod are C
 // All files inside UI are C++
+#define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
 #include <stdio.h>
@@ -13,11 +14,14 @@
 #include "mod/debugger.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
+#include <time.h>
+#include <ddraw.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <glad/glad.h>
 
-// Global module handle
+// Global handles
 HMODULE g_hModule;
 
 // Thread
@@ -116,6 +120,24 @@ LRESULT CALLBACK MOD_fn_WndProc(
 	}
 
 	return lResult;
+}
+
+BOOL MOD_bFlipDeviceWithSynchro(void) {
+
+	LARGE_INTEGER freq, start, now;
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&start);
+
+	double target = 1.0 / 60.0;
+
+	do {
+		QueryPerformanceCounter(&now);
+		double elapsed = (double)(now.QuadPart - start.QuadPart) / freq.QuadPart;
+		Sleep(0);
+		if (elapsed >= target) break;
+	} while (1);
+
+	return TRUE;
 }
 
 void MOD_fn_vChooseTheGoodInit() {
@@ -300,6 +322,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			);
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
+			FHK_fn_lCreateHook((BOOL**)&GLD_bFlipDeviceWithSynchro, (BOOL*)MOD_bFlipDeviceWithSynchro);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
