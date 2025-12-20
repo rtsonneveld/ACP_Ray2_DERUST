@@ -124,6 +124,10 @@ LRESULT CALLBACK MOD_fn_WndProc(
 
 BOOL MOD_bFlipDeviceWithSynchro(void) {
 
+	(*GLI_BIG_GLOBALS)->lDisplayMenuIsDetected = 0;
+	(*GLI_BIG_GLOBALS)->lAMirrorIsDetected = 0;
+
+	
 	LARGE_INTEGER freq, start, now;
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&start);
