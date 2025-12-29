@@ -1,18 +1,16 @@
 #pragma once
 #include <glad/glad.h>
+#include <gl/GL.h>
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <implot/implot.h>
-#include "imnodes.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 #include <Windows.h>
 #include <stdio.h>
-#define GL_SILENCE_DEPRECATION
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#include <GLES2/gl2.h>
-#endif
-#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+#include "backends\imgui_impl_win32.h"
+#include "backends\imgui_impl_opengl3.h"
+#include "backends/imgui_impl_glfw.h"
+
+#include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>

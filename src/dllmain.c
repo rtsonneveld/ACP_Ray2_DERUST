@@ -1,5 +1,6 @@
 // All files inside mod are C
 // All files inside UI are C++
+#define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
 #include <stdio.h>
@@ -13,16 +14,22 @@
 #include "mod/debugger.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
+#include <time.h>
+#include <ddraw.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <glad/glad.h>
 
-// Global module handle
+// Global handles
 HMODULE g_hModule;
 
 // Thread
 HANDLE g_hUIThread = NULL;
+HANDLE g_hInitEvent = NULL;
 HANDLE g_hFrameEvent = NULL;
+HANDLE g_hAFrameIsWaiting = NULL;
+HANDLE g_hFrameDoneCopying = NULL;
 volatile BOOL g_bRunning = true;
 
 HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
@@ -88,23 +95,60 @@ void DR_RemoveLoadScreens() {
 
 int timer = 0;
 
-LRESULT CALLBACK MOD_fn_WndProc(HANDLE hWnd, unsigned int uMsg, unsigned int wParam, long lParam) {
-
-	LRESULT lResult = GAM_fn_WndProc(hWnd, uMsg, wParam, lParam);
-	switch (uMsg) {
+HWND g_hParent = NULL;
+LRESULT CALLBACK MOD_fn_WndProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam)
+{
+	switch (uMsg)
+	{
 		case WM_SHOWWINDOW:
-		if (wParam)
-			ShowCursor(TRUE);
-		break;
+			if (wParam)
+				ShowCursor(TRUE);
+			break;
 
 		case WM_ACTIVATE:
-		if (wParam > 0)
-			ShowCursor(TRUE);
-		break;
+			if (wParam > 0)
+				ShowCursor(TRUE);
+			break;
 	}
 
-	return lResult;
+	return GAM_fn_WndProc(hWnd, uMsg, wParam, lParam);
 }
+
+// SPT: leaving this here just in case
+#if 0
+void MOD_fn_vDisplayAll(void) {
+	(*GLI_DRV_xSendListToViewport_)(&GAM_g_stEngineStructure->stViewportAttr);
+	if ( !GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport) )
+		return;
+	GAM_fn_vDisplayFix();
+	//ReleaseSemaphore((HANDLE)GAM_g_stEngineStructure->hDrawSem, 1, 0);
+	(*GLI_DRV_bEndScene_)();
+
+	ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
+	WaitForSingleObject(g_hFrameDoneCopying, 100);
+
+	ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);
+}
+#endif
+
+BOOL MOD_fn_bCreateMainDisplayScreen(void) {
+	SetEvent(g_hInitEvent);
+    return GAM_fn_bCreateMainDisplayScreen();
+}
+
+short MOD_INO_fn_wInit(HINSTANCE hInstance, HWND hWnd) {
+	return INO_fn_wInit(hInstance, hWindow);
+}
+
+void MOD_fn_vInitGameLoop(void) {
+	PostMessage(hWindow, WM_DR_INITWND, 0, 0);
+	GAM_fn_vInitGameLoop();
+}
+
 
 void MOD_fn_vChooseTheGoodInit() {
 
@@ -149,9 +193,12 @@ LONG LogExceptionFilter(PEXCEPTION_POINTERS ep) {
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
+
 DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 {
-	if (DR_UI_Init((HWND)GAM_fn_hGetWindowHandle(), g_hModule) != 0) {
+	WaitForSingleObject(g_hInitEvent, INFINITE);
+
+	if (DR_UI_Init(GAM_fn_hGetWindowHandle(), g_hModule) != 0) {
 		MessageBox(NULL, L"IMGUI Failed to initialize", L"Error!", MB_OK | MB_ICONERROR);
 		exit(1);
 	}
@@ -273,7 +320,10 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			freopen_s(&f, "CONOUT$", "w", stdout);
 			freopen_s(&f, "CONOUT$", "w", stderr);
 
-			g_hFrameEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+			g_hInitEvent = CreateEvent(NULL, FALSE, FALSE, L"DRInitEvt");
+			g_hFrameEvent = CreateEvent(NULL, FALSE, FALSE, L"DRFrameEvt");
+			g_hAFrameIsWaiting = CreateSemaphoreA(NULL, 0, 1, "FRAMEWAITING");
+			g_hFrameDoneCopying = CreateSemaphoreA(NULL, 0, 1, "FRAMECOPIED");
 
 			g_hUIThread = CreateThread(
 				NULL, 0,
@@ -291,7 +341,12 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
 			FHK_fn_lCreateHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
 			FHK_fn_lCreateHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
-			FHK_fn_lCreateHook((size_t**)&SNA_fn_ulFRead, (size_t)MOD_fn_ulFRead);
+			FHK_fn_lCreateHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
+			FHK_fn_lCreateHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
+			//FHK_fn_lCreateHook((void**)&fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
+			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
+
 
 			DR_RemoveLoadScreens();
 
@@ -311,6 +366,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			WaitForSingleObject(g_hUIThread, INFINITE);
 			CloseHandle(g_hUIThread);
 			CloseHandle(g_hFrameEvent);
+			CloseHandle(g_hAFrameIsWaiting);
+			CloseHandle(g_hFrameDoneCopying);
 
 			break;
 
