@@ -134,9 +134,18 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 
 	SetParent(hWndR2, hWindow);
 
-	long style = GetWindowLong(hWndR2, GWL_STYLE);
-	//SetWindowLong(g_hWndR2, GWL_STYLE, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS);
 	SetWindowPos(hWndR2, NULL, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+
+  // Hide the Rayman 2 window by setting a 1x1 pixel region in the center
+	RECT rc;
+	GetClientRect(hWndR2, &rc);
+
+	int cx = (rc.right - rc.left) / 2;
+	int cy = (rc.bottom - rc.top) / 2;
+
+	HRGN rgn = CreateRectRgn(cx, cy, cx + 1, cy + 1);
+
+	SetWindowRgn(hWndR2, rgn, TRUE);
 
 	ui_initialized = 1;
 
@@ -164,70 +173,6 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 void DR_UI_OnMapExit() {
   GeometricObjectMesh::clearCache();
 }
-
-void DR_UI_Update() {
-
-	glfwPollEvents();
-	if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
-	{
-		ImGui_ImplGlfw_Sleep(10);
-		return;
-	}
-
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-
-	ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
-	ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
-
-	// Background text
-	{
-		ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-
-		ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
-		ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
-		ImU32 color = IM_COL32(255, 255, 255, 255);
-		drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
-	}
-
-	DR_DLG_Draw(hWndR2);
-
-	ImGui::Render();
-
-	int display_w, display_h;
-	glfwGetFramebufferSize(window, &display_w, &display_h);
-
-	scene.render(window, display_w, display_h);
-
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-	if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-	}
-
-	glfwSwapBuffers(window);
-}
-
-void DR_UI_DeInit() {
-
-	DR_SaveSettings();
-
-	// Cleanup
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImPlot::DestroyContext();
-	ImGui::DestroyContext();
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
-}
-
-
-// SPT: leaving this here just in case
-#if 0
 
 // Viewport texture
 GLuint vp_texture;
@@ -262,9 +207,6 @@ void UpdateViewportTexture() {
 		vp_width = dwWidth;
 		vp_height = dwHeight;
 	}
-
-	// Request new data
-	WaitForSingleObject(g_hAFrameIsWaiting, INFINITE);
 
 	GLD_tdstViewportAttributes stViewportAttr;
 	BOOL bCanWrite;
@@ -336,4 +278,69 @@ void ShowTextureWindow(GLuint vp_texture, int tex_width, int tex_height) {
 	ImGui::End();
 }
 
-#endif
+void DR_UI_Update() {
+
+	// Request new data
+	WaitForSingleObject(g_hAFrameIsWaiting, INFINITE);
+
+	glfwPollEvents();
+	if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
+	{
+		ImGui_ImplGlfw_Sleep(10);
+		return;
+	}
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	UpdateViewportTexture();
+
+	ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
+	ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
+
+	// Background text
+	{
+		ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+
+		ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
+		ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
+		ImU32 color = IM_COL32(255, 255, 255, 255);
+		drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
+	}
+
+	DR_DLG_Draw(hWndR2);
+
+	ShowTextureWindow(vp_texture, vp_width, vp_height);
+
+	ImGui::Render();
+
+	int display_w, display_h;
+	glfwGetFramebufferSize(window, &display_w, &display_h);
+
+	scene.render(window, display_w, display_h);
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	if (io->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+	}
+
+	glfwSwapBuffers(window);
+}
+
+void DR_UI_DeInit() {
+
+	DR_SaveSettings();
+
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImPlot::DestroyContext();
+	ImGui::DestroyContext();
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
+}

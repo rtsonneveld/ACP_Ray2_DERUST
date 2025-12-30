@@ -118,8 +118,6 @@ LRESULT CALLBACK MOD_fn_WndProc(
 	return GAM_fn_WndProc(hWnd, uMsg, wParam, lParam);
 }
 
-// SPT: leaving this here just in case
-#if 0
 void MOD_fn_vDisplayAll(void) {
 	(*GLI_DRV_xSendListToViewport_)(&GAM_g_stEngineStructure->stViewportAttr);
 	if ( !GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport) )
@@ -133,7 +131,6 @@ void MOD_fn_vDisplayAll(void) {
 
 	ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);
 }
-#endif
 
 BOOL MOD_fn_bCreateMainDisplayScreen(void) {
 	SetEvent(g_hInitEvent);
@@ -343,7 +340,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
 			FHK_fn_lCreateHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
 			FHK_fn_lCreateHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
-			//FHK_fn_lCreateHook((void**)&fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
 
