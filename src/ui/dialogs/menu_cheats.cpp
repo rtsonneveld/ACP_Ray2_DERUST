@@ -16,6 +16,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Infinite Health", nullptr, g_DR_Cheats_InfiniteHealth)) {
     g_DR_Cheats_InfiniteHealth = !g_DR_Cheats_InfiniteHealth;
   }
+  if (ImGui::MenuItem("Infinite Air", nullptr, g_DR_Cheats_InfiniteAir)) {
+    g_DR_Cheats_InfiniteAir = !g_DR_Cheats_InfiniteAir;
+  }
   if (ImGui::MenuItem("Megashoot (golden fists)", nullptr, g_DR_Cheats_MegaShoots)) {
     g_DR_Cheats_MegaShoots = !g_DR_Cheats_MegaShoots;
   }

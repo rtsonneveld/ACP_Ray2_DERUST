@@ -604,7 +604,7 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   mouseLook.Update(window);
 
   float aspect = (float)display_w / (float)display_h;
-  float fov_y = cam->hLinkedObject.p_stActor->hCineInfo->hWork->xFocal * ((float)display_h / (float)display_w);
+  float fov_y = cam->hLinkedObject.p_stActor->hCineInfo->hWork->xFocal * (3.0f/4.0f);
 
   glm::mat4 proj = glm::perspective(fov_y, aspect, 0.1f, 10000.0f);
 

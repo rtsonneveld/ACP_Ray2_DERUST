@@ -36,6 +36,7 @@ extern "C" {
 
 
 extern char g_DR_Cheats_InfiniteHealth;
+extern char g_DR_Cheats_InfiniteAir;
 extern char g_DR_Cheats_MegaShoots;
 extern char g_DR_Cheats_DisableStartingCutscenes;
 extern char g_DR_Cheats_DisableDeathAnimations;

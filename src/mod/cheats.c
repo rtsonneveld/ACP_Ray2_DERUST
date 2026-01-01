@@ -4,6 +4,7 @@
 #include "dsgvarnames.h"
 
 char g_DR_Cheats_InfiniteHealth = FALSE;
+char g_DR_Cheats_InfiniteAir = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 char g_DR_Cheats_DisableDeathAnimations = FALSE;
@@ -104,6 +105,10 @@ void DR_Cheats_Apply() {
           GAM_tdstStandardGame* stdGame = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame;
           stdGame->ucHitPoints = stdGame->ucHitPointsMax = stdGame->ucHitPointsMaxMax;
         }
+    }
+
+    if (g_DR_Cheats_InfiniteAir) {
+      AI_g_stExtendDatas4Ray->xAirPoints4Ray = AI_g_stExtendDatas4Ray->xAirPointsMax4Ray;
     }
 
     if (g_DR_Cheats_MegaShoots) {

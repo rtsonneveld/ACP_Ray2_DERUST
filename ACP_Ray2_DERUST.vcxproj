@@ -453,6 +453,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\shaders\woit_transparencyshader.hpp" />
     <ClInclude Include="src\rendering\textures.hpp" />
     <ClInclude Include="src\rendering\textures_list.hpp" />
+    <ClInclude Include="src\ui\audiosystem.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
     <ClInclude Include="src\ui\dialogs\debugwindow.hpp" />
@@ -683,6 +684,9 @@ Ray2x.exe -level:learn_31</Command>
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
+    <ClCompile Include="src\ui\audiosystem.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />
@@ -727,6 +731,9 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\sectorborder.png" />
     <Image Include="resources\toofar.png" />
     <Image Include="resources\unknown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\glm.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

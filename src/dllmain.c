@@ -328,6 +328,38 @@ void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
 	SPTXT_vPrintFmtLine("DERUST %s", DERUST_VERSION);
 }
 
+typedef BOOL(WINAPI* PFN_SetWindowPos)(
+	HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
+
+PFN_SetWindowPos True_SetWindowPos = NULL;
+
+BOOL WINAPI Hook_SetWindowPos(
+	HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
+{
+	if (hWnd == hWndR2)
+	{
+		RECT rc;
+		GetClientRect(hWndR2, &rc);
+		int width = rc.right - rc.left;
+		int height = rc.bottom - rc.top;
+
+		// Hide the Rayman 2 window by setting a 1x1 pixel region in the center
+		int cx = (rc.right - rc.left) / 2;
+		int cy = (rc.bottom - rc.top) / 2;
+
+		HRGN rgn = CreateRectRgn(width/2, height/2, width/2 + 1, height/2 + 1); // 16x16 for test
+
+		SetWindowRgn(hWndR2, rgn, TRUE);
+
+		X = (-width / 2);
+		Y = (-height / 2);
+
+		uFlags &= ~SWP_NOMOVE;  // ensure move is applied
+	}
+
+	return True_SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+}
+
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
@@ -368,6 +400,13 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
+
+			HMODULE user32 = GetModuleHandleW(L"user32.dll");
+			if (!user32) return;
+
+			True_SetWindowPos = (PFN_SetWindowPos)GetProcAddress(user32, "SetWindowPos");
+
+			FHK_fn_lCreateHook((PVOID*)&True_SetWindowPos, Hook_SetWindowPos);
 
 			DR_RemoveLoadScreens();
 

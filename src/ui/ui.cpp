@@ -5,6 +5,7 @@
 #include "rendering/scene.hpp"
 #include "rendering/geo_mesh.hpp"
 #include "rendering/textures.hpp"
+#include "audiosystem.hpp"
 #include <mutex>
 #include <fstream>
 
@@ -79,6 +80,8 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 		return 0;
 	}
 
+  AudioSystem::Initialize(module);
+
 	hWndR2 = a_window_r2;
 
 	glfwSetErrorCallback(glfw_error_callback);
@@ -135,17 +138,6 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 	SetParent(hWndR2, hWindow);
 
 	SetWindowPos(hWndR2, NULL, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
-
-  // Hide the Rayman 2 window by setting a 1x1 pixel region in the center
-	RECT rc;
-	GetClientRect(hWndR2, &rc);
-
-	int cx = (rc.right - rc.left) / 2;
-	int cy = (rc.bottom - rc.top) / 2;
-
-	HRGN rgn = CreateRectRgn(cx, cy, cx + 1, cy + 1);
-
-	SetWindowRgn(hWndR2, rgn, TRUE);
 
 	ui_initialized = 1;
 
@@ -350,8 +342,9 @@ void DR_UI_Update() {
 void DR_UI_DeInit() {
 
 	DR_SaveSettings();
+	
+	AudioSystem::Shutdown();
 
-	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImPlot::DestroyContext();
