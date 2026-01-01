@@ -19,6 +19,7 @@ class Scene {
 public:
 
   void init();
+  GLuint getColorTexture() const;
   void render(GLFWwindow * window, float display_w, float display_h);
   void setCameraPosition(glm::vec3 from, glm::vec3 to);
 

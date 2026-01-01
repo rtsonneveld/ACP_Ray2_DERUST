@@ -2,6 +2,21 @@
 // All files inside UI are C++
 #define WIN32_LEAN_AND_MEAN
 
+#define NOSERVICE
+#define NOMCX
+#define NOIME
+#define NOHELP
+#define NOCOMM
+#define NOKANJI
+#define NOPROFILER
+#define NODEFERWINDOWPOS
+#define NOSYSCOMMANDS
+#define NORASTEROPS
+#define NOICONS
+#define NOKEYSTATES
+#define NOSHOWWINDOW
+#define NOCLIPBOARD
+
 #include <Windows.h>
 #include <stdio.h>
 #include "mod/cpa_functions.h"
@@ -170,6 +185,16 @@ void MOD_fn_vChooseTheGoodDesInit() {
 	}
 	DR_DistanceChecks_Reset();
 
+	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeStoppingProgram) {
+		g_bRunning = FALSE;
+
+		printf("Stopping program, wait for UI thread...\n");
+		WaitForSingleObject(g_hUIThread, 1000);
+		printf("Stopping program, close UI thread...\n");
+		CloseHandle(g_hUIThread);
+		printf("Stopping program, now choose the good desinit\n");
+	}
+
 	GAM_fn_vChooseTheGoodDesInit();
 }
 
@@ -203,7 +228,7 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 	while (g_bRunning)
 	{
 		// Wait until the game loop signals a new frame
-		WaitForSingleObject(g_hFrameEvent, INFINITE);
+		WaitForSingleObject(g_hFrameEvent, 500);
 
 		// Now process the UI update
 		DR_UI_Update();
@@ -344,7 +369,6 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
 
-
 			DR_RemoveLoadScreens();
 
 			SPTXT_vInit();
@@ -353,14 +377,27 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			break;
 
 		case DLL_PROCESS_DETACH: 
-			
+
+			FHK_fn_lDestroyHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
+			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
+			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
+			FHK_fn_lDestroyHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
+			FHK_fn_lDestroyHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
+			FHK_fn_lDestroyHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
+			FHK_fn_lDestroyHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
+			FHK_fn_lDestroyHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
+			FHK_fn_lDestroyHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
+
 			SPTXT_vDeInit();
 
 			g_bRunning = false;
-			SetEvent(g_hFrameEvent);
 
-			WaitForSingleObject(g_hUIThread, INFINITE);
 			CloseHandle(g_hUIThread);
 			CloseHandle(g_hFrameEvent);
 			CloseHandle(g_hAFrameIsWaiting);

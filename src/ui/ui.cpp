@@ -1,4 +1,4 @@
-#include "dialogs/dialogs.hpp"
+﻿#include "dialogs/dialogs.hpp"
 #include "ui/ui.hpp"
 #include "ui/settings.hpp"
 #include <iostream>
@@ -299,6 +299,27 @@ void DR_UI_Update() {
 	ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
 	ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
 
+	// convert node rect → framebuffer coords
+	ImVec2 scale = ImGui::GetIO().DisplayFramebufferScale;
+	ImVec2 nodePosFB = ImVec2(node->Pos.x * scale.x, node->Pos.y * scale.y);
+	ImVec2 nodeSizeFB = ImVec2(node->Size.x * scale.x, node->Size.y * scale.y);
+
+	int scene_w = (int)nodeSizeFB.x;
+	int scene_h = (int)nodeSizeFB.y;
+
+	scene.render(window, scene_w, scene_h);
+
+	ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+
+	GLuint tex = scene.getColorTexture();
+	ImTextureID texID = (ImTextureID)(intptr_t)tex;
+
+	ImVec2 p0 = node->Pos;
+	ImVec2 p1 = ImVec2(node->Pos.x + node->Size.x, node->Pos.y + node->Size.y);
+
+	// flip V because OpenGL
+	drawList->AddImage(texID, p0, p1, ImVec2(0, 1), ImVec2(1, 0));
+
 	// Background text
 	{
 		ImDrawList* drawList = ImGui::GetBackgroundDrawList();
@@ -314,11 +335,6 @@ void DR_UI_Update() {
 	ShowTextureWindow(vp_texture, vp_width, vp_height);
 
 	ImGui::Render();
-
-	int display_w, display_h;
-	glfwGetFramebufferSize(window, &display_w, &display_h);
-
-	scene.render(window, display_w, display_h);
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
