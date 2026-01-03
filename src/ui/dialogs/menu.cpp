@@ -193,7 +193,7 @@ void DR_DLG_Menu_Draw() {
       ImGui::EndMenu();
     }
 
-    if (ImGui::BeginMenu("Cheats")) {
+    if (ImGui::BeginMenu("Tools")) {
 
       DR_DLG_Cheats_Draw();
 

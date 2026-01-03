@@ -15,7 +15,7 @@ const AI_tdstNodeInterpret* g_DR_debuggerInstructionPtr = NULL;
 const HIE_tdstSuperObject* g_DR_debuggerContextSPO = NULL;
 
 extern HANDLE g_hFrameEvent;
-
+extern HANDLE g_hAFrameIsWaiting;
 
 void SelectMacroInDialog(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* nodeToCheck, AI_tdstListOfMacro* macroList) {
 
@@ -122,11 +122,14 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
     while (g_DR_debuggerPaused) {
       
       SetEvent(g_hFrameEvent);
+      ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
 
       if (g_DR_debuggerStep) {
         g_DR_debuggerStep = false;
         break;
       }
+
+      Sleep(10); // Sleep a little
     }
 
   }

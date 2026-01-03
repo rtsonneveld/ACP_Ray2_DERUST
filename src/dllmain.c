@@ -161,6 +161,13 @@ void MOD_fn_vInitGameLoop(void) {
 	GAM_fn_vInitGameLoop();
 }
 
+void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame) {
+
+	if (DR_Settings_Get_DisableAutoSave()) {
+		return GAM_fn_vAskToChangeLevel(szLevelName, FALSE);
+	}
+	return GAM_fn_vAskToChangeLevel(szLevelName, bSaveGame);
+}
 
 void MOD_fn_vChooseTheGoodInit() {
 
@@ -180,7 +187,15 @@ void MOD_fn_vChooseTheGoodInit() {
 void MOD_fn_vChooseTheGoodDesInit() {
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;
-		DR_Cheats_ResetSavedPosition();
+		// Level changed?
+		if (_stricmp(GAM_g_stEngineStructure->szLevelName, GAM_g_stEngineStructure->szNextLevelName) != 0) {
+			DR_Cheats_ResetSavedPosition();
+		}
+
+		if (g_DR_Cheats_FreezeProgress) {
+			DR_Cheats_LoadProgress();
+		}
+
 		DR_UI_OnMapExit();
 	}
 	DR_DistanceChecks_Reset();
@@ -253,7 +268,7 @@ void MOD_fn_vEngine()
 		GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs /= 4;
 	}
 
-	if (DR_Settings_IsCatchExceptionsEnabled()) {
+	if (DR_Settings_Get_TryCatchExceptions()) {
 		__try {
 			GAM_fn_vEngine();
 		}
@@ -389,6 +404,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
 			FHK_fn_lCreateHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
@@ -421,6 +437,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
 			FHK_fn_lDestroyHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);

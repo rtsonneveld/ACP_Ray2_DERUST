@@ -43,6 +43,8 @@ extern char g_DR_Cheats_DisableDeathAnimations;
 extern char g_DR_Cheats_AutoVoid;
 extern char g_DR_Cheats_FreezeProgress;
 
+extern char g_DR_Cheats_HasSavedProgress;
+
 void DR_Cheats_Apply();
 char DR_Cheats_GetFlag(int index);
 void DR_Cheats_ToggleFlag(int index);
@@ -50,6 +52,9 @@ void DR_Cheats_SetFlag(int index, char state);
 void DR_Cheats_SavePosition();
 void DR_Cheats_LoadPosition();
 void DR_Cheats_ResetSavedPosition();
+void DR_Cheats_SaveProgress();
+void DR_Cheats_LoadProgress();
+void DR_Cheats_ResetProgress();
 
 #ifdef __cplusplus
     }

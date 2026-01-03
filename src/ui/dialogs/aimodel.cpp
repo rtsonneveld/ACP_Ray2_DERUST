@@ -34,11 +34,6 @@ void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex) {
   selectedComportType = SelectedComportType::Macro;
 }
 
-bool DR_Settings_IsCatchExceptionsEnabled()
-{
-  return g_DR_settings.opt_tryCatchExceptions;
-}
-
 // Draw a combo box from a string array and store the selected index directly in a variable
 static void DrawStringCombo(const char* label, const char** items, unsigned long* pValue)
 {

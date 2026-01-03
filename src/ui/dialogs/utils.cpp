@@ -178,6 +178,13 @@ glm::vec3 lastGlmPos;
 void HandleSoundForGLM() {
 
   glm::vec3 glmPos = *(GetGlmPosition());
+
+  char* raymanState = (char*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_RAY_Etat);
+  if (*raymanState == 4 || *raymanState == 25) { // Ignore when sliding (4) or swimming (25)
+    lastGlmPos = glmPos;
+    return;
+  }
+
   if (lastGlmPos != glmPos && glmPos != glm::vec3(0)) {
     lastGlmPos = glmPos;
 

@@ -51,3 +51,15 @@ void DR_LoadSettings() {
     DR_SaveSettings(); // overwrite corrupted file with defaults
   }
 }
+
+// Getters/Setters compatible with C
+
+extern "C" bool DR_Settings_Get_TryCatchExceptions()
+{
+  return g_DR_settings.opt_tryCatchExceptions;
+}
+
+extern "C" bool DR_Settings_Get_DisableAutoSave()
+{
+  return g_DR_settings.opt_disableAutoSave;
+}

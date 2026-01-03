@@ -20,7 +20,8 @@ bool DR_UI_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void DR_DLG_AiModel_SetSelectedComport_Intelligence(int comportIndex);
 void DR_DLG_AiModel_SetSelectedComport_Reflex(int comportIndex);
 void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex);
-bool DR_Settings_IsCatchExceptionsEnabled();
+bool DR_Settings_Get_TryCatchExceptions();
+bool DR_Settings_Get_DisableAutoSave();
 
 #ifdef __cplusplus
 }

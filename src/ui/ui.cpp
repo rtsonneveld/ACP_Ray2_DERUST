@@ -14,6 +14,7 @@
 #include <ACP_Ray2.h>
 #include "mod/globals.h"
 #include <time.h>
+#include "derust.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -58,7 +59,7 @@ LRESULT CALLBACK NewWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_DR_INITWND:
 		{
-			std::wstring newTitle = L"DERUST // ";
+			std::wstring newTitle = L"DERUST " DERUST_VERSION " // ";
 			wchar_t szTitle[64];
 			GetWindowText(hWndR2, szTitle, 64);
 			newTitle += szTitle;
@@ -89,8 +90,9 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 		return 1;
 
 	const char* glsl_version = "#version 130";
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Transparent window
 
@@ -268,7 +270,7 @@ void ShowTextureWindow(GLuint vp_texture, int tex_width, int tex_height) {
 	ImGui::Image((ImTextureID)(uintptr_t)vp_texture, display_size);
 
 	ImGui::End();
-}
+} 
 
 void DR_UI_Update() {
 

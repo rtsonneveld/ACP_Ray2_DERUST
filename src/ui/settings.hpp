@@ -16,6 +16,7 @@ using json = nlohmann::json;
     X(bool, dlg_engineglobals, false) \
 /* Options */ \
     X(bool, opt_tryCatchExceptions, true) \
+    X(bool, opt_disableAutoSave, true) \
     X(bool, opt_drawVisuals, false) \
     X(unsigned int, opt_drawCollisionZones, (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD) \
     X(InactiveItemVisibility, opt_inactiveZoneVisibility, InactiveItemVisibility::Transparent) \
