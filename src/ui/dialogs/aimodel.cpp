@@ -12,7 +12,6 @@
 // C INCLUDE
 #include <ACP_Ray2.h>
 #include <mod/globals.h>
-#include <imgui/imnodes.h>
 #include <mod/ai_strings.h>
 #include "mod/debugger.h"
 
@@ -33,11 +32,6 @@ void DR_DLG_AiModel_SetSelectedComport_Reflex(int comportIndex) {
 void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex) {
   selectedComportIndex = comportIndex;
   selectedComportType = SelectedComportType::Macro;
-}
-
-bool DR_Settings_IsCatchExceptionsEnabled()
-{
-  return g_DR_settings.opt_tryCatchExceptions;
 }
 
 // Draw a combo box from a string array and store the selected index directly in a variable

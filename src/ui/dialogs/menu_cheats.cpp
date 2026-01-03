@@ -16,6 +16,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Infinite Health", nullptr, g_DR_Cheats_InfiniteHealth)) {
     g_DR_Cheats_InfiniteHealth = !g_DR_Cheats_InfiniteHealth;
   }
+  if (ImGui::MenuItem("Infinite Air", nullptr, g_DR_Cheats_InfiniteAir)) {
+    g_DR_Cheats_InfiniteAir = !g_DR_Cheats_InfiniteAir;
+  }
   if (ImGui::MenuItem("Megashoot (golden fists)", nullptr, g_DR_Cheats_MegaShoots)) {
     g_DR_Cheats_MegaShoots = !g_DR_Cheats_MegaShoots;
   }
@@ -31,9 +34,32 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Automatic perfect void", nullptr, g_DR_Cheats_AutoVoid)) {
     g_DR_Cheats_AutoVoid = !g_DR_Cheats_AutoVoid;
   }
+
+  ImGui::SeparatorText("Progress");
+
+  ImGui::BeginDisabled(g_DR_Cheats_FreezeProgress);
+  if (ImGui::MenuItem("Save progress", nullptr)) {
+    DR_Cheats_SaveProgress();
+  }
+  ImGui::BeginDisabled(!g_DR_Cheats_HasSavedProgress);
+  if (ImGui::MenuItem("Load progress", nullptr)) {
+    DR_Cheats_LoadProgress();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::MenuItem("Reset progress", nullptr)) {
+    DR_Cheats_ResetProgress();
+  }
+  ImGui::EndDisabled();
+
   if (ImGui::MenuItem("Freeze progress", nullptr, g_DR_Cheats_FreezeProgress)) {
+
+    if (!g_DR_Cheats_FreezeProgress) {
+      DR_Cheats_SaveProgress();
+    }
+
     g_DR_Cheats_FreezeProgress = !g_DR_Cheats_FreezeProgress;
   }
+
   ImGui::SeparatorText("Flags");
   FlagMenuItem("NoMovies", GB_FLAG_NOMOVIES);
   FlagMenuItem("Hangon (grapple)", GB_FLAG_HANGON);

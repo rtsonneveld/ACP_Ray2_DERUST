@@ -23,6 +23,9 @@ void DR_DLG_Options_Draw() {
     const char* inactiveItems[] = { "Visible", "Transparent", "Hidden" };
     const char* distanceCheckItems[] = { "Visible", "Fade out", "Hidden" };
 
+    ImGui::SeparatorText("General");
+    ImGui::Checkbox("Disable autosaves", &g_DR_settings.opt_disableAutoSave);
+    ImGui::SetItemTooltip("Autosave interferes with saving/loading/freezing progress, so it's best to disable it.");
     ImGui::Checkbox("Try catching exceptions", &g_DR_settings.opt_tryCatchExceptions); 
     ImGui::SeparatorText("Zones");
     ImGui::Checkbox("Draw visual sets", &g_DR_settings.opt_drawVisuals);

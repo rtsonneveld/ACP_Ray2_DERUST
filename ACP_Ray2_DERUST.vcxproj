@@ -29,7 +29,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -51,6 +51,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -61,13 +62,13 @@
       <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
       <PreprocessToFile>false</PreprocessToFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(acplib)\lib;D:\lib\glfw-3.4.bin.WIN32\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(acplib)\lib;$(ProjectDir)\lib\glfw-3.4.bin.WIN32\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ACP_Ray2.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -81,10 +82,8 @@ Ray2x.exe -level:water_20 -debug</Command>
 </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>taskkill /f /im Rayman2.exe
-xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
-cd "D:\Drive\Games\Rayman 2\"
-Ray2x.exe -level:water_20 -debug</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)\force_run_dummy.txt;%(Outputs)</Outputs>
@@ -98,9 +97,10 @@ Ray2x.exe -level:water_20 -debug</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(acplib)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(acplib)\include;imgui;include;.;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseFullPaths>false</UseFullPaths>
       <TreatSpecificWarningsAsErrors>4029;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -108,8 +108,8 @@ Ray2x.exe -level:water_20 -debug</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(acplib)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ACP_Ray2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(acplib)\lib;$(ProjectDir)\lib\glfw-3.4.bin.WIN32\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ACP_Ray2.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>taskkill /f /im Rayman2.exe
@@ -117,6 +117,9 @@ xcopy /y "$(TargetPath)" "D:\Drive\Games\Rayman 2\Mods\"
 cd "D:\Drive\Games\Rayman 2\"
 Ray2x.exe -level:learn_31</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>python "$(ProjectDir)generate_texture_list.py"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="imgui\backends\imgui_impl_win32.h" />
@@ -450,6 +453,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\shaders\woit_transparencyshader.hpp" />
     <ClInclude Include="src\rendering\textures.hpp" />
     <ClInclude Include="src\rendering\textures_list.hpp" />
+    <ClInclude Include="src\ui\audiosystem.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
     <ClInclude Include="src\ui\dialogs\debugwindow.hpp" />
@@ -474,7 +478,6 @@ Ray2x.exe -level:learn_31</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="imgui\imnodes.cpp" />
     <ClCompile Include="src\mod\ai_distancechecks.c" />
     <ClCompile Include="src\mod\ai_dump.c" />
     <ClCompile Include="src\mod\ai_strings.c" />
@@ -513,7 +516,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\resourceutil.cpp" />
     <ClCompile Include="src\rendering\textures.cpp" />
     <ClCompile Include="src\ui\nameLookup.cpp" />
-    <ClCompile Include="src\ui\nameLookup.hpp" />
+    <ClInclude Include="src\ui\nameLookup.hpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
     <ClCompile Include="src\ui\dialogs\aimodel.cpp" />
     <ClCompile Include="src\ui\dialogs\debugwindow.cpp" />
@@ -681,6 +684,9 @@ Ray2x.exe -level:learn_31</Command>
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
+    <ClCompile Include="src\ui\audiosystem.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />
@@ -725,6 +731,9 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\sectorborder.png" />
     <Image Include="resources\toofar.png" />
     <Image Include="resources\unknown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\glm.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

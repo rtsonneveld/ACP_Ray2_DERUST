@@ -1,26 +1,32 @@
 #include "utils.hpp"
 #include "ui/ui.hpp"
 #include "ui/settings.hpp"
+#include "ui/nameLookup.hpp"
+#include "ui/audiosystem.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <rendering/shader.hpp>
 #include <rendering/textures.hpp>
-#include "ui/nameLookup.hpp"
+#include <rendering/scene.hpp>
 
 // C INCLUDE
 #include "mod/globals.h"
 #include "mod/dsgvarnames.h"
 #include "mod/util.h"
 #include "mod/ai_distancechecks.h"
+#include "miniaudio.h"
+#include "resource.h"
 #include <ACP_Ray2.h>
-#include <rendering/scene.hpp>
 
 Mesh glmCube;
 Mesh directionPlane;
 Mesh distanceSphere;
 glm::vec3 savedGlmPosition;
 bool focusCameraOnGLM = false;
+bool playSoundOnGLMChange = false;
 glm::vec3 glmCameraOffset = glm::vec3(1, 1, 1);
+
+ma_sound* glmSound = nullptr;
 
 glm::vec3* GetGlmPosition() {
   if (g_DR_rayman != nullptr) {
@@ -35,6 +41,8 @@ void DR_DLG_Utils_Init() {
   glmCube = Mesh::createCube(glm::vec3(0.1, 0.1, 0.885594));
   directionPlane = Mesh::createQuad(1000.0f, 1000.0f);
   distanceSphere = Mesh::createSphere();
+
+  glmSound = AudioSystem::LoadSoundFromResource(IDR_GLMSOUND, false);
 }
 
 void DR_DLG_Utils_Draw() {
@@ -55,6 +63,7 @@ void DR_DLG_Utils_Draw() {
       {
         ImGui::DragFloat3("GLM", &glmPos->x);
         ImGui::Checkbox("Auto-focus camera on GLM", &focusCameraOnGLM);
+        ImGui::Checkbox("Play sound on GLM change", &playSoundOnGLMChange);
         if (focusCameraOnGLM) {
           ImGui::DragFloat3("Offset", &glmCameraOffset.x);
         }
@@ -141,15 +150,15 @@ void DrawDistanceChecks(Shader* shader) {
 }
 
 void DrawGLM(Scene * scene, Shader * shader) {
+
+  glm::vec3 glmPos = *(GetGlmPosition());
+
   if (focusCameraOnGLM) {
-    glm::vec3 glmPos = *(GetGlmPosition());
+
     if (glmPos != glm::vec3(0)) {
       scene->setCameraPosition(glmPos + glmCameraOffset, glmPos);
     }
   }
-
-
-  auto glmPos = *(GetGlmPosition());
 
   glm::mat4 mat = glm::translate(glm::mat4(1.0f), glmPos);
 
@@ -165,12 +174,36 @@ void DrawGLM(Scene * scene, Shader * shader) {
   }
 }
 
+glm::vec3 lastGlmPos;
+void HandleSoundForGLM() {
+
+  glm::vec3 glmPos = *(GetGlmPosition());
+
+  char* raymanState = (char*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_RAY_Etat);
+  if (*raymanState == 4 || *raymanState == 25) { // Ignore when sliding (4) or swimming (25)
+    lastGlmPos = glmPos;
+    return;
+  }
+
+  if (lastGlmPos != glmPos && glmPos != glm::vec3(0)) {
+    lastGlmPos = glmPos;
+
+    if (glmSound != nullptr) {
+      ma_sound_start(glmSound);
+    }
+  }
+}
+
 void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
 
   shader->use();
 
   if (g_DR_settings.util_showGLM) {
     DrawGLM(scene, shader);
+  }
+
+  if (playSoundOnGLMChange) {
+    HandleSoundForGLM();
   }
 
   if (g_DR_settings.opt_distanceCheckVisibility != DistanceCheckVisibility::Hidden) {

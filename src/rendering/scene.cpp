@@ -464,6 +464,52 @@ void generateRenderTextures(int display_w, int display_h) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+// Scene frame buffer
+int scene_fb_width = 0;
+int scene_fb_height = 0;
+
+GLuint scene_fbo = 0;
+GLuint scene_color_texture = 0;
+
+void generateSceneFramebuffer(int display_w, int display_h) {
+  if (scene_fbo && scene_fb_width == display_w && scene_fb_height == display_h)
+    return;
+
+  scene_fb_width = display_w;
+  scene_fb_height = display_h;
+
+  if (scene_fbo) {
+    glDeleteFramebuffers(1, &scene_fbo);
+    glDeleteTextures(1, &scene_color_texture);
+  }
+
+  glGenFramebuffers(1, &scene_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
+
+  glGenTextures(1, &scene_color_texture);
+  glBindTexture(GL_TEXTURE_2D, scene_color_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, display_w, display_h, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scene_color_texture, 0);
+
+  // Depth buffer for scene_fbo
+  GLuint rbo_scene_depth;
+  glGenRenderbuffers(1, &rbo_scene_depth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo_scene_depth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, display_w, display_h);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_scene_depth);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    printf("Scene framebuffer not complete!\n");
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+GLuint Scene::getColorTexture() const {
+  return scene_color_texture;
+}
+
 glm::vec3 mainCharPos;
 
 void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj) {
@@ -558,25 +604,30 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   mouseLook.Update(window);
 
   float aspect = (float)display_w / (float)display_h;
-  float fov_y = cam->hLinkedObject.p_stActor->hCineInfo->hWork->xFocal * ((float)display_h / (float)display_w);
+  float fov_y = cam->hLinkedObject.p_stActor->hCineInfo->hWork->xFocal * (3.0f/4.0f);
 
   glm::mat4 proj = glm::perspective(fov_y, aspect, 0.1f, 10000.0f);
 
-  // Opaque pass start:
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // 1) Generate offscreen opaque FBO
+  generateSceneFramebuffer(display_w, display_h);
+
+  // Bind opaque FBO for opaque pass
+  glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
+  glViewport(0, 0, display_w, display_h);
+  glClearColor(0, 0, 0, 1.0f);
+  glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
-  glClearColor(0.0, 0.0, 0.0, 1.0f); 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Opaque pass
   renderPass(true, model, view, proj);
 
-  // Copy depth buffer
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  // Copy depth to OIT FBO
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, scene_fbo);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oit_fbo);
   glBlitFramebuffer(0, 0, display_w, display_h, 0, 0, display_w, display_h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-  // OIT pass
+  // Transparent pass (OIT)
   glBindFramebuffer(GL_FRAMEBUFFER, oit_fbo);
   glViewport(0, 0, display_w, display_h);
   glDepthMask(GL_FALSE);
@@ -594,27 +645,33 @@ void Scene::render(GLFWwindow * window, float display_w, float display_h) {
   // Transparent pass
   renderPass(false, model, view, proj);
 
-  // Composite over the default buffer.
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  //glClearColor(0, 0, 0, 1.0f);
-  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDepthMask(GL_TRUE);
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+  // --- Composite opaque + transparent into scene_fbo ---
+  glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
   glViewport(0, 0, display_w, display_h);
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+  glDisable(GL_BLEND);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, accum_texture);
 
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, reveal_texture);
-  
+
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, scene_color_texture);
+
   woitFullScreenPresentShader->use();
   woitFullScreenPresentShader->setInt("accum_tex", 0);
   woitFullScreenPresentShader->setInt("reveal_tex", 1);
+  woitFullScreenPresentShader->setInt("opaque_tex", 2);
 
   fullScreenQuad.draw();
-
   glUseProgram(0);
+
+  // Restore state
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

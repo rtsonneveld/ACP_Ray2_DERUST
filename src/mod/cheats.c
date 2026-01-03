@@ -4,20 +4,20 @@
 #include "dsgvarnames.h"
 
 char g_DR_Cheats_InfiniteHealth = FALSE;
+char g_DR_Cheats_InfiniteAir = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 char g_DR_Cheats_DisableDeathAnimations = FALSE;
 char g_DR_Cheats_AutoVoid = FALSE;
 char g_DR_Cheats_FreezeProgress = FALSE;
+char g_DR_Cheats_HasSavedProgress = FALSE;
 
 DNM_tdstDynamics savedPosition;
 BOOL resetGhostMode;
 BOOL hasSavedPosition = FALSE;
 
 #define GLOBAL_BITS_ARRAYSIZE 45
-unsigned int frozenProgress[GLOBAL_BITS_ARRAYSIZE];
-
-char frozenProgressInitialized = FALSE;
+unsigned int savedProgress[GLOBAL_BITS_ARRAYSIZE];
 
 #define ComboAction IPT_E_Entry_Action_Affiche_Jauge
 
@@ -68,42 +68,70 @@ void DR_Cheats_LoadPosition() {
   resetGhostMode = TRUE;
 }
 
+void DR_Cheats_SaveProgress() {
+  tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
+
+  if (array) {
+
+    for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
+
+      if (i >= array->ucMaxSize) break;
+
+      savedProgress[i] = array->d_ArrayElement[i].ulValue;
+    }
+
+    g_DR_Cheats_HasSavedProgress = TRUE;
+  }
+}
+
+void DR_Cheats_LoadProgress() {
+
+  if (!g_DR_Cheats_HasSavedProgress) return;
+
+  tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
+
+  if (array) {
+
+    for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
+
+      if (i >= array->ucMaxSize) break;
+
+      array->d_ArrayElement[i].ulValue = savedProgress[i];
+    }
+
+    g_DR_Cheats_HasSavedProgress = TRUE;
+  }
+}
+
+void DR_Cheats_ResetProgress() {
+
+  tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
+
+  if (array) {
+    for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
+
+      if (i >= array->ucMaxSize) break;
+
+      array->d_ArrayElement[i].ulValue = 0;
+    }
+  }
+}
+
 void DR_Cheats_ResetSavedPosition() {
   hasSavedPosition = FALSE;
 }
 
 void DR_Cheats_Apply() {
 
-    if (g_DR_Cheats_FreezeProgress) {
-
-      tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
-
-      if (array) {
-
-          for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
-
-            if (i >= array->ucMaxSize) break;
-
-            if (!frozenProgressInitialized) {
-              frozenProgress[i] = array->d_ArrayElement[i].ulValue;
-            }
-            else {
-              array->d_ArrayElement[i].ulValue = frozenProgress[i];
-            }
-          }
-
-          frozenProgressInitialized = TRUE;
-      }
-    }
-    else {
-      frozenProgressInitialized = FALSE;
-    }
-
     if (g_DR_Cheats_InfiniteHealth) {
         if (g_DR_rayman != NULL) {
           GAM_tdstStandardGame* stdGame = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame;
           stdGame->ucHitPoints = stdGame->ucHitPointsMax = stdGame->ucHitPointsMaxMax;
         }
+    }
+
+    if (g_DR_Cheats_InfiniteAir) {
+      AI_g_stExtendDatas4Ray->xAirPoints4Ray = AI_g_stExtendDatas4Ray->xAirPointsMax4Ray;
     }
 
     if (g_DR_Cheats_MegaShoots) {
@@ -189,6 +217,9 @@ void DR_Cheats_Apply() {
       }
       if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Sauter)) {
         DR_Cheats_LoadPosition();
+      }
+      if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_TransePolochus)) {
+        GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
       }
     }
 }
