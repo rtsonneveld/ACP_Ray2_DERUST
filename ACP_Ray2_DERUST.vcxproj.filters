@@ -1077,6 +1077,15 @@
     <ClInclude Include="src\ui\nameLookup.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\dialogs\inspector_actor_collset.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod\ai_disablerandopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod\recording.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1251,6 +1260,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\audiosystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\ai_disablerandopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

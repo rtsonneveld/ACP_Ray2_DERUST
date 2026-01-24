@@ -5,14 +5,20 @@
 #include "ui/ui_bridge.h"
 #include <ACP_Ray2.h>
 
-const void* g_DR_breakpoints[MAX_BREAKPOINTS];
-bool g_DR_debuggerEnabled = false;
+tdstBreakpoint g_DR_breakpoints[MAX_BREAKPOINTS];
+bool g_DR_debuggerEnableBreakpoints = false;
 bool g_DR_debuggerPaused = false;
 bool g_DR_debuggerStep = false;
 size_t g_DR_breakpoint_count = 0;
 int g_DR_debuggerStepOverDepth = 0;
 const AI_tdstNodeInterpret* g_DR_debuggerInstructionPtr = NULL;
 const HIE_tdstSuperObject* g_DR_debuggerContextSPO = NULL;
+
+bool g_DR_debugger_globalBreakpointEnabled = false;
+AI_tdeTypeInterpret g_DR_debugger_globalBreakpointNodeType = AI_E_ti_Unknown;
+unsigned long g_DR_debugger_globalBreakpointNodeParam = 0;
+bool g_DR_debugger_globalBreakpointEnableModelTypeFilter = false;
+GAM_tdxObjectType g_DR_debugger_globalBreakpointModelTypeFilter = GAM_C_InvalidObjectType;
 
 extern HANDLE g_hFrameEvent;
 extern HANDLE g_hAFrameIsWaiting;
@@ -102,80 +108,93 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
   g_DR_debuggerInstructionPtr = node;
   g_DR_debuggerContextSPO = spo;
 
-  if (g_DR_debuggerEnabled) {
+  if (g_DR_debuggerEnableBreakpoints && DR_Debugger_HasBreakpoint(spo, node)) {
+    g_DR_debuggerPaused = true;
+  }
 
-    if (DR_Debugger_HasBreakpoint(node)) {
+  if (g_DR_debuggerStepOverDepth > 0)  {
+    if (node->ucDepth <= g_DR_debuggerStepOverDepth) {
       g_DR_debuggerPaused = true;
+      g_DR_debuggerStepOverDepth = 0;
     }
+  }
 
-    if (g_DR_debuggerStepOverDepth > 0)  {
-      if (node->ucDepth <= g_DR_debuggerStepOverDepth) {
-        g_DR_debuggerPaused = true;
-        g_DR_debuggerStepOverDepth = 0;
-      }
-    }
+  if (g_DR_debuggerPaused) {
+    DR_Debugger_SelectObjectAndComport(spo, node);
+  }
 
-    if (g_DR_debuggerPaused) {
-      DR_Debugger_SelectObjectAndComport(spo, node);
-    }
-
-    while (g_DR_debuggerPaused) {
+  while (g_DR_debuggerPaused) {
       
-      SetEvent(g_hFrameEvent);
-      ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
+    SetEvent(g_hFrameEvent);
+    ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
 
-      if (g_DR_debuggerStep) {
-        g_DR_debuggerStep = false;
-        break;
-      }
-
-      Sleep(10); // Sleep a little
+    if (g_DR_debuggerStep) {
+      g_DR_debuggerStep = false;
+      break;
     }
 
+    Sleep(10); // Sleep a little
   }
 
   if (DR_AIDUMP_IsActive()) {
     AI_tdstMind* mind = spo->hLinkedObject.p_stActor->hBrain->p_stMind;
 
-    if (node->eType == AI_E_ti_Procedure) { 
-
-      DR_AIDUMP_AddNode(spo,
-        mind->p_stIntelligence != NULL && mind->bDoingIntel == 1 ? mind->p_stIntelligence->p_stCurrentComport : NULL,
-        mind->p_stReflex != NULL && mind->bDoingIntel == 0 ? mind->p_stReflex->p_stCurrentComport : NULL,
-        node, param);
-
-    }
+    DR_AIDUMP_AddNode(spo,
+      mind->p_stIntelligence != NULL && mind->bDoingIntel == 1 ? mind->p_stIntelligence->p_stCurrentComport : NULL,
+      mind->p_stReflex != NULL && mind->bDoingIntel == 0 ? mind->p_stReflex->p_stCurrentComport : NULL,
+      node, param);
   }
 
   return AI_fn_p_stEvalTree(spo, node, param);
 }
 
-bool DR_Debugger_HasBreakpoint(const void* address)
+bool DR_Debugger_HasBreakpoint(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node)
 {
-  if (!g_DR_debuggerEnabled) {
-    return false;
-  }
+  const void* address = node;
 
   for (size_t i = 0; i < g_DR_breakpoint_count; ++i)
-    if (g_DR_breakpoints[i] == address)
+    if (g_DR_breakpoints[i].address == address && (g_DR_breakpoints[i].spo == spo || g_DR_breakpoints[i].spo == NULL))
       return true;
+
+  if (g_DR_debugger_globalBreakpointEnabled && node != NULL) {
+
+    if (g_DR_debugger_globalBreakpointEnableModelTypeFilter) {
+
+      if (spo == NULL) {
+        return false;
+      }
+
+      if (g_DR_debugger_globalBreakpointModelTypeFilter != spo->hLinkedObject.p_stActor->hStandardGame->lObjectModelType) {
+        return false;
+      }
+    }
+
+    return (
+      node->eType == g_DR_debugger_globalBreakpointNodeType &&
+      node->uParam.ulValue == g_DR_debugger_globalBreakpointNodeParam
+    );
+  }
+
   return false;
 }
 
-void DR_Debugger_SetBreakpoint(const void* address)
+void DR_Debugger_SetBreakpoint(const void* address, HIE_tdstSuperObject* spo)
 {
-  if (address == NULL || DR_Debugger_HasBreakpoint(address))
+  if (address == NULL || DR_Debugger_HasBreakpoint(spo, address))
     return;
 
   if (g_DR_breakpoint_count < MAX_BREAKPOINTS)
-    g_DR_breakpoints[g_DR_breakpoint_count++] = address;
+    g_DR_breakpoints[g_DR_breakpoint_count].address = address;
+    g_DR_breakpoints[g_DR_breakpoint_count].spo = spo;
+
+    g_DR_breakpoint_count++;
 }
 
-void DR_Debugger_UnsetBreakpoint(const void* address)
+void DR_Debugger_UnsetBreakpoint(const void* address, HIE_tdstSuperObject* spo)
 {
   for (size_t i = 0; i < g_DR_breakpoint_count; ++i)
   {
-    if (g_DR_breakpoints[i] == address)
+    if (g_DR_breakpoints[i].address == address && g_DR_breakpoints[i].spo == spo)
     {
       // move the last element to this slot to fill the gap
       g_DR_breakpoints[i] = g_DR_breakpoints[--g_DR_breakpoint_count];

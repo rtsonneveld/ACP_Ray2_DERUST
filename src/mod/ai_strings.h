@@ -18,6 +18,7 @@ extern "C" {
   const char* AI_GetFieldString(AI_tdeField value);
   const char* AI_GetMetaActionString(AI_tdeMetaAction value);
 
+  extern const char* AI_TypeInterpretStrings[];
   extern const char* AI_KeyWordIdStrings[];
   extern const char* AI_MetaActionStrings[];
   extern const char* AI_OperatorStrings[];

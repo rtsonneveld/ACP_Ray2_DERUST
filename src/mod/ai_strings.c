@@ -57,7 +57,8 @@ const char* AI_GetDsgVarTypeString(AI_tdeDsgVarType value) {
 const char* AI_KeyWordIdStrings[AI_E_Nb_kw] = {
     "If","IfNot","If2","If4","If8","If16","IfDebug","IfNotU64","Then","Else",
     "Goto","Me","MainActor","Nobody","NoInput","Nowhere","EmptyText","CapsNull",
-    "NoGraph","NoAction"
+    "NoGraph","NoAction", "NoComport", "Schedule", "InterruptRule", "Vector",
+    "ConstVector", "Endif", "Macro", "True", "False", "StopEngine", "StopRule", "NonStop"
 };
 
 const char* AI_GetKeyWordString(AI_tdeKeyWordId value) {

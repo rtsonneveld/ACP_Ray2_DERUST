@@ -11,6 +11,7 @@ char g_DR_Cheats_DisableDeathAnimations = FALSE;
 char g_DR_Cheats_AutoVoid = FALSE;
 char g_DR_Cheats_FreezeProgress = FALSE;
 char g_DR_Cheats_HasSavedProgress = FALSE;
+char g_DR_Cheats_DisableRandomOptimisations = FALSE;
 
 DNM_tdstDynamics savedPosition;
 BOOL resetGhostMode;
@@ -217,6 +218,18 @@ void DR_Cheats_Apply() {
       }
       if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Sauter)) {
         DR_Cheats_LoadPosition();
+
+        /* TEST for debugging FG4 machine, TODO: remove later
+        DisableObjectOfPersonalType("OLP_Sparadrap_Machine_1");
+        DisableObjectOfPersonalType("OLP_Sparadrap_Machine_3");
+        MTH3D_tdstVector target = { 179.051f, -17.248f, -49.025f }; 
+
+        HIE_tdstSuperObject* tonneau = HIE_fn_p_stFindObjectByPersonalType(HIE_fn_lFindPersonalTypeByName("OLP_Tonneau_Machine"));
+        
+        ACT_Teleport(g_DR_rayman, target);
+        ACT_Teleport(tonneau, target);
+        g_DR_selectedObject = HIE_fn_p_stFindObjectByPersonalType(HIE_fn_lFindPersonalTypeByName("SDZ_FX_Bast20")); 
+        */
       }
       if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_TransePolochus)) {
         GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);

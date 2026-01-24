@@ -275,7 +275,6 @@ void InputCompletePosition(const char* label, POS_tdstCompletePosition* position
   }
 }
 
-
 void InputCollideMaterial(GMT_tdstCollideMaterial* mat)
 {
   if (mat == nullptr || (int)mat == -1) {
@@ -298,6 +297,18 @@ void InputGameMaterial(GMT_tdstGameMaterial* mat)
   }
 
   InputCollideMaterial(mat->hCollideMaterial);
+}
+
+void InputModelType(const char* label, GAM_tdxObjectType* modelType)
+{
+  long numModels = GAM_g_stObjectTypes->stModelType.lNbOfElementsDyn;
+  const char* modelNames[255];
+
+  for(int i = 0;i<numModels;i++) {
+    modelNames[i] = HIE_fn_szGetModelTypeName(i);
+  }
+
+  DrawStringCombo(label, modelNames, numModels, (unsigned long*)modelType);
 }
 
 // Core implementation - ALL shared logic lives here
@@ -424,17 +435,35 @@ void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type) {
 
 void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId) {
 
-    assert(spo != nullptr);
+    if (spo == nullptr) {
+      ImGui::Text("DsgVar ID %u (No SuperObject)", dsgVarId);
+      return;
+    }
     HIE_tdstEngineObject * actor = spo->hLinkedObject.p_stActor;
-    assert(actor != nullptr);
+    if (actor == nullptr) {
+      ImGui::Text("DsgVar ID %u (No Actor)", dsgVarId);
+      return;
+    }
     AI_tdstBrain* brain = actor->hBrain;
-    assert(brain != nullptr);
+    if (brain == nullptr) {
+      ImGui::Text("DsgVar ID %u (No Brain)", dsgVarId);
+      return;
+    }
     AI_tdstMind* mind = brain->p_stMind;
-    assert(mind != nullptr);
+    if (mind == nullptr) {
+      ImGui::Text("DsgVar ID %u (No Mind)", dsgVarId);
+      return;
+    }
     AI_tdstAIModel* aiModel = mind->p_stAIModel;
-    assert(aiModel != nullptr);
+    if (aiModel == nullptr) {
+      ImGui::Text("DsgVar ID %u (No AI Model)", dsgVarId);
+      return;
+    }
     AI_tdstDsgMem* dsgMem = brain->p_stMind->p_stDsgMem;
-    assert(dsgMem != nullptr);
+    if (dsgMem == nullptr) {
+      ImGui::Text("DsgVar ID %u (No DsgMem)", dsgVarId);
+      return;
+    }
 
     bool isRayman = (actor == g_DR_rayman->hLinkedObject.p_stActor);
     bool isGlobal = (actor == g_DR_global->hLinkedObject.p_stActor);
@@ -456,4 +485,37 @@ void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId) {
 
     ImGui::SameLine();
     DrawDsgVar(dsgMem->p_cDsgMemBuffer, info.ulOffsetInDsgMem, info.eTypeId);
+}
+
+
+// Draw a combo box from a string array and store the selected index directly in a variable
+void DrawStringCombo(const char* label, const char** items, int count, unsigned long* pValue)
+{
+  if (!items || !items[0] || !pValue)
+    return;
+
+  // Make sure current value is within bounds
+  unsigned long currentIndex = *pValue;
+
+  // Clip to valid range
+  if (currentIndex >= (unsigned long)count) {
+    currentIndex = (unsigned long)0;
+    *pValue = 0;
+  }
+
+  const char* currentLabel = items[currentIndex];
+
+  ImGui::SetNextItemWidth(150.0f);
+  if (ImGui::BeginCombo(label, currentLabel)) {
+    for (int i = 0; i<count; ++i) {
+      bool is_selected = (currentIndex == (unsigned long)i);
+      if (ImGui::Selectable(items[i], is_selected)) {
+        currentIndex = i;
+        *pValue = (unsigned long)i;  // directly update the value
+      }
+      if (is_selected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
 }

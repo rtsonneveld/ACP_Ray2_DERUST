@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "mod/cpa_functions.h"
 #include "mod/ai_distancechecks.h"
+#include "mod/ai_disablerandopt.h"
 #include "mod/util.h"
 #include "mod/state.h"
 #include "mod/savestates.h"
@@ -276,7 +277,7 @@ void MOD_fn_vEngine()
 			__debugbreak();
 
 			g_DR_Playback.pause = TRUE;
-			g_DR_debuggerEnabled = TRUE;
+			g_DR_debuggerEnableBreakpoints = TRUE;
 			g_DR_debuggerPaused = TRUE;
 
 			DR_Debugger_SelectObjectAndComport(g_DR_debuggerContextSPO, g_DR_debuggerInstructionPtr);
@@ -404,6 +405,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
+			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalKeyWord, (void*)MOD_fn_p_stEvalKeyWord_DisableMicroRNG);
+			FHK_fn_lCreateHook((void**)&GAM_fn_b3dDataCanComputeBrain, (void*)MOD_fn_b3dDataCanComputeBrain);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
@@ -437,6 +440,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
 			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
+			FHK_fn_lDestroyHook((void**)&AI_fn_p_stEvalKeyWord, (void*)MOD_fn_p_stEvalKeyWord_DisableMicroRNG);
+			FHK_fn_lDestroyHook((void**)&GAM_fn_b3dDataCanComputeBrain, (void*)MOD_fn_b3dDataCanComputeBrain);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);

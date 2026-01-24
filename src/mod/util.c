@@ -159,7 +159,7 @@ void ACT_Teleport(HIE_tdstSuperObject* actorSPO, MTH3D_tdstVector newPos) {
   
   assert(actorSPO->ulType == HIE_C_Type_Actor);
 
-  actorSPO->hFatherDyn = *GAM_g_p_stDynamicWorld; // Reset parent to world
+  HIE_fn_vChangeFather(actorSPO, *GAM_g_p_stDynamicWorld, FALSE); // Reset parent to world
   actorSPO->p_stLocalMatrix->stPos = newPos;
 
   HIE_tdstEngineObject* actor = actorSPO->hLinkedObject.p_stActor;

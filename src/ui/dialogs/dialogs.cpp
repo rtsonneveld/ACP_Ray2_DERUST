@@ -7,6 +7,10 @@ void DR_DLG_Init(HWND window_r2) {
 
 void DR_DLG_Draw(HWND window_r2) {
   
+  if (GAM_g_stEngineStructure->eEngineMode != E_EM_ModePlaying) {
+    return;
+  }
+
   DR_DLG_Menu_Draw();
   DR_DLG_Hierarchy_Draw();
   DR_DLG_Playback_Draw();

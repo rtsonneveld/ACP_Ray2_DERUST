@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "ui/ui.hpp"
+#include "ui/custominputs.hpp"
 #include "ui/settings.hpp"
 #include "ui/nameLookup.hpp"
 #include "ui/audiosystem.hpp"
@@ -14,6 +15,7 @@
 #include "mod/dsgvarnames.h"
 #include "mod/util.h"
 #include "mod/ai_distancechecks.h"
+#include "mod/ai_strings.h"
 #include "miniaudio.h"
 #include "resource.h"
 #include <ACP_Ray2.h>
@@ -26,7 +28,13 @@ bool focusCameraOnGLM = false;
 bool playSoundOnGLMChange = false;
 glm::vec3 glmCameraOffset = glm::vec3(1, 1, 1);
 
+int colliderType = 52;
+
 ma_sound* glmSound = nullptr;
+
+HIE_tdstEngineObject* distancePersoFrom = nullptr;
+HIE_tdstEngineObject* distancePersoTo = nullptr;
+unsigned long distanceFunction = 0;
 
 glm::vec3* GetGlmPosition() {
   if (g_DR_rayman != nullptr) {
@@ -43,6 +51,53 @@ void DR_DLG_Utils_Init() {
   distanceSphere = Mesh::createSphere();
 
   glmSound = AudioSystem::LoadSoundFromResource(IDR_GLMSOUND, false);
+}
+
+#define DISTFUNC_OFFSET 3
+#define DISTFUNC_COUNT 14
+
+AI_tdstNodeInterpret fakeNode;
+AI_tdstNodeInterpret fakeNode2;
+AI_tdstNodeInterpret fakeNode3;
+
+AI_tdstGetSetParam result;
+
+void DR_DLG_Utils_DrawTab_Distance() {
+  
+  if (distancePersoFrom != nullptr && distancePersoFrom->hStandardGame == nullptr) {
+    distancePersoFrom = nullptr;
+  }
+  if (distancePersoTo != nullptr && distancePersoTo->hStandardGame == nullptr) {
+    distancePersoTo = nullptr;
+  }
+  InputPerso("Perso from##distancePersoFrom", &distancePersoFrom);
+  InputPerso("Perso to##distancePersoTo", &distancePersoTo);
+  DrawStringCombo("Distance function", AI_FunctionStrings+DISTFUNC_OFFSET, DISTFUNC_COUNT, (unsigned long*)& distanceFunction);
+
+  if (distancePersoFrom == nullptr || distancePersoTo == nullptr) {
+    ImGui::Text("Select two objects to measure distance between");
+    return;
+  }
+
+  AI_tdeFuncId distanceFuncID = (AI_tdeFuncId)(distanceFunction + DISTFUNC_OFFSET);
+ 
+  fakeNode.eType = AI_E_ti_Function;
+  fakeNode.uParam.ulValue = distanceFuncID;
+  fakeNode.ucDepth = 1;
+  fakeNode.uwNodeToSkip = 1;
+
+  fakeNode2.eType = AI_E_ti_PersoRef;
+  fakeNode2.uParam.hActor = distancePersoTo;
+  fakeNode2.ucDepth = 2;
+  fakeNode2.uwNodeToSkip = 1;
+
+  fakeNode3.eType = AI_E_ti_EndTree;
+  fakeNode3.ucDepth = 1;
+  fakeNode3.uwNodeToSkip = 1;
+
+  AI_fn_p_stEvalTree(distancePersoFrom->hStandardGame->p_stSuperObject, &fakeNode, &result);
+  float dist = result.uParam.xValue;
+  ImGui::Text("Distance: %.3f", dist);
 }
 
 void DR_DLG_Utils_Draw() {
@@ -81,6 +136,12 @@ void DR_DLG_Utils_Draw() {
       ImGui::EndTabItem();
     }
 
+    if (ImGui::BeginTabItem("Measure distance")) {
+      DR_DLG_Utils_DrawTab_Distance();
+
+      ImGui::EndTabItem();
+    }
+
     if (ImGui::BeginTabItem("Misc")) {
 
       ImGui::Checkbox("Visualize Rayman's direction", &g_DR_settings.util_showDirection);
@@ -91,6 +152,15 @@ void DR_DLG_Utils_Draw() {
         ACT_ChangeComportRule(g_DR_rayman->hLinkedObject.p_stActor, IndexFromName(NameType::AIModel_Comport, "YLT_RaymanModel", "YLT_TonneauFuseeComport"));
         ACT_ChangeComportReflex(g_DR_rayman->hLinkedObject.p_stActor, IndexFromName(NameType::AIModel_Reflex, "YLT_RaymanModel", "BNT_TonneauFuseeReflexe"));
         PLA_fn_bSetNewState(g_DR_rayman, ACT_GetStateByIndex(g_DR_rayman->hLinkedObject.p_stActor, 102), true, false);
+      }
+
+      int step = 1;
+      ImGui::InputScalar("Damage type", ImGuiDataType_U8, &colliderType, &step, 0, 0, 0);
+      if (ImGui::Button("Apply damage")) {
+        HIE_tdstEngineObject* pRayman = HIE_M_hSuperObjectGetActor(HIE_M_hGetMainActor());
+        pRayman->hCollSet->stColliderInfo.ucColliderType = colliderType;
+        pRayman->hCollSet->stColliderInfo.ucColliderPriority = 255;
+        pRayman->hStandardGame->ucHitPoints--;
       }
 
       ImGui::EndTabItem();

@@ -34,6 +34,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Automatic perfect void", nullptr, g_DR_Cheats_AutoVoid)) {
     g_DR_Cheats_AutoVoid = !g_DR_Cheats_AutoVoid;
   }
+  if (ImGui::MenuItem("Disable random optimisations", nullptr, g_DR_Cheats_DisableRandomOptimisations)) {
+    g_DR_Cheats_DisableRandomOptimisations = !g_DR_Cheats_DisableRandomOptimisations;
+  }
 
   ImGui::SeparatorText("Progress");
 

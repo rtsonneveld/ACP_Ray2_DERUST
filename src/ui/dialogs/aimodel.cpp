@@ -13,7 +13,8 @@
 #include <ACP_Ray2.h>
 #include <mod/globals.h>
 #include <mod/ai_strings.h>
-#include "mod/debugger.h"
+#include <mod/debugger.h>
+#include <mod/util.h>
 
 const int comportListBoxHeight = 8;
 int selectedComportIndex = -1;
@@ -34,38 +35,6 @@ void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex) {
   selectedComportType = SelectedComportType::Macro;
 }
 
-// Draw a combo box from a string array and store the selected index directly in a variable
-static void DrawStringCombo(const char* label, const char** items, unsigned long* pValue)
-{
-  if (!items || !items[0] || !pValue)
-    return;
-
-  // Make sure current value is within bounds
-  unsigned long currentIndex = *pValue;
-
-  // Clip to valid range
-  int maxIndex = 0;
-  while (items[maxIndex] != nullptr) ++maxIndex;
-  if (currentIndex >= (unsigned long)maxIndex)
-    currentIndex = 0;
-
-  const char* currentLabel = items[currentIndex];
-
-  ImGui::SetNextItemWidth(150.0f);
-  if (ImGui::BeginCombo(label, currentLabel)) {
-    for (int i = 0; items[i] != nullptr; ++i) {
-      bool is_selected = (currentIndex == (unsigned long)i);
-      if (ImGui::Selectable(items[i], is_selected)) {
-        currentIndex = i;
-        *pValue = (unsigned long)i;  // directly update the value
-      }
-      if (is_selected)
-        ImGui::SetItemDefaultFocus();
-    }
-    ImGui::EndCombo();
-  }
-}
-
 
 void DrawNodeOptions(HIE_tdstSuperObject* spo, HIE_tdstSuperObject* context, AI_tdstNodeInterpret* node) {
 
@@ -75,31 +44,31 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, HIE_tdstSuperObject* context, AI_
 
     case AI_E_ti_KeyWord:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_KeyWordIdStrings, (unsigned long *)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_KeyWordIdStrings, AI_E_Nb_kw, (unsigned long *)&node->uParam.ulValue);
       break;
     case AI_E_ti_MetaAction:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_MetaActionStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_MetaActionStrings, AI_E_Nb_ma, (unsigned long*)&node->uParam.ulValue);
       break;
     case AI_E_ti_Operator:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_OperatorStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_OperatorStrings, AI_E_Nb_op, (unsigned long*)&node->uParam.ulValue);
       break;
     case AI_E_ti_Procedure:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_ProcedureStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_ProcedureStrings, AI_E_Nb_proc, (unsigned long*)&node->uParam.ulValue);
       break;
     case AI_E_ti_Function:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_FunctionStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_FunctionStrings, AI_E_Nb_func, (unsigned long*)&node->uParam.ulValue);
       break;
     case AI_E_ti_Field:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_FieldStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_FieldStrings, AI_E_Nb_fd, (unsigned long*)&node->uParam.ulValue);
       break;
     case AI_E_ti_Condition:
       ImGui::SameLine();
-      DrawStringCombo(label.c_str(), AI_ConditionStrings, (unsigned long*)&node->uParam.ulValue);
+      DrawStringCombo(label.c_str(), AI_ConditionStrings, AI_E_Nb_cond, (unsigned long*)&node->uParam.ulValue);
       break;
 
     case AI_E_ti_PersoRef:
@@ -164,29 +133,27 @@ void DrawNodeOptions(HIE_tdstSuperObject* spo, HIE_tdstSuperObject* context, AI_
   }
 }
 
-void DrawBreakpointCheckbox(const void * node)
+void DrawBreakpointCheckbox(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret * node)
 {
-  if (!g_DR_debuggerEnabled) return; 
-
-  bool has_bp = DR_Debugger_HasBreakpoint(node);
+  bool has_bp = DR_Debugger_HasBreakpoint(spo, node);
   bool bp_toggle = has_bp;
 
   // Unique ID for ImGui
   std::string checkbox_id = "##bp_" + std::to_string((int)node);
 
   if (ImGui::Checkbox(checkbox_id.c_str(), &bp_toggle)) {
-    if (bp_toggle) DR_Debugger_SetBreakpoint(node);
-    else DR_Debugger_UnsetBreakpoint(node);
+    if (bp_toggle) DR_Debugger_SetBreakpoint(node, spo);
+    else DR_Debugger_UnsetBreakpoint(node, spo);
   }
 
   ImGui::SameLine();
 }
 
 // Helper function to draw a node with optional children
-bool DrawAINode(AI_tdstNodeInterpret* node, bool forceOpen)
+bool DrawAINode(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node, bool forceOpen)
 {
   // Draw breakpoint checkbox
-  DrawBreakpointCheckbox(node);
+  DrawBreakpointCheckbox(spo, node);
 
   const AI_tdeTypeInterpret eType = node->eType;
   const AI_tdstNodeInterpret* next = node + 1;
@@ -245,7 +212,15 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* no
 
     if (node->eType == AI_E_ti_Operator && node->uParam.cValue == AI_E_op_Dot) {
       dotOperatorStackDepth = stackDepth;
-      context = ((HIE_tdstEngineObject*)(node+1)->uParam.pvValue)->hStandardGame->p_stSuperObject;
+      AI_tdstNodeInterpret* nextNode = (node + 1);
+      if (nextNode->eType == AI_E_ti_PersoRef) {
+        context = ((HIE_tdstEngineObject*)nextNode->uParam.pvValue)->hStandardGame->p_stSuperObject;
+      } else if (nextNode->eType == AI_E_ti_DsgVarRef) {
+        HIE_tdstSuperObject** actorPtr = (HIE_tdstSuperObject**)ACT_DsgVarPtr(context->hLinkedObject.p_stActor, nextNode->uParam.ulValue);
+        if (actorPtr != nullptr && actorPtr != (void*)0xcccccccc) {
+          context = *actorPtr;
+        }
+      }
     }
     else if (stackDepth < dotOperatorStackDepth) {
       context = spo;
@@ -267,7 +242,7 @@ void DR_DLG_AIModel_Draw_Rule(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* no
       }
     }
 
-    bool open = DrawAINode(node, isAncestor);
+    bool open = DrawAINode(spo, node, isAncestor);
     DrawNodeOptions(spo, context, node);
 
     if (open)

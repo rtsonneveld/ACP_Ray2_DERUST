@@ -15,13 +15,19 @@ struct HIE_tdstSuperObject;
 struct HIE_tdstEngineObject;
 enum AI_tdeDsgVarType;
 
+typedef long GAM_tdxObjectType;
+
 void InputBitField(const char* label, unsigned long* bitfield, const char* bitLabels[], int numItems);
 void InputMatrix(const char* label, MTH3D_tdstMatrix* matrix);
 void InputCompletePosition(const char* label, POS_tdstCompletePosition* position);
 
+
 void InputCollideMaterial(GMT_tdstCollideMaterial* mat);
 void InputGameMaterial(GMT_tdstGameMaterial* mat);
+void InputModelType(const char* label, GAM_tdxObjectType* modelType);
 void InputPerso(const char* label, HIE_tdstSuperObject** p_data);
 void InputPerso(const char* label, HIE_tdstEngineObject** p_data);
 void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type);
 void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId);
+
+void DrawStringCombo(const char* label, const char** items, int count, unsigned long* pValue);
