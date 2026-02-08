@@ -3,6 +3,8 @@
 extern "C" {
 #endif
 
+#define GLOBAL_BITS_ARRAYSIZE 45
+
 // BEWARE: these are 0-indexed offsets while the original scripts use 1-indexed offsets. So subtract 1 from the original script values.
 #define GB_FLAG_MEGASHOOT_HIBIT 961
 #define GB_FLAG_MEGASHOOT_LOBIT 962

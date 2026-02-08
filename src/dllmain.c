@@ -28,6 +28,7 @@
 #include "mod/globals.h"
 #include "mod/cheats.h"
 #include "mod/debugger.h"
+#include "mod/recording.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
 #include <time.h>
@@ -164,6 +165,9 @@ void MOD_fn_vInitGameLoop(void) {
 
 void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame) {
 
+
+	g_DR_currentMapFrameCount = 0;
+
 	if (DR_Settings_Get_DisableAutoSave()) {
 		return GAM_fn_vAskToChangeLevel(szLevelName, FALSE);
 	}
@@ -174,8 +178,15 @@ void MOD_fn_vChooseTheGoodInit() {
 
 	bool deadLoop = FALSE;
 
+	bool wasPaused = GAM_g_stEngineStructure->bEngineIsInPaused;
+
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeDeadLoop) {
 		deadLoop = TRUE;
+	}
+
+	// For consistent recording
+	if (GAM_g_stEngineStructure->eEngineMode != E_EM_ModeStartingProgram) {
+		MOD_fn_vComputeRandomTable();
 	}
 
 	GAM_fn_vChooseTheGoodInit();
@@ -183,6 +194,8 @@ void MOD_fn_vChooseTheGoodInit() {
 	if (deadLoop) {
 		DR_Cheats_LoadPosition();
 	}
+
+	GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused;
 }
 
 void MOD_fn_vChooseTheGoodDesInit() {
@@ -338,6 +351,11 @@ void MOD_fn_vEngine()
 	GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs = oldTickPerMs;
 
 	SetEvent(g_hFrameEvent);
+
+	if (!GAM_g_stEngineStructure->bEngineIsInPaused) {
+		g_DR_totalFrameCount++;
+		g_DR_currentMapFrameCount++;
+	}
 }
 
 void CALLBACK VersionDisplay(SPTXT_tdstTextInfo* p_stString) {
@@ -403,6 +421,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
+			FHK_fn_lCreateHook((void**)&IPT_fn_vEngineReadInput, (void*)MOD_fn_vEngineReadInput);
+			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)MOD_fn_vComputeRandomTable);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalKeyWord, (void*)MOD_fn_p_stEvalKeyWord_DisableMicroRNG);
