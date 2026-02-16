@@ -136,6 +136,7 @@ LRESULT CALLBACK MOD_fn_WndProc(
 }
 
 void MOD_fn_vDisplayAll(void) {
+
 	(*GLI_DRV_xSendListToViewport_)(&GAM_g_stEngineStructure->stViewportAttr);
 	if ( !GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport) )
 		return;
@@ -144,7 +145,10 @@ void MOD_fn_vDisplayAll(void) {
 	(*GLI_DRV_bEndScene_)();
 
 	ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
-	WaitForSingleObject(g_hFrameDoneCopying, 100);
+
+	if (DR_Recording_CurrentState() != DR_IR_State_Seeking) {
+		WaitForSingleObject(g_hFrameDoneCopying, 100);
+	}
 
 	ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);
 }
@@ -186,7 +190,7 @@ void MOD_fn_vChooseTheGoodInit() {
 
 	// For consistent recording
 	if (GAM_g_stEngineStructure->eEngineMode != E_EM_ModeStartingProgram) {
-		MOD_fn_vComputeRandomTable();
+		DR_Recording_HK_fn_vComputeRandomTable();
 	}
 
 	GAM_fn_vChooseTheGoodInit();
@@ -256,6 +260,11 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 
 	while (g_bRunning)
 	{
+		if (DR_Recording_CurrentState() == DR_IR_State_Seeking) {
+
+			ReleaseSemaphore(g_hFrameDoneCopying, 1, NULL);
+			continue;
+		}
 		// Wait until the game loop signals a new frame
 		WaitForSingleObject(g_hFrameEvent, 500);
 
@@ -421,8 +430,6 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 
 			FHK_fn_lCreateHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);
-			FHK_fn_lCreateHook((void**)&IPT_fn_vEngineReadInput, (void*)MOD_fn_vEngineReadInput);
-			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)MOD_fn_vComputeRandomTable);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalTree, (void*)MOD_fn_p_stEvalTree_Debugger);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalCondition, (void*)MOD_fn_p_stEvalCondition_DistanceCheck);
 			FHK_fn_lCreateHook((void**)&AI_fn_p_stEvalKeyWord, (void*)MOD_fn_p_stEvalKeyWord_DisableMicroRNG);
@@ -439,6 +446,16 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
+
+			// Recording
+			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
+			FHK_fn_lCreateHook((void**)&IPT_fn_vEngineReadInput, (void*)DR_Recording_HK_fn_vEngineReadInput);
+			FHK_fn_lCreateHook((void**)&SCT_fn_lSendSectorToViewportStatic, (void*)DR_Recording_HK_fn_lSendSectorToViewportStatic);
+			FHK_fn_lCreateHook((void**)&HIE_fn_vSendCharacterModulesToViewPort, (void*)DR_Recording_HK_fn_vSendCharacterModulesToViewPort);
+			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)DR_Recording_HK_fn_vComputeRandomTable);
+			FHK_fn_lCreateHook((void**)&SND_fn_vSynchroSound, (void*)DR_Recording_HK_fn_vSynchroSound);
+			FHK_fn_lCreateHook((void**)&SND_fn_lSendRequestSound, (void*)DR_Recording_HK_fn_lSendRequestSound);
+			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)DR_Recording_HK_fn_vComputeRandomTable);
 
 			HMODULE user32 = GetModuleHandleW(L"user32.dll");
 			if (!user32) return;

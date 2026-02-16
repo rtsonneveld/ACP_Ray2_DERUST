@@ -1,4 +1,4 @@
-#include "playback.hpp"
+﻿#include "playback.hpp"
 #include "ui/ui.hpp"
 #include "ui/settings.hpp"
 
@@ -24,10 +24,15 @@ void DR_DLG_Playback_Draw() {
     switch(state) {
       case DR_IR_State_Idle:
         
-        if (ImGui::Button("Start recording")) {
+        if (ImGui::Button("Start Recording")) {
           DR_Recording_Start();
         }
         ImGui::SameLine();
+        if (ImGui::Button("Start Playback")) {
+          DR_Recording_StartPlayback();
+        }
+        ImGui::SameLine();
+
 
         break;
       case DR_IR_State_Recording:
@@ -64,6 +69,48 @@ void DR_DLG_Playback_Draw() {
         g_DR_Playback.pause = true;
       }
 
+    }
+
+    switch (DR_Recording_CurrentState()) {
+      case DR_IR_State_Idle:           ImGui::Text("Idle"); break;
+      case DR_IR_State_Playback:       ImGui::Text("Playback"); break;
+      case DR_IR_State_Recording:      ImGui::Text("Recording"); break;
+      case DR_IR_State_Seeking:        ImGui::Text("Seeking"); break;
+      case DR_IR_State_StartPlayback:  ImGui::Text("Start Playback"); break;
+      case DR_IR_State_StartRecording: ImGui::Text("Start Recording"); break;
+      case DR_IR_State_StartSeeking:   ImGui::Text("Start Seeking"); break;
+    }
+    
+    ImGui::SameLine();
+
+    ImGui::Text("Frame %u/%u", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames);
+    ImGui::SameLine();
+
+    // Desync warning indicator
+    if (DR_recording_desync != 0.0f) {
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+
+      ImGui::Text("Desync: %f", DR_recording_desync);
+    }
+    else {
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+
+      ImGui::Text("No desync", DR_recording_desync);
+    }
+    ImGui::PopStyleColor();
+
+    unsigned long targetFrame = DR_recording.ulCurrentFrame;
+    unsigned long minFrame = 0;
+
+
+    if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge) && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Strafe)) { // F6
+      DR_Recording_SeekTo(targetFrame - 60);
+    }
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
+    if (ImGui::SliderScalar("##PlaybackSeek", ImGuiDataType_U32, &targetFrame, &minFrame, &DR_recording.ulNumFrames, "", ImGuiSliderFlags_AlwaysClamp)) {
+      DR_Recording_SeekTo(targetFrame);
     }
   }
   ImGui::End();

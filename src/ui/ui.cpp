@@ -119,6 +119,8 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 	io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+	io->Fonts->AddFontDefaultVector();
+
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 

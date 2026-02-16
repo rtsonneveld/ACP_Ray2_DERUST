@@ -9,7 +9,7 @@ void DR_DLG_EngineGlobals_Draw() {
 
   if (!g_DR_settings.dlg_engineglobals) return;
 
-  if (ImGui::Begin("Globals", &g_DR_settings.dlg_playback, ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Globals", &g_DR_settings.dlg_engineglobals, ImGuiWindowFlags_NoCollapse)) {
 
     ImGui::Text("(DR) Total frames: %lu", g_DR_totalFrameCount);
     ImGui::Text("(DR) Current map frames: %lu", g_DR_currentMapFrameCount);

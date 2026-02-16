@@ -250,6 +250,10 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
 
     if (sector->bVirtual && !g_DR_settings.opt_drawVirtualSectors) return;
 
+    if (GAM_g_stEngineStructure->g_hMainActor == NULL) {
+      return;
+    }
+
     auto currentSector = GAM_g_stEngineStructure->g_hMainActor->hLinkedObject.p_stActor->hSectInfo->hCurrentSector->hLinkedObject.p_stSector;
 
     activeSector = false;

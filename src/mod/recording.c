@@ -1,8 +1,13 @@
 #include "recording.h"
 #include "globals.h"
+#include "util.h"
+#include "dsgvarnames.h"
 
 DR_InputRecording DR_recording = { 0 };
 DR_InputRecording_State DR_recording_state = DR_IR_State_Idle;
+DR_InputRecording_State DR_recording_stateAfterSeek;
+unsigned long DR_recording_seekTarget = 0;
+float DR_recording_desync = 0.0f;
 
 void DR_Recording_ResetInputStructure() {
   
@@ -31,7 +36,13 @@ void DR_Recording_ResetInputStructure() {
 }
 
 void DR_Recording_ReloadTheMap() {
+  GAM_fn_vReinitTheMap(); // Resets a bunch of stuff including the camera
   MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
+
+  // Completely reset the camera to avoid desyncs
+  CAM_fn_vInitCompleteCineinfo(GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stCharacter->hCineInfo);
+  CAM_fn_vSetCineinfoWorkFromCurrent(GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stCharacter->hCineInfo);
+  //CAM_fn_vForceBestPosition(GAM_g_stEngineStructure->g_hStdCamCharacter);
 }
 
 void DR_Recording_Cleanup() {
@@ -50,78 +61,83 @@ void DR_Recording_Cleanup() {
   DR_recording.ulCurrentFrame = 0;
 }
 
-// Hooked functions
+void DR_Recording_SaveProgress() {
 
-void MOD_fn_vComputeRandomTable() {
+  // Prevent progress being frozen by cheat
+  g_DR_Cheats_FreezeProgress = FALSE;
+  tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
 
-  if (DR_recording_state != DR_IR_State_Recording &&
-      DR_recording_state != DR_IR_State_Playback) {
-    return RND_fn_vComputeRandomTable();
+  if (array) {
+
+    for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
+
+      if (i >= array->ucMaxSize) break;
+
+      DR_recording.savedProgress[i] = array->d_ArrayElement[i].ulValue;
+    }
   }
 
-  // TODO: programmable random seed?
-  srand(0); // Consistent seed when recording/playbacking
-
-  RND_g_stRandomStructure->ulMaxValueInTable = 0;
-  for (long i = 0;i < RND_g_stRandomStructure->ulSizeOfTable;i++)
-  {
-    RND_g_stRandomStructure->p_ulTable[i] = rand();
-  }
-  RND_fn_vRemapRandomTable();
+  DR_recording.hitPoints = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPoints;
+  DR_recording.hitPointsMax = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMax;
+  DR_recording.hitPointsMaxMax = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMaxMax;
 }
 
-void MOD_fn_vEngineReadInput()
-{
+void DR_Recording_LoadProgress() {
+  
+  // Prevent progress being frozen by cheat
+  g_DR_Cheats_FreezeProgress = FALSE;
 
-  switch(DR_recording_state) {
-    case DR_IR_State_Recording:
+  tdstDsgVarArray* array = ACT_DsgVarPtr(g_DR_global->hLinkedObject.p_stActor, DV_GLOBAL_GLOBAL_Bits);
 
-      if (GAM_g_stEngineStructure->bEngineIsInPaused) {
-        return;
-      }
+  if (array) {
 
-      IPT_fn_vEngineReadInput();
-      DR_Recording_RecordFrame();
-      break;
-    case DR_IR_State_Playback:
+    for (int i = 0;i < GLOBAL_BITS_ARRAYSIZE;i++) {
 
-      if (GAM_g_stEngineStructure->bEngineIsInPaused) {
-        return;
-      }
+      if (i >= array->ucMaxSize) break;
 
-      DR_Recording_PlayBackFrame();
-      break;
-    case DR_IR_State_StartRecording:
-
-      DR_Recording_Cleanup();
-      DR_Recording_ResetInputStructure();
-
-      g_DR_Cheats_FreezeProgress = FALSE;
-      DR_Cheats_SaveProgress();
-
-      DR_Recording_ReloadTheMap();
-
-      DR_recording_state = DR_IR_State_Recording;
-
-      break;
-    case DR_IR_State_StartPlayback:
-
-      DR_Recording_ResetInputStructure();
-
-      DR_recording.ulCurrentFrame = 0;
-      DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
-
-      DR_Cheats_LoadProgress();
-      DR_Recording_ReloadTheMap();
-
-      DR_recording_state = DR_IR_State_Playback;
-
-      break;
-    case DR_IR_State_Idle:
-
-      IPT_fn_vEngineReadInput(); 
-      break;
+      array->d_ArrayElement[i].ulValue = DR_recording.savedProgress[i];
+    }
   }
+
+  g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPoints = DR_recording.hitPoints;
+  g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMax = DR_recording.hitPointsMax;
+  g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMaxMax = DR_recording.hitPointsMaxMax;
+}
+
+void DR_Recording_SeekTo(unsigned long frameNum) {
+
+  if (DR_recording_state == DR_IR_State_Idle) {
+    DR_recording_state = DR_IR_State_Playback;
+  } else if (DR_recording_state != DR_IR_State_Playback && DR_recording_state != DR_IR_State_Recording) {
+    return;
+  }
+
+  if (frameNum < 0) {
+    frameNum = 0;
+  }
+  if (frameNum >= DR_recording.ulNumFrames) {
+    frameNum = DR_recording.ulNumFrames - 1;
+  }
+
+  // When recording and seeking, erase part of the recording that comes after
+  if (DR_recording_state == DR_IR_State_Recording) {
+    DR_recording.ulNumFrames = frameNum + 1;
+
+    DR_InputRecordingFrame* frame = DR_recording.pFirstFrame;
+     
+    for (int i = 0;i <= frameNum;i++) {
+      frame = frame->pNextFrame;
+    }
+    
+    DR_recording.pCurrentFrame = frame;
+    DR_recording.pLastFrame = frame;
+    frame->pNextFrame = NULL;
+  }
+
+  DR_recording_seekTarget = frameNum;
+  DR_recording_stateAfterSeek = DR_recording_state;
+  DR_recording_state = DR_IR_State_StartSeeking;
+
 }
 
 DR_InputRecording_State DR_Recording_CurrentState()
@@ -140,12 +156,12 @@ void DR_Recording_Start() {
 
 void DR_Recording_PlayBackFrame() {
 
-  if (DR_recording_state != DR_IR_State_Playback) {
+  if (DR_recording_state != DR_IR_State_Playback && DR_recording_state != DR_IR_State_Seeking) {
     return;
   }
 
   GAM_g_stEngineStructure->stEngineTimer = DR_recording.pCurrentFrame->stEngineTimer;
-  *GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix = DR_recording.pCurrentFrame->stCameraPos;
+  *GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix = DR_recording.pCurrentFrame->stCameraPos; // Ideally not needed
 
   for(int i=0;i< IPT_g_stInputStructure->ulNumberOfEntryElement;i++) {
 
@@ -161,13 +177,19 @@ void DR_Recording_PlayBackFrame() {
   float diffX = (DR_recording.pCurrentFrame->stRaymanPosition.x - g_DR_rayman->p_stGlobalMatrix->stPos.x);
   float diffY = (DR_recording.pCurrentFrame->stRaymanPosition.y - g_DR_rayman->p_stGlobalMatrix->stPos.y);
   float diffZ = (DR_recording.pCurrentFrame->stRaymanPosition.z - g_DR_rayman->p_stGlobalMatrix->stPos.z);
-  float desync = diffX * diffX + diffY * diffY + diffZ * diffZ;
 
-  printf("Playback frame %i: x:%f, y:%f\n", DR_recording.ulCurrentFrame, DR_recording.pCurrentFrame->a_stEntries[0].xAnalogicValue, DR_recording.pCurrentFrame->a_stEntries[1].xAnalogicValue);
+  float camDiffX = (DR_recording.pCurrentFrame->stCameraPos.stPos.x - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.x);
+  float camDiffY = (DR_recording.pCurrentFrame->stCameraPos.stPos.y - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.y);
+  float camDiffZ = (DR_recording.pCurrentFrame->stCameraPos.stPos.z - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.z);
 
-  printf("Playback frame %lu/%lu, desync=%f\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, desync);
+  float dist = (diffX * diffX + diffY * diffY + diffZ * diffZ);
+  float camDist = (camDiffX * camDiffX + camDiffY * camDiffY + camDiffZ * camDiffZ);
 
-  DR_recording.ulCurrentFrame++;
+  DR_recording_desync = dist + camDist;
+  
+  //printf("Playback frame %lu/%lu, desync=%f\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, DR_recording_desync);
+
+  DR_recording.ulCurrentFrame++; 
   DR_recording.pCurrentFrame = DR_recording.pCurrentFrame->pNextFrame;
 
   // Stop playback when reaching the end
@@ -191,10 +213,6 @@ void DR_Recording_RecordFrame() {
   newFrame->stCameraPos = *GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix;
   newFrame->stEngineTimer = GAM_g_stEngineStructure->stEngineTimer;
 
-  if (DR_recording.ulCurrentFrame == 0) {
-    DR_recording.startingCameraPosition = GAM_g_stEngineStructure->stMainCameraPosition;
-  }
-
   for (int i = 0;i < IPT_g_stInputStructure->ulNumberOfEntryElement;i++) {
 
     if (i >= DR_RECORDING_MAX_ENTRIES) {
@@ -206,7 +224,7 @@ void DR_Recording_RecordFrame() {
 
   }
   
-  printf("Recording frame %i: x:%f, y:%f\n", DR_recording.ulCurrentFrame, newFrame->a_stEntries[0].xAnalogicValue, newFrame->a_stEntries[1].xAnalogicValue);
+  //printf("Recording frame %i: x:%f, y:%f\n", DR_recording.ulCurrentFrame, newFrame->a_stEntries[0].xAnalogicValue, newFrame->a_stEntries[1].xAnalogicValue);
 
   if (DR_recording.pFirstFrame == NULL) {
     DR_recording.pFirstFrame = newFrame;
@@ -237,4 +255,163 @@ void DR_Recording_Stop() {
 
   // Start playback immediately after stopping recording
   DR_recording_state = DR_IR_State_StartPlayback;
+}
+
+void DR_Recording_StartPlayback() {
+
+  DR_recording_state = DR_IR_State_StartPlayback;
+}
+
+// Hooked (HK) functions
+
+void DR_Recording_HK_fn_vComputeRandomTable() {
+
+  if (DR_recording_state != DR_IR_State_Recording &&
+    DR_recording_state != DR_IR_State_Playback &&
+    DR_recording_state != DR_IR_State_Seeking) {
+
+    printf("Regular random table computation\n");
+
+    return RND_fn_vComputeRandomTable();
+  }
+
+  printf("Predictable random table computation\n");
+
+  // Consistent seed when recording/playbacking
+  // TODO: programmable random seed?
+  srand(0);
+
+  RND_g_stRandomStructure->ulMaxValueInTable = 0;
+  for (long i = 0;i < RND_g_stRandomStructure->ulSizeOfTable;i++)
+  {
+    RND_g_stRandomStructure->p_ulTable[i] = rand();
+  }
+  RND_fn_vRemapRandomTable();
+}
+
+BOOL DR_Recording_HK_bFlipDeviceWithSynchro() {
+  if (DR_recording_state == DR_IR_State_Seeking) {
+    // When seeking, skip this synchronisation
+    return TRUE;
+  }
+
+  return GLD_bFlipDeviceWithSynchro();
+}
+
+long DR_Recording_HK_fn_lSendSectorToViewportStatic(MTH3D_tdstVector* _p_stAbsolutePositionOfCamera, GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask) {
+
+  if (DR_recording_state == DR_IR_State_Seeking) {
+    // When seeking, always return a "culling result" of 1
+    return 1;
+  }
+  return SCT_fn_lSendSectorToViewportStatic(_p_stAbsolutePositionOfCamera, _p_stVpt, _hSprObjSector, _lDrawMask);
+}
+
+void DR_Recording_HK_fn_vSendCharacterModulesToViewPort(GLD_tdstViewportAttributes* _hVpt, HIE_tdstSuperObject* _hSprObj, long _DrawMask) {
+
+  if (DR_recording_state == DR_IR_State_Seeking) {
+    // When seeking, don't bother sending character graphics to the viewport
+    return;
+  }
+  return HIE_fn_vSendCharacterModulesToViewPort(_hVpt, _hSprObj, _DrawMask);
+}
+
+long DR_Recording_HK_fn_lSendRequestSound(long lIndice, long lType, SND_tduRefEvt uEvt, long lPrio, SND_td_pfn_vSoundCallback pfnProc) {
+  
+  if (DR_recording_state == DR_IR_State_Seeking) {
+    // When seeking, don't bother playing sounds
+    return -2;
+  }
+
+  return SND_fn_lSendRequestSound(lIndice, lType, uEvt, lPrio, pfnProc);
+}
+
+void DR_Recording_HK_fn_vSynchroSound() {
+
+  if (DR_recording_state == DR_IR_State_Seeking) {
+    // When seeking, don't bother playing sounds
+    return;
+  }
+
+  return SND_fn_vSynchroSound();
+}
+
+void DR_Recording_HK_fn_vEngineReadInput()
+{
+  // Main function for recording and replaying
+
+  switch (DR_recording_state) {
+  case DR_IR_State_Recording:
+
+    if (GAM_g_stEngineStructure->bEngineIsInPaused) {
+      return;
+    }
+
+    if (DR_recording.ulCurrentFrame == 0) {
+      DR_Recording_SaveProgress();
+    }
+
+    IPT_fn_vEngineReadInput();
+    DR_Recording_RecordFrame();
+    break;
+  case DR_IR_State_Seeking:
+
+    DR_Recording_PlayBackFrame();
+
+    if (DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
+      DR_recording_state = DR_recording_stateAfterSeek;
+    }
+
+    break;
+  case DR_IR_State_StartSeeking:
+
+    DR_Recording_ResetInputStructure();
+
+    DR_recording.ulCurrentFrame = 0;
+    DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
+
+    DR_Recording_LoadProgress();
+    DR_Recording_ReloadTheMap();
+
+    DR_recording_state = DR_IR_State_Seeking;
+
+    break;
+  case DR_IR_State_Playback:
+
+    if (GAM_g_stEngineStructure->bEngineIsInPaused) {
+      return;
+    }
+
+    DR_Recording_PlayBackFrame();
+    break;
+  case DR_IR_State_StartRecording:
+
+    DR_Recording_Cleanup();
+    DR_Recording_ResetInputStructure();
+
+    g_DR_Cheats_FreezeProgress = FALSE;
+
+    DR_Recording_ReloadTheMap();
+
+    DR_recording_state = DR_IR_State_Recording;
+
+    break;
+  case DR_IR_State_StartPlayback:
+
+    DR_Recording_ResetInputStructure();
+
+    DR_recording.ulCurrentFrame = 0;
+    DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
+
+    DR_Recording_LoadProgress();
+    DR_Recording_ReloadTheMap();
+
+    DR_recording_state = DR_IR_State_Playback;
+
+    break;
+  case DR_IR_State_Idle:
+
+    IPT_fn_vEngineReadInput();
+    break;
+  }
 }
