@@ -148,6 +148,7 @@ void MOD_fn_vDisplayAll(void) {
 
 	if (DR_Recording_CurrentState() != DR_IR_State_Seeking) {
 		WaitForSingleObject(g_hFrameDoneCopying, 100);
+		WaitForSingleObject(g_hFrameEvent, 1); // This fixes random black/incomplete frames?!
 	}
 
 	ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);

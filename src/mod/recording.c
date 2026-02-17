@@ -119,19 +119,44 @@ void DR_Recording_SeekTo(unsigned long frameNum) {
     frameNum = DR_recording.ulNumFrames - 1;
   }
 
-  // When recording and seeking, erase part of the recording that comes after
+  /* If recording, truncate tail so new length == frameNum */
   if (DR_recording_state == DR_IR_State_Recording) {
-    DR_recording.ulNumFrames = frameNum + 1;
 
-    DR_InputRecordingFrame* frame = DR_recording.pFirstFrame;
-     
-    for (int i = 0;i <= frameNum;i++) {
-      frame = frame->pNextFrame;
+    /* If keeping everything, nothing to truncate */
+    if (frameNum < DR_recording.ulNumFrames) {
+
+      DR_InputRecordingFrame* cur = DR_recording.pFirstFrame;
+      DR_InputRecordingFrame* prev = NULL;
+      unsigned long i = 0;
+
+      /* Walk to first frame that should be removed */
+      while (cur && i < frameNum) {
+        prev = cur;
+        cur = cur->pNextFrame;
+        i++;
+      }
+
+      /* Detach list */
+      if (prev) {
+        prev->pNextFrame = NULL;
+      }
+      else {
+        /* Removing entire list */
+        DR_recording.pFirstFrame = NULL;
+      }
+
+      /* Free removed tail */
+      while (cur) {
+        DR_InputRecordingFrame* next = cur->pNextFrame;
+        free(cur);
+        cur = next;
+      }
+
+      /* Update metadata */
+      DR_recording.ulNumFrames = frameNum;
+      DR_recording.pLastFrame = prev;
+      DR_recording.pCurrentFrame = prev;
     }
-    
-    DR_recording.pCurrentFrame = frame;
-    DR_recording.pLastFrame = frame;
-    frame->pNextFrame = NULL;
   }
 
   DR_recording_seekTarget = frameNum;
@@ -154,10 +179,11 @@ void DR_Recording_Start() {
   DR_recording_state = DR_IR_State_StartRecording;
 }
 
-void DR_Recording_PlayBackFrame() {
+// Attempts to playback the current frame, returns false if there are no more frames to play or if not in the correct state
+BOOL DR_Recording_PlayBackFrame() {
 
   if (DR_recording_state != DR_IR_State_Playback && DR_recording_state != DR_IR_State_Seeking) {
-    return;
+    return FALSE;
   }
 
   GAM_g_stEngineStructure->stEngineTimer = DR_recording.pCurrentFrame->stEngineTimer;
@@ -189,16 +215,13 @@ void DR_Recording_PlayBackFrame() {
   
   //printf("Playback frame %lu/%lu, desync=%f\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, DR_recording_desync);
 
-  DR_recording.ulCurrentFrame++; 
-  DR_recording.pCurrentFrame = DR_recording.pCurrentFrame->pNextFrame;
-
-  // Stop playback when reaching the end
-  if (DR_recording.pCurrentFrame == NULL) {
-
-    DR_recording.ulCurrentFrame = 0;
-    DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
-    DR_recording_state = DR_IR_State_Idle;
+  if (DR_recording.pCurrentFrame->pNextFrame != NULL) {
+    DR_recording.ulCurrentFrame++;
+    DR_recording.pCurrentFrame = DR_recording.pCurrentFrame->pNextFrame;
+    return TRUE;
   }
+
+  return FALSE; // This is the end
 }
 
 void DR_Recording_RecordFrame() {
@@ -356,7 +379,9 @@ void DR_Recording_HK_fn_vEngineReadInput()
     break;
   case DR_IR_State_Seeking:
 
-    DR_Recording_PlayBackFrame();
+    if (!DR_Recording_PlayBackFrame()) {
+      DR_recording_state = DR_recording_stateAfterSeek;
+    }
 
     if (DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
       DR_recording_state = DR_recording_stateAfterSeek;
@@ -382,7 +407,11 @@ void DR_Recording_HK_fn_vEngineReadInput()
       return;
     }
 
-    DR_Recording_PlayBackFrame();
+    // Attempt to playback a frame, if there are no more frames to playback then stop
+    if (!DR_Recording_PlayBackFrame()) {
+      DR_recording_state = DR_IR_State_Idle;
+    }
+
     break;
   case DR_IR_State_StartRecording:
 

@@ -103,7 +103,7 @@ void DR_DLG_Playback_Draw() {
     unsigned long minFrame = 0;
 
 
-    if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge) && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Strafe)) { // F6
+    if (DR_Recording_CurrentState() == DR_IR_State_Recording && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge) && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Strafe)) { // F6
       DR_Recording_SeekTo(targetFrame - 60);
     }
 

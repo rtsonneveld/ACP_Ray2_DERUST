@@ -50,7 +50,7 @@ DR_InputRecording_State DR_Recording_CurrentState();
 void DR_Recording_Start();
 void DR_Recording_RecordFrame();
 void DR_Recording_StopPlayback();
-void DR_Recording_PlayBackFrame();
+BOOL DR_Recording_PlayBackFrame();
 void DR_Recording_SeekTo(unsigned long frameNum);
 void DR_Recording_Stop();
 void DR_Recording_StartPlayback();
