@@ -32,6 +32,7 @@ typedef struct DR_InputRecordingFrame {
 } DR_InputRecordingFrame;
 
 typedef struct DR_InputRecording {
+  char firstLevelName[MAX_NAME_LEVEL];
   DR_InputRecordingFrame* pFirstFrame;
   DR_InputRecordingFrame* pLastFrame;
   unsigned long ulNumFrames;

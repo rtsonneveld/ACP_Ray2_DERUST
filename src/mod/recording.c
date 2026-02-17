@@ -36,6 +36,10 @@ void DR_Recording_ResetInputStructure() {
 }
 
 void DR_Recording_ReloadTheMap() {
+
+  const char* src = GAM_fn_p_szGetLevelName();
+  memcpy(GAM_g_stEngineStructure->szLevelName, DR_recording.firstLevelName, sizeof(GAM_g_stEngineStructure->szLevelName) - 1);
+
   GAM_fn_vReinitTheMap(); // Resets a bunch of stuff including the camera
   MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
 
@@ -59,6 +63,7 @@ void DR_Recording_Cleanup() {
   DR_recording.pCurrentFrame = NULL;
   DR_recording.ulNumFrames = 0;
   DR_recording.ulCurrentFrame = 0;
+  DR_recording.firstLevelName[0] = '\0';
 }
 
 void DR_Recording_SaveProgress() {
@@ -419,6 +424,8 @@ void DR_Recording_HK_fn_vEngineReadInput()
     DR_Recording_ResetInputStructure();
 
     g_DR_Cheats_FreezeProgress = FALSE;
+
+    memcpy(DR_recording.firstLevelName, GAM_g_stEngineStructure->szLevelName, sizeof(DR_recording.firstLevelName)-1);
 
     DR_Recording_ReloadTheMap();
 
