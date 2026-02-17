@@ -1,4 +1,4 @@
-#include "recordingfile.h"
+﻿#include "recordingfile.h"
 
 #include "recording.h"
 #include <stdio.h>
@@ -75,27 +75,43 @@ int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
     fwrite(&frame->stCameraPos, sizeof(frame->stCameraPos), 1, f);
     fwrite(&frame->stEngineTimer, sizeof(frame->stEngineTimer), 1, f);
 
-    /* ---- lState delta compression ---- */
+    /* store only actual press/release events */
+
+    uint8_t eventMask[(DR_RECORDING_MAX_ENTRIES + 7) / 8] = { 0 };
+    int8_t  events[DR_RECORDING_MAX_ENTRIES];
+    int     eventCount = 0;
+
+    /* Detect transitions */
     for (int i = 0; i < DR_RECORDING_MAX_ENTRIES; i++)
     {
-      signed long delta =
-        frame->a_stEntries[i].lState - prevStates[i];
+      signed long current = frame->a_stEntries[i].lState;
+      signed long prev = prevStates[i];
 
-      if (delta >= -127 && delta <= 127)
+      int8_t event = 0;
+
+      if (prev <= 0 && current > 0)
+        event = 1;      /* pressed */
+      else if (prev >= 0 && current < 0)
+        event = -1;     /* released */
+
+      if (event != 0)
       {
-        write_u8(f, (uint8_t)(delta & 0xFF));
-      }
-      else
-      {
-        write_u8(f, 0x80); /* escape */
-        fwrite(&frame->a_stEntries[i].lState,
-          sizeof(signed long), 1, f);
+        eventMask[i / 8] |= (1 << (i % 8));
+        events[eventCount++] = event;
       }
 
-      prevStates[i] = frame->a_stEntries[i].lState;
+      prevStates[i] = current;
     }
 
-    /* ---- analog bitmask ---- */
+    /* Write mask */
+    fwrite(eventMask, sizeof(eventMask), 1, f);
+
+    /* Write only actual events */
+    for (int i = 0; i < eventCount; i++)
+      write_u8(f, (uint8_t)events[i]);
+
+
+    /* analog bitmask */
     uint8_t analogMask[(DR_RECORDING_MAX_ENTRIES + 7) / 8] = { 0 };
 
     for (int i = 0; i < DR_RECORDING_MAX_ENTRIES; i++)
@@ -191,25 +207,36 @@ int DR_RecordingFile_Load(const char* filename, DR_InputRecording* rec)
         fread(&frame->stEngineTimer,
           sizeof(frame->stEngineTimer), 1, f);
 
-        /* lState delta restore */
+        /* restore lState from sparse press/release events */
+
+        uint8_t eventMask[(DR_RECORDING_MAX_ENTRIES + 7) / 8];
+        fread(eventMask, sizeof(eventMask), 1, f);
+
         for (int i = 0; i < DR_RECORDING_MAX_ENTRIES; i++)
         {
-          uint8_t b = read_u8(f);
+          signed long state = prevStates[i];
 
-          if (b == 0x80)
+          if (eventMask[i / 8] & (1 << (i % 8)))
           {
-            fread(&frame->a_stEntries[i].lState,
-              sizeof(signed long), 1, f);
+            /* Read event only if bit is set */
+            int8_t event = (int8_t)read_u8(f);
+
+            if (event == 1)
+              state = 1;      /* pressed */
+            else
+              state = -1;     /* released */
           }
           else
           {
-            int8_t delta = (int8_t)b;
-            frame->a_stEntries[i].lState =
-              prevStates[i] + delta;
+            /* No event → continue counting */
+            if (state > 0)
+              state++;
+            else
+              state--;
           }
 
-          prevStates[i] =
-            frame->a_stEntries[i].lState;
+          frame->a_stEntries[i].lState = state;
+          prevStates[i] = state;
         }
 
         /* analog mask */
