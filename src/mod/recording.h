@@ -56,6 +56,9 @@ void DR_Recording_SeekTo(unsigned long frameNum);
 void DR_Recording_Stop();
 void DR_Recording_StartPlayback();
 
+void DR_Recording_Save();
+void DR_Recording_Load();
+
 // Hooked functions
 void DR_Recording_HK_fn_vComputeRandomTable();
 BOOL DR_Recording_HK_bFlipDeviceWithSynchro();

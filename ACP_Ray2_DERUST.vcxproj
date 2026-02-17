@@ -62,6 +62,7 @@
       <PreprocessToFile>false</PreprocessToFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ShowIncludes>false</ShowIncludes>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,6 +135,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\cheats.h" />
     <ClInclude Include="src\mod\debugger.h" />
     <ClInclude Include="src\mod\recording.h" />
+    <ClInclude Include="src\mod\recordingfile.h" />
     <ClInclude Include="src\mod\savestates.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
@@ -488,6 +490,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mod\cheats.c" />
     <ClCompile Include="src\mod\debugger.c" />
     <ClCompile Include="src\mod\recording.c" />
+    <ClCompile Include="src\mod\recordingfile.c" />
     <ClCompile Include="src\mod\savestates.c" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />

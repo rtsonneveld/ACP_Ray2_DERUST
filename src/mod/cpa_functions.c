@@ -41,7 +41,7 @@ HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType)
 	struct HIE_tdstFamilyList* p_stThisFamily;
 	long i;
 
-	LST_M_DynamicForEach(&GAM_g_stEngineStructure->hFamilyList, p_stThisFamily, i)
+	LST_M_DynamicForEachIndex(&GAM_g_stEngineStructure->hFamilyList, p_stThisFamily, i)
 	{
 		if (p_stThisFamily->lObjectFamilyType == otFamilyType)
 			return(p_stThisFamily);

@@ -1,4 +1,5 @@
 #include "recording.h"
+#include "recordingfile.h"
 #include "globals.h"
 #include "util.h"
 #include "dsgvarnames.h"
@@ -288,6 +289,14 @@ void DR_Recording_Stop() {
 void DR_Recording_StartPlayback() {
 
   DR_recording_state = DR_IR_State_StartPlayback;
+}
+
+void DR_Recording_Save() {
+  DR_RecordingFile_Save("recording.bin", &DR_recording);
+}
+
+void DR_Recording_Load() {
+  DR_RecordingFile_Load("recording.bin", &DR_recording);
 }
 
 // Hooked (HK) functions

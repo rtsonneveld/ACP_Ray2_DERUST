@@ -64,11 +64,22 @@ void DR_DLG_Playback_Draw() {
         g_DR_Playback.unpause = true;
         g_DR_Playback.framestep = true;
       }
+
+      ImGui::SameLine();
     } else {
       if (ImGui::Button("Pause (F5)") || IPT_M_bActionJustValidated(IPT_E_Entry_StartStopStep)) {
         g_DR_Playback.pause = true;
       }
 
+      ImGui::SameLine();
+    }
+
+    if (ImGui::Button("Save Recording")) {
+      DR_Recording_Save();
+    }
+
+    if (ImGui::Button("Load Recording")) {
+      DR_Recording_Load();
     }
 
     switch (DR_Recording_CurrentState()) {
