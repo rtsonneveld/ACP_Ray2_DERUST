@@ -37,6 +37,7 @@ typedef struct DR_InputRecording {
   DR_InputRecordingFrame* pLastFrame;
   unsigned long ulNumFrames;
   unsigned long ulCurrentFrame;
+  unsigned long ulSeed;
   unsigned int savedProgress[GLOBAL_BITS_ARRAYSIZE];
   unsigned char hitPoints;
   unsigned char hitPointsMax;
@@ -61,6 +62,7 @@ void DR_Recording_Load();
 
 // Hooked functions
 void DR_Recording_HK_fn_vComputeRandomTable();
+void DR_Recording_HK_fn_vActualizeEngineClock();
 BOOL DR_Recording_HK_bFlipDeviceWithSynchro();
 long DR_Recording_HK_fn_lSendSectorToViewportStatic(MTH3D_tdstVector* _p_stAbsolutePositionOfCamera, GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask);
 void DR_Recording_HK_fn_vSendCharacterModulesToViewPort(GLD_tdstViewportAttributes* _hVpt, HIE_tdstSuperObject* _hSprObj, long _DrawMask);

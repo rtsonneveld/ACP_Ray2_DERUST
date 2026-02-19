@@ -134,6 +134,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\ai_strings.h" />
     <ClInclude Include="src\mod\cheats.h" />
     <ClInclude Include="src\mod\debugger.h" />
+    <ClInclude Include="src\mod\randutil.h" />
     <ClInclude Include="src\mod\recording.h" />
     <ClInclude Include="src\mod\recordingfile.h" />
     <ClInclude Include="src\mod\savestates.h" />

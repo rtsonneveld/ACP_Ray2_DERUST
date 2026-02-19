@@ -284,29 +284,35 @@ void MOD_fn_vEngine()
 	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
 		DR_DistanceChecks_Update();
 	}
-	
-	int oldTickPerMs = GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs;
-	if (IPT_M_bActionIsValidated(IPT_E_Entry_DisplayRaster)) { // F10
 
-		GAM_g_stEngineStructure->stEngineTimer.ulUsefulDeltaTime *= 4;
-		GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs /= 4;
-	}
+	// Main Engine Loop
+	{
+		BOOL wasPaused = GAM_g_stEngineStructure->bEngineIsInPaused;
+		
+		// When seeking, the engine is not paused
+		if (DR_Recording_CurrentState() == DR_IR_State_Seeking) {
+			GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
+		}
 
-	if (DR_Settings_Get_TryCatchExceptions()) {
-		__try {
+		if (DR_Settings_Get_TryCatchExceptions()) {
+			__try {
+				GAM_fn_vEngine();
+			}
+			__except (LogExceptionFilter(GetExceptionInformation())) {
+				__debugbreak();
+
+				g_DR_Playback.pause = TRUE;
+				g_DR_debuggerEnableBreakpoints = TRUE;
+				g_DR_debuggerPaused = TRUE;
+
+				DR_Debugger_SelectObjectAndComport(g_DR_debuggerContextSPO, g_DR_debuggerInstructionPtr);
+			}
+		}
+		else {
 			GAM_fn_vEngine();
 		}
-		__except (LogExceptionFilter(GetExceptionInformation())) {
-			__debugbreak();
 
-			g_DR_Playback.pause = TRUE;
-			g_DR_debuggerEnableBreakpoints = TRUE;
-			g_DR_debuggerPaused = TRUE;
-
-			DR_Debugger_SelectObjectAndComport(g_DR_debuggerContextSPO, g_DR_debuggerInstructionPtr);
-		}
-	}	else {
-		GAM_fn_vEngine();
+		GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused;
 	}
 
 	if (g_DR_Playback.pause) {
@@ -314,16 +320,22 @@ void MOD_fn_vEngine()
 		g_DR_Playback.pause = FALSE;
 
 		GAM_g_stEngineStructure->bEngineIsInPaused = TRUE;
-		g_DR_Playback.lastFrame = *HIE_gs_lCurrentFrame;
-		GAM_fn_vSaveEngineClock();
+
+		if (DR_Recording_CurrentState == DR_IR_State_Idle) {
+			g_DR_Playback.lastFrame = *HIE_gs_lCurrentFrame;
+			GAM_fn_vSaveEngineClock();
+		}
 	}
 	if (g_DR_Playback.unpause) {
 
 		g_DR_Playback.unpause = FALSE;
 
 		GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
-		*HIE_gs_lCurrentFrame = g_DR_Playback.lastFrame;
-		GAM_fn_vLoadEngineClock();
+
+		if (DR_Recording_CurrentState == DR_IR_State_Idle) {
+			*HIE_gs_lCurrentFrame = g_DR_Playback.lastFrame;
+			GAM_fn_vLoadEngineClock();
+		}
 
 		if (g_DR_Playback.framestep) {
 			g_DR_Playback.pause = TRUE;
@@ -357,8 +369,6 @@ void MOD_fn_vEngine()
 			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}
 	}
-
-	GAM_g_stEngineStructure->stEngineTimer.ulTickPerMs = oldTickPerMs;
 
 	SetEvent(g_hFrameEvent);
 
@@ -457,6 +467,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&SND_fn_vSynchroSound, (void*)DR_Recording_HK_fn_vSynchroSound);
 			FHK_fn_lCreateHook((void**)&SND_fn_lSendRequestSound, (void*)DR_Recording_HK_fn_lSendRequestSound);
 			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)DR_Recording_HK_fn_vComputeRandomTable);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vActualizeEngineClock, (void*)DR_Recording_HK_fn_vActualizeEngineClock);
 
 			HMODULE user32 = GetModuleHandleW(L"user32.dll");
 			if (!user32) return;

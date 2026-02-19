@@ -118,6 +118,15 @@ void DR_DLG_Playback_Draw() {
       DR_Recording_SeekTo(targetFrame - 60);
     }
 
+    if (ImGui::Button("<")) {
+      DR_Recording_SeekTo(targetFrame-1);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(">")) {
+      DR_Recording_SeekTo(targetFrame + 1);
+    }
+    ImGui::SameLine();
+
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
     if (ImGui::SliderScalar("##PlaybackSeek", ImGuiDataType_U32, &targetFrame, &minFrame, &DR_recording.ulNumFrames, "", ImGuiSliderFlags_AlwaysClamp)) {

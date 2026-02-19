@@ -25,6 +25,7 @@ int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
   write_u32(f, DR_RECORDING_MAGIC);
   write_u32(f, DR_RECORDING_VERSION);
   write_u32(f, rec->ulNumFrames);
+  write_u32(f, rec->ulSeed);
 
   /* ================= META CHUNK ================= */
   write_u32(f, CHUNK_META);
@@ -158,6 +159,7 @@ int DR_RecordingFile_Load(const char* filename, DR_InputRecording* rec)
     return 0; /* version check */
 
   rec->ulNumFrames = read_u32(f);
+  rec->ulSeed = read_u32(f);
 
   signed long prevStates[DR_RECORDING_MAX_ENTRIES] = { 0 };
 

@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "util.h"
 #include "dsgvarnames.h"
+#include "randutil.h"
 
 DR_InputRecording DR_recording = { 0 };
 DR_InputRecording_State DR_recording_state = DR_IR_State_Idle;
@@ -167,8 +168,9 @@ void DR_Recording_SeekTo(unsigned long frameNum) {
 
   DR_recording_seekTarget = frameNum;
   DR_recording_stateAfterSeek = DR_recording_state;
+  //DR_recording_pauseAfterSeek = GAM_g_stEngineStructure->bEngineIsInPaused; 
+  GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
   DR_recording_state = DR_IR_State_StartSeeking;
-
 }
 
 DR_InputRecording_State DR_Recording_CurrentState()
@@ -193,7 +195,7 @@ BOOL DR_Recording_PlayBackFrame() {
   }
 
   GAM_g_stEngineStructure->stEngineTimer = DR_recording.pCurrentFrame->stEngineTimer;
-  *GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix = DR_recording.pCurrentFrame->stCameraPos; // Ideally not needed
+  //*GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix = DR_recording.pCurrentFrame->stCameraPos; // Ideally not needed
 
   for(int i=0;i< IPT_g_stInputStructure->ulNumberOfEntryElement;i++) {
 
@@ -219,7 +221,7 @@ BOOL DR_Recording_PlayBackFrame() {
 
   DR_recording_desync = dist + camDist;
   
-  //printf("Playback frame %lu/%lu, desync=%f\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, DR_recording_desync);
+  //printf("Playback frame %lu/%lu, desync=%f, frame: %lu, rayframe: %lu\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, DR_recording_desync, GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber, g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ulLastTrame);
 
   if (DR_recording.pCurrentFrame->pNextFrame != NULL) {
     DR_recording.ulCurrentFrame++;
@@ -315,15 +317,27 @@ void DR_Recording_HK_fn_vComputeRandomTable() {
   printf("Predictable random table computation\n");
 
   // Consistent seed when recording/playbacking
-  // TODO: programmable random seed?
-  srand(0);
+  my_srand(DR_recording.ulSeed);
 
   RND_g_stRandomStructure->ulMaxValueInTable = 0;
   for (long i = 0;i < RND_g_stRandomStructure->ulSizeOfTable;i++)
   {
-    RND_g_stRandomStructure->p_ulTable[i] = rand();
+    RND_g_stRandomStructure->p_ulTable[i] = my_rand();
   }
   RND_fn_vRemapRandomTable();
+}
+
+void DR_Recording_HK_fn_vActualizeEngineClock() {
+
+  // When playbacking or seeking, we override the engine clock
+  // (Yes, StartPlayback and StartRecording are also important here!)
+  if (DR_recording_state != DR_IR_State_Idle && DR_recording_state != DR_IR_State_Recording) {
+    return;
+  }
+
+  GAM_fn_vActualizeEngineClock();
+
+  return;
 }
 
 BOOL DR_Recording_HK_bFlipDeviceWithSynchro() {
@@ -393,24 +407,22 @@ void DR_Recording_HK_fn_vEngineReadInput()
     break;
   case DR_IR_State_Seeking:
 
-    if (!DR_Recording_PlayBackFrame()) {
-      DR_recording_state = DR_recording_stateAfterSeek;
-    }
-
-    if (DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
+    if (!DR_Recording_PlayBackFrame() || DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
       DR_recording_state = DR_recording_stateAfterSeek;
     }
 
     break;
   case DR_IR_State_StartSeeking:
 
-    DR_Recording_ResetInputStructure();
+    if (DR_recording_seekTarget <= DR_recording.ulCurrentFrame) {
+      DR_Recording_ResetInputStructure();
 
-    DR_recording.ulCurrentFrame = 0;
-    DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
+      DR_recording.ulCurrentFrame = 0;
+      DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
 
-    DR_Recording_LoadProgress();
-    DR_Recording_ReloadTheMap();
+      DR_Recording_LoadProgress();
+      DR_Recording_ReloadTheMap();
+    }
 
     DR_recording_state = DR_IR_State_Seeking;
 
