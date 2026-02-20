@@ -27,7 +27,7 @@ typedef struct DR_InputRecordingFrame {
   DR_InputRecordingEntry a_stEntries[DR_RECORDING_MAX_ENTRIES];
   struct DR_InputRecordingFrame* pNextFrame;
   MTH3D_tdstVector stRaymanPosition;
-  POS_tdstCompletePosition stCameraPos;
+  //POS_tdstCompletePosition stCameraPos;
   TMR_tdstEngineTimerStructure stEngineTimer;
 } DR_InputRecordingFrame;
 

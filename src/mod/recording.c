@@ -212,14 +212,9 @@ BOOL DR_Recording_PlayBackFrame() {
   float diffY = (DR_recording.pCurrentFrame->stRaymanPosition.y - g_DR_rayman->p_stGlobalMatrix->stPos.y);
   float diffZ = (DR_recording.pCurrentFrame->stRaymanPosition.z - g_DR_rayman->p_stGlobalMatrix->stPos.z);
 
-  float camDiffX = (DR_recording.pCurrentFrame->stCameraPos.stPos.x - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.x);
-  float camDiffY = (DR_recording.pCurrentFrame->stCameraPos.stPos.y - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.y);
-  float camDiffZ = (DR_recording.pCurrentFrame->stCameraPos.stPos.z - GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix->stPos.z);
-
   float dist = (diffX * diffX + diffY * diffY + diffZ * diffZ);
-  float camDist = (camDiffX * camDiffX + camDiffY * camDiffY + camDiffZ * camDiffZ);
 
-  DR_recording_desync = dist + camDist;
+  DR_recording_desync = dist;
   
   //printf("Playback frame %lu/%lu, desync=%f, frame: %lu, rayframe: %lu\n", DR_recording.ulCurrentFrame, DR_recording.ulNumFrames, DR_recording_desync, GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber, g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ulLastTrame);
 
@@ -241,7 +236,6 @@ void DR_Recording_RecordFrame() {
   DR_InputRecordingFrame* newFrame = malloc(sizeof(DR_InputRecordingFrame));
   newFrame->pNextFrame = NULL;
   newFrame->stRaymanPosition = g_DR_rayman->p_stGlobalMatrix->stPos;
-  newFrame->stCameraPos = *GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix;
   newFrame->stEngineTimer = GAM_g_stEngineStructure->stEngineTimer;
 
   for (int i = 0;i < IPT_g_stInputStructure->ulNumberOfEntryElement;i++) {

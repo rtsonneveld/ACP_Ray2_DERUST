@@ -73,7 +73,7 @@ int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
   {
     /* Write position/camera/timer raw */
     fwrite(&frame->stRaymanPosition, sizeof(frame->stRaymanPosition), 1, f);
-    fwrite(&frame->stCameraPos, sizeof(frame->stCameraPos), 1, f);
+    //fwrite(&frame->stCameraPos, sizeof(frame->stCameraPos), 1, f);
     fwrite(&frame->stEngineTimer, sizeof(frame->stEngineTimer), 1, f);
 
     /* store only actual press/release events */
@@ -204,8 +204,8 @@ int DR_RecordingFile_Load(const char* filename, DR_InputRecording* rec)
 
         fread(&frame->stRaymanPosition,
           sizeof(frame->stRaymanPosition), 1, f);
-        fread(&frame->stCameraPos,
-          sizeof(frame->stCameraPos), 1, f);
+        //fread(&frame->stCameraPos,
+          //sizeof(frame->stCameraPos), 1, f);
         fread(&frame->stEngineTimer,
           sizeof(frame->stEngineTimer), 1, f);
 
