@@ -7,6 +7,8 @@
 #include "ui/settings.hpp"
 #include <imgui_internal.h>
 
+#include <ui/ui_bridge.h>
+
 #include <ACP_Ray2.h>
 
 void DR_DLG_Menu_DrawLevelSelection() {
@@ -16,7 +18,7 @@ void DR_DLG_Menu_DrawLevelSelection() {
       const char* items[] = { __VA_ARGS__ }; \
       for (int i = 0; i < sizeof(items) / sizeof(items[0]); i += 2) { \
           if (ImGui::MenuItem(items[i])) { \
-              GAM_fn_vAskToChangeLevel(items[i + 1], false); \
+              MOD_fn_vAskToChangeLevel(items[i + 1], false); \
           } \
       } \
       ImGui::EndMenu(); \
@@ -185,7 +187,7 @@ void DR_DLG_Menu_Draw() {
 
     if (ImGui::BeginMenu("Map")) {
       if (ImGui::MenuItem("Reload")) {
-        GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), false);
+        MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), false);
       }
 
       DR_DLG_Menu_DrawLevelSelection();

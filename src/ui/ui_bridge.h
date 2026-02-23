@@ -23,6 +23,8 @@ void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex);
 bool DR_Settings_Get_TryCatchExceptions();
 bool DR_Settings_Get_DisableAutoSave();
 
+void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame);
+
 #ifdef __cplusplus
 }
 #endif

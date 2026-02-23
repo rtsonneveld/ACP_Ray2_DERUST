@@ -7,6 +7,7 @@
 
 tdstBreakpoint g_DR_breakpoints[MAX_BREAKPOINTS];
 bool g_DR_debuggerEnableBreakpoints = false;
+bool g_DR_debuggerDisableBreakpointedNodes = false;
 bool g_DR_debuggerPaused = false;
 bool g_DR_debuggerStep = false;
 size_t g_DR_breakpoint_count = 0;
@@ -97,6 +98,10 @@ void SelectComportInDialog(HIE_tdstSuperObject * spo, AI_tdstNodeInterpret* node
 void DR_Debugger_SelectObjectAndComport(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* node) {
   g_DR_selectedObject = spo;
 
+  if (spo == NULL) {
+    return;
+  }
+
   AI_tdstAIModel* aiModel = spo->hLinkedObject.p_stActor->hBrain->p_stMind->p_stAIModel;
   SelectComportInDialog(spo, node, aiModel->a_stScriptAIIntel, false);
   SelectComportInDialog(spo, node, aiModel->a_stScriptAIReflex, true);
@@ -108,8 +113,17 @@ AI_tdstNodeInterpret * MOD_fn_p_stEvalTree_Debugger(HIE_tdstSuperObject* spo, AI
   g_DR_debuggerInstructionPtr = node;
   g_DR_debuggerContextSPO = spo;
 
-  if (g_DR_debuggerEnableBreakpoints && DR_Debugger_HasBreakpoint(spo, node)) {
-    g_DR_debuggerPaused = true;
+  if (g_DR_debuggerEnableBreakpoints && DR_Debugger_HasBreakpoint(NULL, node)) {
+
+    if (g_DR_debuggerDisableBreakpointedNodes) {
+
+      int originalDepth = node->ucDepth;
+      do {
+        node++;
+      } while (node->ucDepth > originalDepth);
+    } else {
+      g_DR_debuggerPaused = true;
+    }
   }
 
   if (g_DR_debuggerStepOverDepth > 0)  {
@@ -153,7 +167,7 @@ bool DR_Debugger_HasBreakpoint(HIE_tdstSuperObject* spo, AI_tdstNodeInterpret* n
   const void* address = node;
 
   for (size_t i = 0; i < g_DR_breakpoint_count; ++i)
-    if (g_DR_breakpoints[i].address == address && (g_DR_breakpoints[i].spo == spo || g_DR_breakpoints[i].spo == NULL))
+    if (g_DR_breakpoints[i].address == address && (g_DR_breakpoints[i].spo == spo || g_DR_breakpoints[i].spo == NULL || spo == NULL))
       return true;
 
   if (g_DR_debugger_globalBreakpointEnabled && node != NULL) {

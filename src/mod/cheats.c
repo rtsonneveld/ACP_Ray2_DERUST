@@ -232,7 +232,7 @@ void DR_Cheats_Apply() {
         */
       }
       if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_TransePolochus)) {
-        GAM_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
+        MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
       }
     }
 }

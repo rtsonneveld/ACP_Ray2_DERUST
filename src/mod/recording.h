@@ -64,11 +64,11 @@ void DR_Recording_Load();
 void DR_Recording_HK_fn_vComputeRandomTable();
 void DR_Recording_HK_fn_vActualizeEngineClock();
 BOOL DR_Recording_HK_bFlipDeviceWithSynchro();
-long DR_Recording_HK_fn_lSendSectorToViewportStatic(MTH3D_tdstVector* _p_stAbsolutePositionOfCamera, GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask);
+void DR_Recording_HK_fn_vSendStaticWorldToViewport(GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask, long _lCullingResult);
 void DR_Recording_HK_fn_vSendCharacterModulesToViewPort(GLD_tdstViewportAttributes* _hVpt, HIE_tdstSuperObject* _hSprObj, long _DrawMask);
 long DR_Recording_HK_fn_lSendRequestSound(long lIndice, long lType, SND_tduRefEvt uEvt, long lPrio, SND_td_pfn_vSoundCallback pfnProc);
 void DR_Recording_HK_fn_vSynchroSound();
-void DR_Recording_HK_fn_vEngineReadInput();
+void DR_Recording_HK_fn_vReadInput();
 
 #ifdef __cplusplus
     }

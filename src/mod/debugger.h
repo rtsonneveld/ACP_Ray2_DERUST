@@ -19,6 +19,7 @@ typedef struct tdstBreakpoint {
 extern tdstBreakpoint g_DR_breakpoints[];
 extern size_t g_DR_breakpoint_count;
 extern bool g_DR_debuggerEnableBreakpoints;
+extern bool g_DR_debuggerDisableBreakpointedNodes;
 extern bool g_DR_debuggerPaused;
 extern bool g_DR_debuggerStep;
 extern const AI_tdstNodeInterpret* g_DR_debuggerInstructionPtr;

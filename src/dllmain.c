@@ -312,7 +312,7 @@ void MOD_fn_vEngine()
 			GAM_fn_vEngine();
 		}
 
-		GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused;
+		GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused; 
 	}
 
 	if (g_DR_Playback.pause) {
@@ -460,8 +460,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 
 			// Recording
 			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
-			FHK_fn_lCreateHook((void**)&IPT_fn_vEngineReadInput, (void*)DR_Recording_HK_fn_vEngineReadInput);
-			FHK_fn_lCreateHook((void**)&SCT_fn_lSendSectorToViewportStatic, (void*)DR_Recording_HK_fn_lSendSectorToViewportStatic);
+			FHK_fn_lCreateHook((void**)&IPT_fn_vReadInput, (void*)DR_Recording_HK_fn_vReadInput);
+			FHK_fn_lCreateHook((void**)&HIE_fn_vSendStaticWorldToViewport, (void*)DR_Recording_HK_fn_vSendStaticWorldToViewport);
 			FHK_fn_lCreateHook((void**)&HIE_fn_vSendCharacterModulesToViewPort, (void*)DR_Recording_HK_fn_vSendCharacterModulesToViewPort);
 			FHK_fn_lCreateHook((void**)&RND_fn_vComputeRandomTable, (void*)DR_Recording_HK_fn_vComputeRandomTable);
 			FHK_fn_lCreateHook((void**)&SND_fn_vSynchroSound, (void*)DR_Recording_HK_fn_vSynchroSound);

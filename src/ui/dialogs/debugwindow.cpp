@@ -232,6 +232,7 @@ void DR_DLG_DebugWindow_Draw() {
 
         ImGui::Checkbox("Enable Breakpoints", &g_DR_debuggerEnableBreakpoints);
         ImGui::Checkbox("Watch Breakpoint Values", &watchBreakpointValues);
+        ImGui::Checkbox("Disable breakpointed nodes", &g_DR_debuggerDisableBreakpointedNodes);
 
         if (g_DR_debuggerPaused) {
           ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Paused by debugger");

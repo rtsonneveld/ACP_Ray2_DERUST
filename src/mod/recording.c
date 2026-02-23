@@ -8,6 +8,7 @@
 DR_InputRecording DR_recording = { 0 };
 DR_InputRecording_State DR_recording_state = DR_IR_State_Idle;
 DR_InputRecording_State DR_recording_stateAfterSeek;
+//BOOL DR_recording_pauseAfterSeek;
 unsigned long DR_recording_seekTarget = 0;
 float DR_recording_desync = 0.0f;
 
@@ -37,18 +38,71 @@ void DR_Recording_ResetInputStructure() {
   *IPT_g_FieldPadSector = 0;
 }
 
+void FullResetCineInfo(CAM_tdstCineinfo* cineInfo) {
+
+  CAM_tdstInternalStructurCineinfo* hInit = cineInfo->hInit;
+  CAM_tdstInternalStructurCineinfo* hCurrent = cineInfo->hCurrent;
+  CAM_tdstInternalStructurCineinfo* hVisibility = cineInfo->hVisibility;
+  CAM_tdstInternalStructurCineinfo* hWork = cineInfo->hWork;
+
+  CAM_tdeListViewport vp_hInit = hInit->eTypeOfViewport;
+  CAM_tdeListViewport vp_hCurrent = hCurrent->eTypeOfViewport;
+  CAM_tdeListViewport vp_hVisibility = hVisibility->eTypeOfViewport;
+  CAM_tdeListViewport vp_hWork = hWork->eTypeOfViewport;
+
+  HIE_tdstSuperObject* spoTargeted = hInit->hSuperObjectTargeted;
+
+  memcpy(hCurrent, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
+  memcpy(hVisibility, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
+  memcpy(hWork, hInit, sizeof(CAM_tdstInternalStructurCineinfo)); 
+
+  memset(GAM_g_stEngineStructure->p_stGameViewportCamera, 0, sizeof(GLI_tdstCamera));
+  memset(GAM_g_stEngineStructure->p_stFixCamera, 0, sizeof(GLI_tdstCamera));
+  memset(GAM_g_stEngineStructure->a_hViewportArray[0].p_stCamera, 0, sizeof(GLI_tdstCamera));
+
+  memset(cineInfo, 0, sizeof(CAM_tdstCineinfo)); 
+
+  cineInfo->hInit = hInit;
+  cineInfo->hCurrent = hCurrent;
+  cineInfo->hVisibility = hVisibility;
+  cineInfo->hWork = hWork;
+
+  memset(CAM_g_stIdeal, 0, sizeof(CAM_tdstInternalStructurCineinfo));
+
+  *CAM_g_cCanTestStatic = 0;
+  *CAM_g_cRefAxisIsAlreadyComputed = 0;
+  *CAM_g_cNoDynChangeTheta = 0;
+  *CAM_g_cJustBetterPos = 0;
+
+  memset(CAM_g_stCameraConstants, 0, sizeof(CAM_tdstCameraConstants));
+  memset(CAM_g_stCameraCopyConstants, 0, sizeof(CAM_tdstCameraConstants));
+}
+
 void DR_Recording_ReloadTheMap() {
+
+  // Global state reset
+  memset(g_stSpeedVector, 0, sizeof(MTH3D_tdstVector)); 
+
+  for (int i = 0;i < COL_C_xMaxNumberOfCollisions;i++)
+  {
+    memset(&COL_g_stCollisionCase[i], 0, sizeof(COL_tdstCollisionCase));
+  }
+
+  HIE_tdstEngineObject* stdCamObj = GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stCharacter;
+
+  POS_fn_vSetIdentityMatrix(GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix);
+  POS_fn_vSetIdentityMatrix(GAM_g_stEngineStructure->g_hStdCamCharacter->p_stLocalMatrix);
 
   const char* src = GAM_fn_p_szGetLevelName();
   memcpy(GAM_g_stEngineStructure->szLevelName, DR_recording.firstLevelName, sizeof(GAM_g_stEngineStructure->szLevelName) - 1);
 
+  FullResetCineInfo(stdCamObj->hCineInfo);
+
+  // Clear the data of the Module Allowing the Communication of Datas from the Player or the Intelligence to the Dynamics
+  memset(&stdCamObj->hDynam->p_stDynamics->stDynamicsComplex.stExternalDatas, 0, sizeof(DNM_tdstMACDPID));
+
   GAM_fn_vReinitTheMap(); // Resets a bunch of stuff including the camera
   MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
-
-  // Completely reset the camera to avoid desyncs
-  CAM_fn_vInitCompleteCineinfo(GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stCharacter->hCineInfo);
-  CAM_fn_vSetCineinfoWorkFromCurrent(GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stCharacter->hCineInfo);
-  //CAM_fn_vForceBestPosition(GAM_g_stEngineStructure->g_hStdCamCharacter);
 }
 
 void DR_Recording_Cleanup() {
@@ -126,50 +180,8 @@ void DR_Recording_SeekTo(unsigned long frameNum) {
     frameNum = DR_recording.ulNumFrames - 1;
   }
 
-  /* If recording, truncate tail so new length == frameNum */
-  if (DR_recording_state == DR_IR_State_Recording) {
-
-    /* If keeping everything, nothing to truncate */
-    if (frameNum < DR_recording.ulNumFrames) {
-
-      DR_InputRecordingFrame* cur = DR_recording.pFirstFrame;
-      DR_InputRecordingFrame* prev = NULL;
-      unsigned long i = 0;
-
-      /* Walk to first frame that should be removed */
-      while (cur && i < frameNum) {
-        prev = cur;
-        cur = cur->pNextFrame;
-        i++;
-      }
-
-      /* Detach list */
-      if (prev) {
-        prev->pNextFrame = NULL;
-      }
-      else {
-        /* Removing entire list */
-        DR_recording.pFirstFrame = NULL;
-      }
-
-      /* Free removed tail */
-      while (cur) {
-        DR_InputRecordingFrame* next = cur->pNextFrame;
-        free(cur);
-        cur = next;
-      }
-
-      /* Update metadata */
-      DR_recording.ulNumFrames = frameNum;
-      DR_recording.pLastFrame = prev;
-      DR_recording.pCurrentFrame = prev;
-    }
-  }
-
   DR_recording_seekTarget = frameNum;
   DR_recording_stateAfterSeek = DR_recording_state;
-  //DR_recording_pauseAfterSeek = GAM_g_stEngineStructure->bEngineIsInPaused; 
-  GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
   DR_recording_state = DR_IR_State_StartSeeking;
 }
 
@@ -343,13 +355,12 @@ BOOL DR_Recording_HK_bFlipDeviceWithSynchro() {
   return GLD_bFlipDeviceWithSynchro();
 }
 
-long DR_Recording_HK_fn_lSendSectorToViewportStatic(MTH3D_tdstVector* _p_stAbsolutePositionOfCamera, GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask) {
+void DR_Recording_HK_fn_vSendStaticWorldToViewport(GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask, long _lCullingResult) {
 
   if (DR_recording_state == DR_IR_State_Seeking) {
-    // When seeking, always return a "culling result" of 1
-    return 1;
+    return;
   }
-  return SCT_fn_lSendSectorToViewportStatic(_p_stAbsolutePositionOfCamera, _p_stVpt, _hSprObjSector, _lDrawMask);
+  return HIE_fn_vSendStaticWorldToViewport(_p_stVpt, _hSprObjSector, _lDrawMask, _lCullingResult);
 }
 
 void DR_Recording_HK_fn_vSendCharacterModulesToViewPort(GLD_tdstViewportAttributes* _hVpt, HIE_tdstSuperObject* _hSprObj, long _DrawMask) {
@@ -381,7 +392,7 @@ void DR_Recording_HK_fn_vSynchroSound() {
   return SND_fn_vSynchroSound();
 }
 
-void DR_Recording_HK_fn_vEngineReadInput()
+void DR_Recording_HK_fn_vReadInput()
 {
   // Main function for recording and replaying
 
@@ -396,17 +407,58 @@ void DR_Recording_HK_fn_vEngineReadInput()
       DR_Recording_SaveProgress();
     }
 
-    IPT_fn_vEngineReadInput();
+    IPT_fn_vReadInput();
     DR_Recording_RecordFrame();
     break;
   case DR_IR_State_Seeking:
 
     if (!DR_Recording_PlayBackFrame() || DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
       DR_recording_state = DR_recording_stateAfterSeek;
+      //GAM_g_stEngineStructure->bEngineIsInPaused = DR_recording_pauseAfterSeek;
     }
 
     break;
   case DR_IR_State_StartSeeking:
+
+    /* If recording, truncate tail so new length == frameNum */
+    if (DR_recording_stateAfterSeek == DR_IR_State_Recording) {
+
+      /* If keeping everything, nothing to truncate */
+      if (DR_recording_seekTarget < DR_recording.ulNumFrames) {
+
+        DR_InputRecordingFrame* cur = DR_recording.pFirstFrame;
+        DR_InputRecordingFrame* prev = NULL;
+        unsigned long i = 0;
+
+        /* Walk to first frame that should be removed */
+        while (cur && i < DR_recording_seekTarget) {
+          prev = cur;
+          cur = cur->pNextFrame;
+          i++;
+        }
+
+        /* Detach list */
+        if (prev) {
+          prev->pNextFrame = NULL;
+        }
+        else {
+          /* Removing entire list */
+          DR_recording.pFirstFrame = NULL;
+        }
+
+        /* Free removed tail */
+        while (cur) {
+          DR_InputRecordingFrame* next = cur->pNextFrame;
+          free(cur);
+          cur = next;
+        }
+
+        /* Update metadata */
+        DR_recording.ulNumFrames = DR_recording_seekTarget;
+        DR_recording.pLastFrame = prev;
+        DR_recording.pCurrentFrame = prev;
+      }
+    }
 
     if (DR_recording_seekTarget <= DR_recording.ulCurrentFrame) {
       DR_Recording_ResetInputStructure();
@@ -462,7 +514,7 @@ void DR_Recording_HK_fn_vEngineReadInput()
     break;
   case DR_IR_State_Idle:
 
-    IPT_fn_vEngineReadInput();
+    IPT_fn_vReadInput();
     break;
   }
 }
