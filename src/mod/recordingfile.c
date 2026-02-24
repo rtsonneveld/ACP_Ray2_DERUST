@@ -13,8 +13,10 @@
 
 static void write_u32(FILE* f, uint32_t v) { fwrite(&v, 4, 1, f); }
 static void write_u8(FILE* f, uint8_t v) { fwrite(&v, 1, 1, f); }
+static void write_s8(FILE* f, int8_t v) { fwrite(&v, 1, 1, f); }
 static uint32_t read_u32(FILE* f) { uint32_t v; fread(&v, 4, 1, f); return v; }
 static uint8_t read_u8(FILE* f) { uint8_t v; fread(&v, 1, 1, f); return v; }
+static int8_t read_s8(FILE* f) { int8_t v; fread(&v, 1, 1, f); return v; }
 
 int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
 {
@@ -37,6 +39,13 @@ int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
   write_u8(f, rec->hitPoints);
   write_u8(f, rec->hitPointsMax);
   write_u8(f, rec->hitPointsMaxMax);
+
+  write_s8(f, rec->cJoystickXcenter);
+  write_s8(f, rec->cJoystickYcenter);
+  write_s8(f, rec->cJoystickXmin);
+  write_s8(f, rec->cJoystickYmin);
+  write_s8(f, rec->cJoystickXmax);
+  write_s8(f, rec->cJoystickYmax);
 
   long metaEnd = ftell(f);
   fseek(f, metaSizePos, SEEK_SET);
@@ -182,6 +191,14 @@ int DR_RecordingFile_Load(const char* filename, DR_InputRecording* rec)
       rec->hitPoints = read_u8(f);
       rec->hitPointsMax = read_u8(f);
       rec->hitPointsMaxMax = read_u8(f);
+
+      rec->cJoystickXcenter = read_s8(f);
+      rec->cJoystickYcenter = read_s8(f);
+      rec->cJoystickXmin = read_s8(f);
+      rec->cJoystickYmin = read_s8(f);
+      rec->cJoystickXmax = read_s8(f);
+      rec->cJoystickYmax = read_s8(f);
+
       break;
 
     case CHUNK_PROG:

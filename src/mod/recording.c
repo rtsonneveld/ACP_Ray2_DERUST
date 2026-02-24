@@ -27,6 +27,7 @@ void DR_Recording_ResetInputStructure() {
 
   // (This is important though:)
   // Reset input related globals to prevent desyncs
+
   *IPT_g_FieldPadGlobalVectorX = 0;
   *IPT_g_FieldPadGlobalVectorY = 0;
   *IPT_g_FieldPadGlobalVectorZ = 0;
@@ -55,10 +56,6 @@ void FullResetCineInfo(CAM_tdstCineinfo* cineInfo) {
   memcpy(hCurrent, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
   memcpy(hVisibility, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
   memcpy(hWork, hInit, sizeof(CAM_tdstInternalStructurCineinfo)); 
-
-  memset(GAM_g_stEngineStructure->p_stGameViewportCamera, 0, sizeof(GLI_tdstCamera));
-  memset(GAM_g_stEngineStructure->p_stFixCamera, 0, sizeof(GLI_tdstCamera));
-  memset(GAM_g_stEngineStructure->a_hViewportArray[0].p_stCamera, 0, sizeof(GLI_tdstCamera));
 
   memset(cineInfo, 0, sizeof(CAM_tdstCineinfo)); 
 
@@ -494,6 +491,13 @@ void DR_Recording_HK_fn_vReadInput()
 
     memcpy(DR_recording.firstLevelName, GAM_g_stEngineStructure->szLevelName, sizeof(DR_recording.firstLevelName)-1);
 
+    DR_recording.cJoystickXcenter = *IPT_g_cJoystickXcenter;
+    DR_recording.cJoystickYcenter = *IPT_g_cJoystickYcenter;
+    DR_recording.cJoystickXmin = *IPT_g_cJoystickXmin;
+    DR_recording.cJoystickYmin = *IPT_g_cJoystickYmin;
+    DR_recording.cJoystickXmax = *IPT_g_cJoystickXmax;
+    DR_recording.cJoystickYmax = *IPT_g_cJoystickYmax;
+    
     DR_Recording_ReloadTheMap();
 
     DR_recording_state = DR_IR_State_Recording;
@@ -502,6 +506,13 @@ void DR_Recording_HK_fn_vReadInput()
   case DR_IR_State_StartPlayback:
 
     DR_Recording_ResetInputStructure();
+
+    *IPT_g_cJoystickXcenter = DR_recording.cJoystickXcenter;
+    *IPT_g_cJoystickYcenter = DR_recording.cJoystickYcenter;
+    *IPT_g_cJoystickXmin = DR_recording.cJoystickXmin;
+    *IPT_g_cJoystickYmin = DR_recording.cJoystickYmin;
+    *IPT_g_cJoystickXmax = DR_recording.cJoystickXmax;
+    *IPT_g_cJoystickYmax = DR_recording.cJoystickYmax;
 
     DR_recording.ulCurrentFrame = 0;
     DR_recording.pCurrentFrame = DR_recording.pFirstFrame;

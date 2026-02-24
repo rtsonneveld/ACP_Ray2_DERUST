@@ -43,6 +43,12 @@ typedef struct DR_InputRecording {
   unsigned char hitPointsMax;
   unsigned char hitPointsMaxMax;
   DR_InputRecordingFrame* pCurrentFrame;
+  signed char cJoystickXcenter;
+  signed char cJoystickYcenter;
+  signed char cJoystickXmin;
+  signed char cJoystickYmin;
+  signed char cJoystickXmax;
+  signed char cJoystickYmax;
 } DR_InputRecording;
 
 extern DR_InputRecording DR_recording;
