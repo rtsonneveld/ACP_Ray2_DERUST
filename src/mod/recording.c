@@ -37,6 +37,10 @@ void DR_Recording_ResetInputStructure() {
   *IPT_g_FieldPadTrueAnalogForce = 0;
   *IPT_g_FieldPadRotationAngle = 0;
   *IPT_g_FieldPadSector = 0;
+
+  *IPT_g_bCancelKeyboardInertia = FALSE;
+  *IPT_s_xPrevKeyXValue = 0;
+  *IPT_s_xPrevKeyYValue = 0;
 }
 
 void FullResetCineInfo(CAM_tdstCineinfo* cineInfo) {
@@ -196,6 +200,25 @@ void DR_Recording_Start() {
   DR_recording_state = DR_IR_State_StartRecording;
 }
 
+// Called whenever playback or seeking is started
+void DR_Recording_StartFromBeginning() {
+
+  DR_Recording_ResetInputStructure();
+
+  *IPT_g_cJoystickXcenter = DR_recording.cJoystickXcenter;
+  *IPT_g_cJoystickYcenter = DR_recording.cJoystickYcenter;
+  *IPT_g_cJoystickXmin = DR_recording.cJoystickXmin;
+  *IPT_g_cJoystickYmin = DR_recording.cJoystickYmin;
+  *IPT_g_cJoystickXmax = DR_recording.cJoystickXmax;
+  *IPT_g_cJoystickYmax = DR_recording.cJoystickYmax;
+
+  DR_recording.ulCurrentFrame = 0;
+  DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
+
+  DR_Recording_LoadProgress();
+  DR_Recording_ReloadTheMap();
+}
+
 // Attempts to playback the current frame, returns false if there are no more frames to play or if not in the correct state
 BOOL DR_Recording_PlayBackFrame() {
 
@@ -302,6 +325,7 @@ void DR_Recording_Save() {
 
 void DR_Recording_Load() {
   DR_RecordingFile_Load("recording.bin", &DR_recording);
+  DR_Recording_LoadProgress(); // Load progress from the recording file
 }
 
 // Hooked (HK) functions
@@ -458,13 +482,7 @@ void DR_Recording_HK_fn_vReadInput()
     }
 
     if (DR_recording_seekTarget <= DR_recording.ulCurrentFrame) {
-      DR_Recording_ResetInputStructure();
-
-      DR_recording.ulCurrentFrame = 0;
-      DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
-
-      DR_Recording_LoadProgress();
-      DR_Recording_ReloadTheMap();
+      DR_Recording_StartFromBeginning();
     }
 
     DR_recording_state = DR_IR_State_Seeking;
@@ -505,20 +523,7 @@ void DR_Recording_HK_fn_vReadInput()
     break;
   case DR_IR_State_StartPlayback:
 
-    DR_Recording_ResetInputStructure();
-
-    *IPT_g_cJoystickXcenter = DR_recording.cJoystickXcenter;
-    *IPT_g_cJoystickYcenter = DR_recording.cJoystickYcenter;
-    *IPT_g_cJoystickXmin = DR_recording.cJoystickXmin;
-    *IPT_g_cJoystickYmin = DR_recording.cJoystickYmin;
-    *IPT_g_cJoystickXmax = DR_recording.cJoystickXmax;
-    *IPT_g_cJoystickYmax = DR_recording.cJoystickYmax;
-
-    DR_recording.ulCurrentFrame = 0;
-    DR_recording.pCurrentFrame = DR_recording.pFirstFrame;
-
-    DR_Recording_LoadProgress();
-    DR_Recording_ReloadTheMap();
+    DR_Recording_StartFromBeginning();
 
     DR_recording_state = DR_IR_State_Playback;
 
