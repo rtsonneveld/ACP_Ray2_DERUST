@@ -14,6 +14,7 @@ using json = nlohmann::json;
     X(bool, dlg_playback, false) \
     X(bool, dlg_utils, false) \
     X(bool, dlg_engineglobals, false) \
+    X(bool, dlg_inputviewer, false) \
 /* Options */ \
     X(bool, opt_tryCatchExceptions, true) \
     X(bool, opt_disableAutoSave, true) \
