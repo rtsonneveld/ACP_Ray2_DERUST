@@ -13,6 +13,7 @@
 #include "options.hpp"
 #include "utils.hpp"
 #include "engineglobals.hpp"
+#include "inputviewer.hpp"
 
 void DR_DLG_Init(HWND window_r2);
 void DR_DLG_Draw(HWND window_r2);

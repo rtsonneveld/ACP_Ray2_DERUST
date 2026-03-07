@@ -463,6 +463,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
     <ClInclude Include="src\ui\dialogs\debugwindow.hpp" />
     <ClInclude Include="src\ui\dialogs\engineglobals.hpp" />
+    <ClInclude Include="src\ui\dialogs\inputviewer.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector_actor_brain.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector_actor_collset.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector_actor_dynam.hpp" />
@@ -527,6 +528,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\resourceutil.cpp" />
     <ClCompile Include="src\rendering\textures.cpp" />
     <ClCompile Include="src\ui\dialogs\engineglobals_inputstructure.cpp" />
+    <ClCompile Include="src\ui\dialogs\inputviewer.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_sectinfo.cpp" />
     <ClCompile Include="src\ui\nameLookup.cpp" />
