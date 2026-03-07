@@ -180,6 +180,7 @@ void DR_DLG_Menu_Draw() {
       ImGui::MenuItem("Playback", nullptr, &g_DR_settings.dlg_playback);
       ImGui::MenuItem("Stats", nullptr, &g_DR_settings.dlg_stats);
       ImGui::MenuItem("Utilities", nullptr, &g_DR_settings.dlg_utils);
+      ImGui::MenuItem("Input Viewer", nullptr, &g_DR_settings.dlg_inputviewer);
       ImGui::MenuItem("Globals", nullptr, &g_DR_settings.dlg_engineglobals); 
       ImGui::MenuItem("Options", nullptr, &g_DR_settings.dlg_options);
       ImGui::EndMenu();
