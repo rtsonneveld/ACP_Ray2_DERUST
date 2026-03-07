@@ -21,6 +21,7 @@ void DR_DLG_Playback_Draw() {
     }
 
     DR_InputRecording_State state = DR_Recording_CurrentState();
+
     switch(state) {
       case DR_IR_State_Idle:
         
@@ -101,7 +102,8 @@ void DR_DLG_Playback_Draw() {
     if (DR_recording_desync != 0.0f) {
       ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
 
-      ImGui::Text("Desync: %f", DR_recording_desync);
+      MTH3D_tdstVector pos = DR_recording.pCurrentFrame->stRaymanPosition;
+      ImGui::Text("Desync: %f (%f, %f, %f)", DR_recording_desync, pos.x, pos.y, pos.z);
     }
     else {
       ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));

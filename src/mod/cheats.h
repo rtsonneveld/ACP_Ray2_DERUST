@@ -45,6 +45,7 @@ extern char g_DR_Cheats_DisableDeathAnimations;
 extern char g_DR_Cheats_AutoVoid;
 extern char g_DR_Cheats_FreezeProgress;
 extern char g_DR_Cheats_DisableRandomOptimisations;
+extern char g_DR_Cheats_Simulate256FramesBetweenSectorReloads;
 
 extern char g_DR_Cheats_HasSavedProgress;
 

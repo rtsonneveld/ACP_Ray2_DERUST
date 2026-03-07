@@ -414,6 +414,28 @@ BOOL WINAPI Hook_SetWindowPos(
 	return True_SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
+void MOD_fn_vFillDynamicHierarchy(HIE_tdstSuperObject* _hSOCurrentSector, ACP_tdxBool _bInit) {
+
+	if (!g_DR_Cheats_Simulate256FramesBetweenSectorReloads) {
+
+		GAM_fn_vFillDynamicHierarchy(_hSOCurrentSector, _bInit);
+		return;
+	}
+
+	char oldCounter = _hSOCurrentSector->hLinkedObject.p_stSector->cCounter;
+	char timerAsChar = (char)GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber;
+	
+	unsigned long oldFrameNumber = GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber;
+	GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber = 0;
+	HIE_M_ForEachSector(sector) {
+		sector->hLinkedObject.p_stSector->cCounter = 0;
+	}
+
+	GAM_fn_vFillDynamicHierarchy(_hSOCurrentSector, _bInit);
+
+	GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber = oldFrameNumber;
+}
+
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
@@ -457,6 +479,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vFillDynamicHierarchy, (void*)MOD_fn_vFillDynamicHierarchy);
 
 			// Recording
 			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
@@ -507,11 +530,6 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			SPTXT_vDeInit();
 
 			g_bRunning = false;
-
-			CloseHandle(g_hUIThread);
-			CloseHandle(g_hFrameEvent);
-			CloseHandle(g_hAFrameIsWaiting);
-			CloseHandle(g_hFrameDoneCopying);
 
 			break;
 

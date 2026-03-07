@@ -466,6 +466,8 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\inspector_actor_brain.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector_actor_collset.hpp" />
     <ClInclude Include="src\ui\dialogs\inspector_actor_dynam.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector_actor_sectinfo.hpp" />
+    <ClInclude Include="src\ui\dialogs\inspector_sector.hpp" />
     <ClInclude Include="src\ui\dialogs\menu_cheats.hpp" />
     <ClInclude Include="src\ui\dialogs\dialogs.hpp" />
     <ClInclude Include="src\ui\dialogs\hierarchy.hpp" />
@@ -526,6 +528,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\textures.cpp" />
     <ClCompile Include="src\ui\dialogs\engineglobals_inputstructure.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp" />
+    <ClCompile Include="src\ui\dialogs\inspector_actor_sectinfo.cpp" />
     <ClCompile Include="src\ui\nameLookup.cpp" />
     <ClInclude Include="src\ui\nameLookup.hpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
@@ -698,6 +701,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\audiosystem.cpp">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="src\ui\dialogs\inspector_sector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />

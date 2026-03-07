@@ -47,6 +47,20 @@ struct DR_Settings {
 #define X(type, name, default_value) type name = default_value;
   SETTINGS_FIELDS
 #undef X
+
+    // Equality Operator
+    bool operator==(const DR_Settings& other) const {
+    return
+#define X(type, name, default_value) (this->name == other.name) &&
+      SETTINGS_FIELDS
+#undef X
+      true; // Terminate the final '&&'
+  }
+
+  // Inequality Operator (convenience)
+  bool operator!=(const DR_Settings& other) const {
+    return !(*this == other);
+  }
 };
 
 // JSON conversion hooks

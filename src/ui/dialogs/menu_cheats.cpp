@@ -37,6 +37,11 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Disable random optimisations", nullptr, g_DR_Cheats_DisableRandomOptimisations)) {
     g_DR_Cheats_DisableRandomOptimisations = !g_DR_Cheats_DisableRandomOptimisations;
   }
+  if (ImGui::MenuItem("Simulate 256 frames between sector reloads", nullptr, g_DR_Cheats_Simulate256FramesBetweenSectorReloads)) {
+    g_DR_Cheats_Simulate256FramesBetweenSectorReloads = !g_DR_Cheats_Simulate256FramesBetweenSectorReloads;
+  }
+
+  ImGui::SetItemTooltip("Pretend there's (a multiple of) 256 frames between sector revisits. This prevents the OutOfVisibility flag being set on actors when revisiting the sector (e.g. the Woods of Light portal teleport)");
 
   ImGui::SeparatorText("Progress");
 

@@ -12,6 +12,7 @@ char g_DR_Cheats_AutoVoid = FALSE;
 char g_DR_Cheats_FreezeProgress = FALSE;
 char g_DR_Cheats_HasSavedProgress = FALSE;
 char g_DR_Cheats_DisableRandomOptimisations = FALSE;
+char g_DR_Cheats_Simulate256FramesBetweenSectorReloads = FALSE;
 
 DNM_tdstDynamics savedPosition;
 BOOL resetGhostMode;

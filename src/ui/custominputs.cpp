@@ -312,9 +312,11 @@ void InputModelType(const char* label, GAM_tdxObjectType* modelType)
 }
 
 // Core implementation - ALL shared logic lives here
-static void InputPerso_Internal(
+static void InputSPO_Internal(
   const char* label,
   HIE_tdstSuperObject* currentSpo,
+  HIE_tdstSuperObject** spoList,
+  unsigned int numSpo,
   const std::function<void(HIE_tdstSuperObject*)>& writeBack
 ) {
   static char searchBuffer[128] = "";
@@ -351,16 +353,18 @@ static void InputPerso_Internal(
     }
 
     // Actor list
-    HIE_M_ForEachActor(actor) {
+    for(int i=0;i<numSpo;i++) {
 
-      std::string nameLower = SPO_Name(actor);
+      HIE_tdstSuperObject* spo = spoList[i];
+
+      std::string nameLower = SPO_Name(spo);
       std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
 
       if (nameLower.find(searchLower) != std::string::npos) {
 
-        if (ImGui::Selectable(SPO_Name(actor).c_str(), actor == currentSpo)) {
+        if (ImGui::Selectable(SPO_Name(spo).c_str(), spo == currentSpo)) {
 
-          writeBack(actor);
+          writeBack(spo);
           ImGui::CloseCurrentPopup();
         }
       }
@@ -373,9 +377,16 @@ static void InputPerso_Internal(
 
 void InputPerso(const char* label, HIE_tdstSuperObject** p_spo) {
 
-  InputPerso_Internal(
+  HIE_tdstSuperObject* actors[MAX_ACTORS];
+  int actorCount = 0;
+  fn_aGetChildObjects(*GAM_g_p_stDynamicWorld, actors, &actorCount, HIE_C_Type_Actor);
+  fn_aGetChildObjects(*GAM_g_p_stInactiveDynamicWorld, actors, &actorCount, HIE_C_Type_Actor);
+
+  InputSPO_Internal(
     label,
     *p_spo,                            // read current SPO
+    actors,                            // list of SPOs to choose from
+    actorCount,
     [&](HIE_tdstSuperObject* newSpo) { // write back SPO
       *p_spo = newSpo;
     }
@@ -384,17 +395,42 @@ void InputPerso(const char* label, HIE_tdstSuperObject** p_spo) {
 
 void InputPerso(const char* label, HIE_tdstEngineObject** p_actor) {
 
+  HIE_tdstSuperObject* actors[MAX_ACTORS];
+  int actorCount = 0;
+  fn_aGetChildObjects(*GAM_g_p_stDynamicWorld, actors, &actorCount, HIE_C_Type_Actor);
+  fn_aGetChildObjects(*GAM_g_p_stInactiveDynamicWorld, actors, &actorCount, HIE_C_Type_Actor);
+
   HIE_tdstSuperObject* currentSpo =
     (*p_actor ? (*p_actor)->hStandardGame->p_stSuperObject : nullptr);
 
-  InputPerso_Internal(
+  InputSPO_Internal(
     label,
     currentSpo,                        // read current SPO
+    actors,                            // list of SPOs to choose from
+    actorCount,
     [&](HIE_tdstSuperObject* newSpo) { // write back SPO
       if (newSpo)
         *p_actor = newSpo->hLinkedObject.p_stActor;
       else
         *p_actor = nullptr;
+    }
+  );
+}
+
+
+void InputSector(const char* label, HIE_tdstSuperObject** p_spo) {
+
+  HIE_tdstSuperObject* sectors[MAX_SECTORS];
+  int sectorCount = 0;
+  fn_aGetChildObjects(*GAM_g_p_stFatherSector, sectors, &sectorCount, HIE_C_Type_Sector);
+
+  InputSPO_Internal(
+    label,
+    *p_spo,                            // read current SPO
+    sectors,                            // list of SPOs to choose from
+    sectorCount,
+    [&](HIE_tdstSuperObject* newSpo) { // write back SPO
+      *p_spo = newSpo;
     }
   );
 }

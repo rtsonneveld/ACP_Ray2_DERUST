@@ -27,6 +27,7 @@ void InputGameMaterial(GMT_tdstGameMaterial* mat);
 void InputModelType(const char* label, GAM_tdxObjectType* modelType);
 void InputPerso(const char* label, HIE_tdstSuperObject** p_data);
 void InputPerso(const char* label, HIE_tdstEngineObject** p_data);
+void InputSector(const char* label, HIE_tdstSuperObject** p_spo);
 void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type);
 void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId);
 

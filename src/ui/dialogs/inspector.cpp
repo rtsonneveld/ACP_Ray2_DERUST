@@ -1,5 +1,6 @@
 #include "inspector.hpp"
 #include "inspector_actor.hpp"
+#include "inspector_sector.hpp"
 
 #include <sstream>
 #include "ui/ui.hpp"
@@ -40,6 +41,7 @@ void DR_DLG_Inspector_Draw() {
       switch (spo->ulType) {
         case HIE_C_Type_Unknown: break;
         case HIE_C_Type_Actor: DR_DLG_Inspector_Draw_Actor(spo); break;
+        case HIE_C_Type_Sector: DR_DLG_Inspector_Draw_Sector(spo); break;
       }
     }
     else {

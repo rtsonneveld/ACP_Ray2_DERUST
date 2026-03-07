@@ -13,7 +13,8 @@ void ShowPointerHex(const char* label, T* ptr)
 
 void Show_TMR_tdstEngineTimerStructure(const TMR_tdstEngineTimerStructure& timer)
 {
-  ImGui::Text("Frame Number: %lu", timer.ulFrameNumber);
+  char frameNumberAsChar = timer.ulFrameNumber;
+  ImGui::Text("Frame Number: %lu (%i as char)", timer.ulFrameNumber, frameNumberAsChar); 
   ImGui::Text("Timer Handle: %u", timer.wTimerHandle);
   ImGui::Text("Current Timer Count: %lu", timer.ulCurrentTimerCount);
   ImGui::Text("Delta Timer Count: %lu", timer.ulDeltaTimerCount);

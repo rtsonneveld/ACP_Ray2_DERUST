@@ -101,7 +101,7 @@ GeometricObjectMesh::GeometricObjectMesh(GEO_tdstGeometricObject* geomObj) {
           }
 
           meshes.push_back({
-            .mesh = Mesh::createSphere(radius, ToGLMVec(offset), 8, 8),
+            .mesh = Mesh::createSphere(radius, ToGLMVec(offset), 16, 16),
             .collisionFlags = collisionFlags,
           });
         }

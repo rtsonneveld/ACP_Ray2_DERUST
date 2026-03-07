@@ -22,15 +22,15 @@ HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,
 	return ptr;
 }*/
 
-HIE_tdstSuperObject** fn_aGetChildActors(HIE_tdstSuperObject* parent, HIE_tdstSuperObject** array, int* index) {
-	if (!parent || !array || *index >= MAX_ACTORS) return array;
+HIE_tdstSuperObject** fn_aGetChildObjects(HIE_tdstSuperObject* parent, HIE_tdstSuperObject** array, int* index, unsigned long ulType) {
+	if (!parent || !array) return array;
 
 	HIE_tdstSuperObject* child;
 	LST_M_DynamicForEach(parent, child) {
-		if (child->ulType == HIE_C_Type_Actor) {
+		if (child->ulType == ulType) {
 			array[(*index)++] = child;
 		}
-		fn_aGetChildActors(child, array, index);
+		fn_aGetChildObjects(child, array, index, ulType);
 	}
 
 	return array;

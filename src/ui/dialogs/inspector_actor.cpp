@@ -2,6 +2,7 @@
 #include "inspector_actor_dynam.hpp"
 #include "inspector_actor_brain.hpp"
 #include "inspector_actor_collset.hpp"
+#include "inspector_actor_sectinfo.hpp"
 #include "ui/ui.hpp"
 #include "ui/ui_util.hpp"
 #include "ui/custominputs.hpp"
@@ -201,6 +202,10 @@ void DR_DLG_Inspector_Draw_Actor(HIE_tdstSuperObject* actorSPO) {
     GAM_g_stEngineStructure->g_hMainActor = actorSPO;
   }
 
+  char offsetStr[32];
+  sprintf(offsetStr, "%#010X", (int)actorSPO);
+  ImGui::InputText("Offset", offsetStr, 32);
+
   ImGui::SeparatorText("Mini-structs");
 
   if (ImGui::CollapsingHeader("StandardGame")) {
@@ -223,10 +228,14 @@ void DR_DLG_Inspector_Draw_Actor(HIE_tdstSuperObject* actorSPO) {
     DR_DLG_Inspector_Draw_MS_Collset(actor);
     ImGui::Unindent();
   }
-  
   if (ImGui::CollapsingHeader("Brain")) {
     ImGui::Indent();
     DR_DLG_Inspector_Draw_MS_Brain(actor);
+    ImGui::Unindent();
+  }
+  if (ImGui::CollapsingHeader("SectInfo")) {
+    ImGui::Indent();
+    DR_DLG_Inspector_Draw_MS_SectInfo(actor);
     ImGui::Unindent();
   }
 }

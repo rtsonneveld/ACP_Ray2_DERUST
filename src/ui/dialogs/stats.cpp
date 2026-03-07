@@ -47,6 +47,8 @@ void ClearHistory() {
   for (auto& [key, data] : valueProviders) {
     PlotData plotData(historySizeSeconds * 60);
     std::fill(plotData.history.begin(), plotData.history.end(), valueProviders[key]());
+    bool wasEnabled = plots[key].enabled;
+    plotData.enabled = wasEnabled;
     plots[key] = plotData;
   }
 }
