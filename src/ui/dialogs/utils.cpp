@@ -1,4 +1,4 @@
-#include "utils.hpp"
+﻿#include "utils.hpp"
 #include "ui/ui.hpp"
 #include "ui/custominputs.hpp"
 #include "ui/settings.hpp"
@@ -21,6 +21,7 @@
 #include <ACP_Ray2.h>
 
 Mesh glmCube;
+Mesh glmDirectionCube;
 Mesh directionPlane;
 Mesh distanceSphere;
 glm::vec3 savedGlmPosition;
@@ -47,6 +48,7 @@ glm::vec3* GetGlmPosition() {
 
 void DR_DLG_Utils_Init() {
   glmCube = Mesh::createCube(glm::vec3(0.1, 0.1, 0.885594));
+  glmDirectionCube = Mesh::createCube(glm::vec3(1.0, 1.0, 1.0));
   directionPlane = Mesh::createQuad(1000.0f, 1000.0f);
   distanceSphere = Mesh::createSphere();
 
@@ -221,6 +223,8 @@ void DrawDistanceChecks(Shader* shader) {
 
 void DrawGLM(Scene * scene, Shader * shader) {
 
+  if (!g_DR_settings.util_showGLM) return;
+
   glm::vec3 glmPos = *(GetGlmPosition());
 
   if (focusCameraOnGLM) {
@@ -239,13 +243,37 @@ void DrawGLM(Scene * scene, Shader * shader) {
   shader->setBool("useSecondTexture", false);
 
   if (glmPos != glm::vec3(0)) {
-
+    glm::mat4 mat = glm::translate(glm::mat4(1.0f), glmPos);
+    shader->setMat4("uModel", mat);
     glmCube.draw();
+  }
+
+  // 2. Draw the "Extended Line" Cube
+  glm::vec3 A = glm::vec3(g_DR_glmDirectionFrom.x, g_DR_glmDirectionFrom.y, g_DR_glmDirectionFrom.z);
+  glm::vec3 B = glm::vec3(g_DR_glmDirectionTo.x, g_DR_glmDirectionTo.y, g_DR_glmDirectionTo.z);
+
+  if (glm::distance(A, B) > 0.001f) {
+    glm::vec3 dir = glm::normalize(B - A);
+
+    float lineLength = 2000.0f;
+    float thickness = 0.05f;
+
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
+
+    glm::mat4 lineMat = glm::mat4(1.0f);
+    lineMat = glm::translate(lineMat, A);
+    lineMat = lineMat * rotation;
+     
+    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
+
+    shader->setMat4("uModel", lineMat);
+    shader->setTex2D("tex1", Textures::ColBounce, 0);
+    glmDirectionCube.draw();
   }
 }
 
 glm::vec3 lastGlmPos;
-void HandleSoundForGLM() {
+void HandleGLMUpdates() {
 
   glm::vec3 glmPos = *(GetGlmPosition());
 
@@ -256,9 +284,16 @@ void HandleSoundForGLM() {
   }
 
   if (lastGlmPos != glmPos && glmPos != glm::vec3(0)) {
-    lastGlmPos = glmPos;
+    
+    glm::vec3 delta = glmPos - lastGlmPos;
 
-    if (glmSound != nullptr) {
+    lastGlmPos = glmPos;
+    
+    // Store direction for visualization
+    g_DR_glmDirectionFrom = FromGLMVec(glmPos);
+    g_DR_glmDirectionTo = FromGLMVec(glmPos + delta);
+
+    if (playSoundOnGLMChange && glmSound != nullptr) {
       ma_sound_start(glmSound);
     }
   }
@@ -272,9 +307,7 @@ void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader) {
     DrawGLM(scene, shader);
   }
 
-  if (playSoundOnGLMChange) {
-    HandleSoundForGLM();
-  }
+  HandleGLMUpdates();
 
   if (g_DR_settings.opt_distanceCheckVisibility != DistanceCheckVisibility::Hidden) {
     DrawDistanceChecks(shader);

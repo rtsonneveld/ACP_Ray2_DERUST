@@ -37,6 +37,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <glad/glad.h>
+#include <mod/dsgvarnames.h>
 
 // Global handles
 HMODULE g_hModule;
@@ -78,10 +79,9 @@ void CreateAlwaysRaymanObject() {
 		alwaysRaymanObjectType,
 		C_AlwaysObjectType);
 
-	alw_rayman->hBrain->p_stMind->p_stAIModel = fn_p_stAllocAIModel();
-	
-	fn_vSectInfoAlloc(alw_rayman);
-	
+	AI_fn_vBrainCopyClone(alw_rayman, g_DR_rayman->hLinkedObject.p_stActor);
+	DNM_fn_vDynamCopyClone(alw_rayman, g_DR_rayman->hLinkedObject.p_stActor);
+
 	alw_rayman->h3dData->h_CurrentObjectsTable =
 		alw_rayman->h3dData->h_InitialObjectsTable = alw_rayman->h3dData->h_Family->hDefaultObjectsTable;
 	alw_rayman->h3dData->h_InitialState = alw_rayman->h3dData->h_Family->stForStateArray.hFirstElementSta;
@@ -201,9 +201,27 @@ void MOD_fn_vChooseTheGoodInit() {
 	}
 
 	GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused;
+
+	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModePlaying || deadLoop) {
+		if (g_DR_rayman == NULL) {
+			g_DR_rayman = HIE_fn_p_stFindObjectByName("rayman");
+#if _DEBUG
+			g_DR_selectedObject = g_DR_rayman;
+#endif
+		}
+
+		if (g_DR_global == NULL) {
+			g_DR_global = HIE_fn_p_stFindObjectByName("global");
+		}
+
+		CreateAlwaysRaymanObject();
+	}
 }
 
 void MOD_fn_vChooseTheGoodDesInit() {
+
+	alw_rayman = NULL;
+
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;
 		// Level changed?
@@ -278,12 +296,58 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 	return 0;
 }
 
+
+void TestGLM() {
+
+	if (!IPT_M_bActionIsValidated(IPT_E_Entry_Action_Nage_Plonger))
+	{
+		return;
+	}
+
+	HIE_tdstSuperObject * dummySPO = CreateObject(&g_DR_rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+
+	if (dummySPO == NULL) {
+		return;
+	}
+
+	HIE_tdstEngineObject* dummy = dummySPO->hLinkedObject.p_stActor;
+	dummy->hStandardGame->lObjectModelType = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectModelType;
+
+	AI_fn_vBrainCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
+	COL_fn_vCollSetCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
+	DNM_fn_vDynamCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
+
+	POS_tdstCompletePosition newPos = *dummySPO->p_stGlobalMatrix;
+	newPos.stPos.z += 0.01f;
+
+	memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+	memcpy(dummySPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+
+	memcpy(dummy->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, g_DR_rayman->hLinkedObject.p_stActor->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, dummy->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
+
+	PLA_fn_bSetNewState(dummySPO, ACT_GetStateByIndex(dummy, 19), true, false); // State 19: YLT_St_ry_saut1_cycled
+	ACT_ChangeComportRule(dummy, 2); // Comport 2: YLT_SautReception
+
+	g_DR_glmDirectionFrom = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
+
+	memcpy(&dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+	
+	GAM_fn_vMakeCharacterMechanicallyReact(dummySPO);
+	GAM_fn_vMakeCharacterReact(dummySPO);
+
+	g_DR_glmDirectionTo = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
+
+	fn_vKillEngineObjectOrAlwaysByPointer(dummy);
+}
+
 void MOD_fn_vEngine()
 {
 	DR_Cheats_Apply();
 	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
 		DR_DistanceChecks_Update();
 	}
+
+	TestGLM();
 
 	// Main Engine Loop
 	{
@@ -342,19 +406,6 @@ void MOD_fn_vEngine()
 			g_DR_Playback.framestep = FALSE;
 		}
 	}
-
-	if (g_DR_rayman == NULL) {
-		g_DR_rayman = HIE_fn_p_stFindObjectByName("rayman");
-#if _DEBUG
-		g_DR_selectedObject = g_DR_rayman;
-#endif
-	}
-
-	if (g_DR_global == NULL) {
-		g_DR_global = HIE_fn_p_stFindObjectByName("global");
-	}
-
-	CreateAlwaysRaymanObject();
 
 	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger) && FALSE)
 	{

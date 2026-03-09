@@ -1,6 +1,6 @@
 #include "cpa_functions.h"
 
-SCT_tdstSectInfo* (*fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject) = OFFSET(0x4122C0);
+SCT_tdstSectInfo* (*SCT_fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject) = OFFSET(0x4122C0);
 void (*fn_v3dDataInitValueSAI) (GAM_tdst3dData* h_3dData) = OFFSET(0x4186B0);
 void (*fn_v3dDataInit) (HIE_tdstEngineObject* p_stObject, AI_tdeObjectTreeInit eObjectInit) = OFFSET(0x418340);
 char* (*AI_fn_p_vTrueAlloc) (unsigned int size) = OFFSET(0x466860);
@@ -70,6 +70,9 @@ HIE_tdstEngineObject * fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFa
 	GAM_fn_vStdGameAlloc(p_stTempObject);
 	GAM_fn_v3dDataAlloc(p_stTempObject);
 	AI_fn_vBrainAlloc(p_stTempObject);
+	COL_fn_vCollSetAlloc(p_stTempObject);
+	SCT_fn_vSectInfoAlloc(p_stTempObject);
+	DNM_fn_vDynamAlloc(p_stTempObject);
 
 	p_stTempObject->hStandardGame->lObjectFamilyType = otObjectFamilyType;
 	p_stTempObject->hStandardGame->lObjectModelType = otObjectModelType;

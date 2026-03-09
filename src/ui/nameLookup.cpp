@@ -1232,6 +1232,7 @@ GetMap(NameType type) {
 }
 
 std::string NameFromIndex(NameType type, const std::string& container, int index) {
+
   static std::map<std::tuple<NameType, std::string, int>, std::string> cache;
   auto key = std::make_tuple(type, container, index);
   if (auto it = cache.find(key); it != cache.end())

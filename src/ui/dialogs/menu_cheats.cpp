@@ -28,6 +28,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Disable death animations", nullptr, g_DR_Cheats_DisableDeathAnimations)) {
     g_DR_Cheats_DisableDeathAnimations = !g_DR_Cheats_DisableDeathAnimations;
   }
+  if (ImGui::MenuItem("Force default camera", nullptr, g_DR_Cheats_ForceDefaultCamera)) {
+    g_DR_Cheats_ForceDefaultCamera = !g_DR_Cheats_ForceDefaultCamera;
+  }
   if (ImGui::MenuItem("Activate void")) {
     *AI_g_bInGameMenu = TRUE;
   }

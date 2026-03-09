@@ -308,6 +308,7 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
   }
 
   char* modelName = HIE_fn_szGetObjectModelName(actor->hStandardGame->p_stSuperObject);
+
   char label[32];
   if (ImGui::BeginListBox(listBoxLabel, size)) {
 
@@ -316,8 +317,8 @@ void DR_DLG_AIModel_Draw_ComportList(HIE_tdstEngineObject* actor, AI_tdstMind* m
       std::string itemLabel;
 
       switch (comportType) {
-        case SelectedComportType::Intelligence: itemLabel = NameFromIndex(NameType::AIModel_Comport, modelName, i); break;
-        case SelectedComportType::Reflex: itemLabel = NameFromIndex(NameType::AIModel_Reflex, modelName, i); break;
+      case SelectedComportType::Intelligence: itemLabel = NameFromIndex(NameType::AIModel_Comport, modelName != nullptr ? modelName : "", i); break;
+        case SelectedComportType::Reflex: itemLabel = NameFromIndex(NameType::AIModel_Reflex, modelName != nullptr ? modelName : "", i); break;
         case SelectedComportType::Macro: itemLabel = "Macro " + std::to_string(i); break;
       }
 

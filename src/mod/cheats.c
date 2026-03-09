@@ -8,6 +8,7 @@ char g_DR_Cheats_InfiniteAir = FALSE;
 char g_DR_Cheats_MegaShoots = FALSE;
 char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 char g_DR_Cheats_DisableDeathAnimations = FALSE;
+char g_DR_Cheats_ForceDefaultCamera = FALSE;
 char g_DR_Cheats_AutoVoid = FALSE;
 char g_DR_Cheats_FreezeProgress = FALSE;
 char g_DR_Cheats_HasSavedProgress = FALSE;
@@ -158,6 +159,19 @@ void DR_Cheats_Apply() {
 
             *(int*)(ACT_DsgVarPtr(actor, DV_RAY_INTERN_Tmp)) = 0;
           }
+        }
+      }
+    }
+    
+    if (g_DR_Cheats_ForceDefaultCamera) {
+      HIE_tdstEngineObject* stdCam = GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stActor;
+
+      *(int*)(ACT_DsgVarPtr(stdCam, DV_StdCam_gencamera_priorite)) = 99999; // DsgVar6: gencamera_priorite
+
+      HIE_tdstSuperObject* spo = HIE_fn_p_stFindObjectByModelType(HIE_fn_lFindModelTypeByName("SUN_Grille_Rhop_Cine"));
+      if (spo != NULL) {
+        if (spo->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMax == 0) {
+          spo->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMax = 1;
         }
       }
     }

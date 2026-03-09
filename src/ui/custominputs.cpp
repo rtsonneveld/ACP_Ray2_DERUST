@@ -503,6 +503,7 @@ void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId) {
 
     bool isRayman = (actor == g_DR_rayman->hLinkedObject.p_stActor);
     bool isGlobal = (actor == g_DR_global->hLinkedObject.p_stActor);
+    bool isStdCam = (actor == GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stActor);
 
     AI_tdstDsgVarInfo info = aiModel->p_stDsgVar->a_stDsgVarInfo[dsgVarId];
 
@@ -513,10 +514,12 @@ void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId) {
     if (isRayman) {
       ImGui::SameLine();
       ImGui::Text(DV_STR_Rayman[dsgVarId]);
-    }
-    else if (isGlobal) {
+    } else if (isGlobal) {
       ImGui::SameLine();
       ImGui::Text(DV_STR_Global[dsgVarId]);
+    }    else if (isStdCam) {
+      ImGui::SameLine();
+      ImGui::Text(DV_STR_StdCam[dsgVarId]);
     }
 
     ImGui::SameLine();

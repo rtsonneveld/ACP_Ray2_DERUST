@@ -97,6 +97,7 @@ void DR_DLG_Inspector_Draw_MS_Brain(HIE_tdstEngineObject* actor)
 
       bool isRayman = (actor == g_DR_rayman->hLinkedObject.p_stActor);
       bool isGlobal = (actor == g_DR_global->hLinkedObject.p_stActor);
+      bool isStdCam = (actor == GAM_g_stEngineStructure->g_hStdCamCharacter->hLinkedObject.p_stActor);
 
       ImGui::TableSetupColumn("ID");
       ImGui::TableSetupColumn(isRayman ? "Type/Name" : "Type");
@@ -121,10 +122,12 @@ void DR_DLG_Inspector_Draw_MS_Brain(HIE_tdstEngineObject* actor)
         if (isRayman) {
           ImGui::SameLine();
           ImGui::Text(DV_STR_Rayman[i]);
-        }
-        else if (isGlobal) {
+        } else if (isGlobal) {
           ImGui::SameLine();
           ImGui::Text(DV_STR_Global[i]);
+        } else if (isStdCam) {
+          ImGui::SameLine();
+          ImGui::Text(DV_STR_StdCam[i]);
         }
 
         ImGui::TableNextColumn();

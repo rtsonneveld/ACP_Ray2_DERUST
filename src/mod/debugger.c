@@ -1,5 +1,6 @@
 #include "debugger.h"
 #include "mod/globals.h"
+#include "cheats.h"
 #include "ai_dump.h"
 #include "mod/ai_distancechecks.h"
 #include "ui/ui_bridge.h"
