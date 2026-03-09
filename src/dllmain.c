@@ -220,7 +220,10 @@ void MOD_fn_vChooseTheGoodInit() {
 
 void MOD_fn_vChooseTheGoodDesInit() {
 
-	alw_rayman = NULL;
+	if (alw_rayman != NULL) {
+		fn_vRemoveAnAlwaysModel(alw_rayman);
+		alw_rayman = NULL;
+	}
 
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;

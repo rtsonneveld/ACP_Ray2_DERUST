@@ -99,3 +99,35 @@ void fn_vAddAnAlwaysModel(HIE_tdstEngineObject* p_stAlwaysObject)
 			p_stAlwaysObject->hStandardGame->ucMiscFlags |= Std_C_MiscFlag_Always;
 	}
 }
+
+void fn_vRemoveAnAlwaysModel(HIE_tdstEngineObject* p_stAlwaysObject)
+{
+	if (p_stAlwaysObject == NULL || ALW_g_stAlways == NULL) return;
+
+	ALW_tdstAlwaysModelList* h_Current;
+	ALW_tdstAlwaysModelList* h_Next;
+
+	h_Current = (ALW_tdstAlwaysModelList*)LST_M_DynamicGetFirstElement(&(ALW_g_stAlways->hLstAlwaysModel));
+
+	while (h_Current != NULL)
+	{
+		// Save next pointer because LST_M_DynamicIsolate/Free will invalidate current
+		h_Next = (ALW_tdstAlwaysModelList*)LST_M_DynamicGetNextBrother(h_Current);
+
+		if (h_Current->p_stAlwaysObject == p_stAlwaysObject)
+		{
+			LST_M_DynamicIsolate(h_Current);
+
+			if (p_stAlwaysObject->hStandardGame)
+			{
+				p_stAlwaysObject->hStandardGame->ucMiscFlags &= ~Std_C_MiscFlag_Always;
+			}
+
+			// TODO: free memory
+
+			return;
+		}
+
+		h_Current = h_Next;
+	}
+}

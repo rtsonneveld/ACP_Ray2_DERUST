@@ -55,6 +55,7 @@ AI_tdstAIModel* fn_p_stAllocAIModel();
 HIE_tdstEngineObject* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType);
 
 void fn_vAddAnAlwaysModel(HIE_tdstEngineObject* p_stAlwaysObject);
+void fn_vRemoveAnAlwaysModel(HIE_tdstEngineObject* p_stAlwaysObject);
 
 #ifdef __cplusplus
 }
