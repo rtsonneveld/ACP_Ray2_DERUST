@@ -1104,6 +1104,9 @@
     <ClInclude Include="src\ui\dialogs\inspector_actor_sectinfo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\mod\glmradar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1217,9 +1220,6 @@
     <ClCompile Include="src\mod\ai_strings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mod\savestates.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\dialogs\menu_cheats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1300,6 +1300,15 @@
     </ClCompile>
     <ClCompile Include="src\ui\dialogs\inspector_sector.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_sectinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\glmradar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\engineglobals_always.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\savestates.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

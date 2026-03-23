@@ -10,6 +10,7 @@ extern unsigned long g_DR_currentMapFrameCount;
 
 extern MTH3D_tdstVector g_DR_glmDirectionFrom;
 extern MTH3D_tdstVector g_DR_glmDirectionTo;
+extern MTH3D_tdstVector g_DR_glmTeleport;
 
 extern HIE_tdstSuperObject* g_DR_rayman;
 extern HIE_tdstSuperObject* g_DR_global;

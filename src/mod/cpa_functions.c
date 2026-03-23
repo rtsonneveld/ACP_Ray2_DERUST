@@ -3,16 +3,9 @@
 SCT_tdstSectInfo* (*SCT_fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject) = OFFSET(0x4122C0);
 void (*fn_v3dDataInitValueSAI) (GAM_tdst3dData* h_3dData) = OFFSET(0x4186B0);
 void (*fn_v3dDataInit) (HIE_tdstEngineObject* p_stObject, AI_tdeObjectTreeInit eObjectInit) = OFFSET(0x418340);
-char* (*AI_fn_p_vTrueAlloc) (unsigned int size) = OFFSET(0x466860);
 char* (*fnp_vGameMallocInHLM) (unsigned int size) = OFFSET(0x4077E0);
 void (*PLA_fn_vUpdateTransparencyForModules) (HIE_tdstSuperObject* superObject) = OFFSET(0x40F260);
 void (*fn_vKillEngineObjectOrAlwaysByPointer)(HIE_tdstEngineObject* p_stObject) = OFFSET(0x4062a0);
-
-HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,
-	HIE_tdstSuperObject* p_stFatherSuperObject,
-	HIE_tdstSuperObject* _hGenerator,
-	unsigned short uwAction,
-	POS_tdstCompletePosition* p_stMatrix) = OFFSET(0x40BCC0);
 
 
 /*void* fnp_vGameMallocInHLM(unsigned long ulSize) {
@@ -49,19 +42,6 @@ HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType)
 	return(NULL);
 }
 
-AI_tdstAIModel* fn_p_stAllocAIModel()
-{
-	AI_tdstAIModel* p_stAIModel = NULL;
-	p_stAIModel = (AI_tdstAIModel*)AI_fn_p_vTrueAlloc(sizeof(AI_tdstAIModel));
-	p_stAIModel->a_stScriptAIIntel = NULL;
-	p_stAIModel->a_stScriptAIReflex = NULL;
-	p_stAIModel->p_stDsgVar = NULL;
-	p_stAIModel->p_stListOfMacro = NULL;
-	p_stAIModel->ucSecondPassDone = 0;
-
-	return(p_stAIModel);
-}
-
 HIE_tdstEngineObject * fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType)
 {
 	HIE_tdstEngineObject* p_stTempObject;
@@ -69,7 +49,17 @@ HIE_tdstEngineObject * fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFa
 
 	GAM_fn_vStdGameAlloc(p_stTempObject);
 	GAM_fn_v3dDataAlloc(p_stTempObject);
-	AI_fn_vBrainAlloc(p_stTempObject);
+	//AI_fn_vBrainAlloc(p_stTempObject); // Because the game does not allocate a lot of space for always minds/dsgmem by default, we allocate our own space
+  p_stTempObject->hBrain = (AI_tdstBrain*)fnp_vGameMallocInHLM(sizeof(AI_tdstBrain));
+  p_stTempObject->hBrain->p_stMind = (AI_tdstMind*)fnp_vGameMallocInHLM(sizeof(AI_tdstMind));
+  p_stTempObject->hBrain->p_stMind->p_stDsgMem = (AI_tdstMind*)fnp_vGameMallocInHLM(sizeof(AI_tdstDsgMem));
+	p_stTempObject->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer = fnp_vGameMallocInHLM(32 * 1024); // 32 kB should be plenty
+  p_stTempObject->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBufferInit = fnp_vGameMallocInHLM(32 * 1024); // 32 kB should be plenty
+  AI_tdstDsgVar* dsgVar = (AI_tdstDsgVar*)fnp_vGameMallocInHLM(sizeof(AI_tdstDsgVar));
+  AI_tdstDsgVar** dsgVarArray = (AI_tdstDsgVar**)fnp_vGameMallocInHLM(sizeof(AI_tdstDsgVar*));
+	dsgVarArray[0] = dsgVar;
+	p_stTempObject->hBrain->p_stMind->p_stDsgMem->pp_stDsgVar = dsgVarArray;
+
 	COL_fn_vCollSetAlloc(p_stTempObject);
 	SCT_fn_vSectInfoAlloc(p_stTempObject);
 	DNM_fn_vDynamAlloc(p_stTempObject);

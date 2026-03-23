@@ -244,3 +244,19 @@ void DR_Debugger_Continue()
   }
   g_DR_debuggerPaused = false;
 }
+
+void DR_Debugger() {
+#ifdef _DEBUG
+  g_DR_debuggerPaused = TRUE;
+
+  while (g_DR_debuggerPaused) {
+
+    SetEvent(g_hFrameEvent);
+    ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
+    
+    //DR_UI_Update();
+
+    Sleep(10);
+  }
+#endif
+}

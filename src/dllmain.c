@@ -24,7 +24,6 @@
 #include "mod/ai_disablerandopt.h"
 #include "mod/util.h"
 #include "mod/state.h"
-#include "mod/savestates.h"
 #include "mod/globals.h"
 #include "mod/cheats.h"
 #include "mod/debugger.h"
@@ -49,46 +48,6 @@ HANDLE g_hFrameEvent = NULL;
 HANDLE g_hAFrameIsWaiting = NULL;
 HANDLE g_hFrameDoneCopying = NULL;
 volatile BOOL g_bRunning = true;
-
-HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
-{
-
-	POS_tdstCompletePosition stMatrix;
-	POS_fn_vSetIdentityMatrix(&stMatrix);
-	POS_fn_vSetTranslationVector(&stMatrix, position);
-
-	return fn_p_stAllocateAlways(
-		modelType, 
-		*GAM_g_p_stDynamicWorld, 
-		HIE_M_hGetMainActor(), 
-		0,
-		&stMatrix);
-}
-
-HIE_tdstEngineObject* alw_rayman;
-long alwaysRaymanObjectType = 1000;
-HIE_tdstSuperObject* spawned_rayman;
-
-void CreateAlwaysRaymanObject() {
-	
-	if (alw_rayman != NULL) return;
-	if (g_DR_rayman == NULL) return;
-
-	alw_rayman = fn_p_stAllocateAlwaysEngineObject(
-		g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectFamilyType,
-		alwaysRaymanObjectType,
-		C_AlwaysObjectType);
-
-	AI_fn_vBrainCopyClone(alw_rayman, g_DR_rayman->hLinkedObject.p_stActor);
-	DNM_fn_vDynamCopyClone(alw_rayman, g_DR_rayman->hLinkedObject.p_stActor);
-
-	alw_rayman->h3dData->h_CurrentObjectsTable =
-		alw_rayman->h3dData->h_InitialObjectsTable = alw_rayman->h3dData->h_Family->hDefaultObjectsTable;
-	alw_rayman->h3dData->h_InitialState = alw_rayman->h3dData->h_Family->stForStateArray.hFirstElementSta;
-	alw_rayman->h3dData->ulNumberOfChannels = alw_rayman->h3dData->h_Family->ulNumberOfChannels;
-
-	fn_vAddAnAlwaysModel(alw_rayman);
-}
 
 // DR_RemoveLoadScreens taken from: https://github.com/spitfirex86/LoadScreenRemoveR2/blob/master/dllmain.c
 
@@ -169,8 +128,7 @@ void MOD_fn_vInitGameLoop(void) {
 }
 
 void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame) {
-
-
+	
 	g_DR_currentMapFrameCount = 0;
 
 	if (DR_Settings_Get_DisableAutoSave()) {
@@ -179,15 +137,75 @@ void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame) {
 	return GAM_fn_vAskToChangeLevel(szLevelName, bSaveGame);
 }
 
+void fn_vFirstInitAlwaysStructure()
+{
+	HIE_tdstEngineObject* p_stTempEngineObject;
+	unsigned long i;
+
+	if (ALW_g_stAlways->ulMaxNbOfAlways)
+	{
+		//ALW_g_stAlways->p_stAlwaysSuperObject = HIE_fn_p_stCreateSuperObjectTab(ALW_g_stAlways->ulMaxNbOfAlways); this has already been done before
+		//MMG_fn_vAddMemoryInfo(MMG_C_lTypeGAM, MMG_C_lSubTypeEngineObject, 0);
+
+		ALW_g_stAlways->p_stAlwaysEngineObjectInit = (struct tdstEngineObject_*)fnp_vGameMallocInHLM(ALW_g_stAlways->ulMaxNbOfAlways * sizeof(HIE_tdstEngineObject));
+		//MMG_fn_vAddMemoryInfo(MMG_C_lTypeGAM, MMG_C_lSubTypeAlwaysGenerator, 0);
+
+		ALW_g_stAlways->a_stAlwaysGenerator = (HIE_tdstSuperObject*)fnp_vGameMallocInHLM(ALW_g_stAlways->ulMaxNbOfAlways * sizeof(HIE_tdstSuperObject*));
+
+		for (i = 0;i < ALW_g_stAlways->ulMaxNbOfAlways;i++)
+		{
+			p_stTempEngineObject = fn_p_stAllocateAlwaysEngineObject(C_InvalidObjectType, C_InvalidObjectType, C_AlwaysObjectType);
+
+			HIE_tdstSuperObject* spo = ALW_g_stAlways->p_stAlwaysSuperObject + i;
+			spo->ulType = HIE_C_Type_Actor;
+			spo->hLinkedObject.p_stActor = p_stTempEngineObject;
+			spo->p_stLocalMatrix = &(p_stTempEngineObject->h3dData->stGLIObjectMatrix);
+
+			p_stTempEngineObject->hStandardGame->p_stSuperObject = spo;
+
+			memcpy(&(ALW_g_stAlways->p_stAlwaysEngineObjectInit[i]), p_stTempEngineObject, sizeof(HIE_tdstEngineObject));
+			memset(p_stTempEngineObject, 0, sizeof(HIE_tdstEngineObject));
+		}
+	}
+}
+
+// To make sure there is enough space for bigger always objects
+void fn_vInitMindForAlways()
+{
+	DR_Debugger();
+	unsigned long				i;
+	unsigned long				ulSizeMax = 0;
+	AI_tdstMind* hMind;
+	HIE_tdstEngineObject* p_stTempEngineObject;
+
+	ulSizeMax = 32 * 1024; // 32 kB should be plenty
+
+	for (i = 0; i < ALW_g_stAlways->ulMaxNbOfAlways; i++)
+	{
+		p_stTempEngineObject = &ALW_g_stAlways->p_stAlwaysEngineObjectInit[i];
+		if (p_stTempEngineObject->hBrain)
+		{
+			//MMG_fn_vAddMemoryInfo(MMG_C_lTypeAI, MMG_C_lSubTypeMind, NULL);
+			hMind = (AI_tdstMind*)fnp_vGameMallocInHLM(ulSizeMax);
+			memset(hMind, i + 1, ulSizeMax);
+			p_stTempEngineObject->hBrain->p_stMind = hMind;
+		}
+	}
+	DR_Debugger();
+}
+
+void MOD_fn_vInitLevelLoop() {
+	GAM_fn_vInitLevelLoop();
+
+	//fn_vFirstInitAlwaysStructure();
+	//fn_vInitMindForAlways();
+}
+
 void MOD_fn_vChooseTheGoodInit() {
 
-	bool deadLoop = FALSE;
+	GAM_tdeEngineMode requestedMode = GAM_g_stEngineStructure->eEngineMode;
 
 	bool wasPaused = GAM_g_stEngineStructure->bEngineIsInPaused;
-
-	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeDeadLoop) {
-		deadLoop = TRUE;
-	}
 
 	// For consistent recording
 	if (GAM_g_stEngineStructure->eEngineMode != E_EM_ModeStartingProgram) {
@@ -195,14 +213,15 @@ void MOD_fn_vChooseTheGoodInit() {
 	}
 
 	GAM_fn_vChooseTheGoodInit();
+	GAM_tdeEngineMode currentMode = GAM_g_stEngineStructure->eEngineMode; // The mode is reset after the requested mode has been initialized.
 
-	if (deadLoop) {
+	if (requestedMode == E_EM_ModeDeadLoop) {
 		DR_Cheats_LoadPosition();
 	}
 
 	GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused;
 
-	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModePlaying || deadLoop) {
+	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModePlaying || requestedMode == E_EM_ModeDeadLoop) {
 		if (g_DR_rayman == NULL) {
 			g_DR_rayman = HIE_fn_p_stFindObjectByName("rayman");
 #if _DEBUG
@@ -214,16 +233,13 @@ void MOD_fn_vChooseTheGoodInit() {
 			g_DR_global = HIE_fn_p_stFindObjectByName("global");
 		}
 
-		CreateAlwaysRaymanObject();
+		GLMRadar_Init();
 	}
 }
 
 void MOD_fn_vChooseTheGoodDesInit() {
 
-	if (alw_rayman != NULL) {
-		fn_vRemoveAnAlwaysModel(alw_rayman);
-		alw_rayman = NULL;
-	}
+	GLMRadar_DeInit();
 
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
 		g_DR_selectedObject = NULL;
@@ -299,50 +315,6 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 	return 0;
 }
 
-
-void TestGLM() {
-
-	if (!IPT_M_bActionIsValidated(IPT_E_Entry_Action_Nage_Plonger))
-	{
-		return;
-	}
-
-	HIE_tdstSuperObject * dummySPO = CreateObject(&g_DR_rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
-
-	if (dummySPO == NULL) {
-		return;
-	}
-
-	HIE_tdstEngineObject* dummy = dummySPO->hLinkedObject.p_stActor;
-	dummy->hStandardGame->lObjectModelType = g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->lObjectModelType;
-
-	AI_fn_vBrainCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
-	COL_fn_vCollSetCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
-	DNM_fn_vDynamCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
-
-	POS_tdstCompletePosition newPos = *dummySPO->p_stGlobalMatrix;
-	newPos.stPos.z += 0.01f;
-
-	memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-	memcpy(dummySPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-
-	memcpy(dummy->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, g_DR_rayman->hLinkedObject.p_stActor->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, dummy->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
-
-	PLA_fn_bSetNewState(dummySPO, ACT_GetStateByIndex(dummy, 19), true, false); // State 19: YLT_St_ry_saut1_cycled
-	ACT_ChangeComportRule(dummy, 2); // Comport 2: YLT_SautReception
-
-	g_DR_glmDirectionFrom = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
-
-	memcpy(&dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-	
-	GAM_fn_vMakeCharacterMechanicallyReact(dummySPO);
-	GAM_fn_vMakeCharacterReact(dummySPO);
-
-	g_DR_glmDirectionTo = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
-
-	fn_vKillEngineObjectOrAlwaysByPointer(dummy);
-}
-
 void MOD_fn_vEngine()
 {
 	DR_Cheats_Apply();
@@ -350,7 +322,7 @@ void MOD_fn_vEngine()
 		DR_DistanceChecks_Update();
 	}
 
-	TestGLM();
+	GLMRadar_Before_fn_vEngine();
 
 	// Main Engine Loop
 	{
@@ -361,7 +333,7 @@ void MOD_fn_vEngine()
 			GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
 		}
 
-		if (DR_Settings_Get_TryCatchExceptions()) {
+		if (DR_Settings_Get_TryCatchExceptions() && FALSE) {
 			__try {
 				GAM_fn_vEngine();
 			}
@@ -407,20 +379,6 @@ void MOD_fn_vEngine()
 		if (g_DR_Playback.framestep) {
 			g_DR_Playback.pause = TRUE;
 			g_DR_Playback.framestep = FALSE;
-		}
-	}
-
-	if (IPT_M_bActionJustValidated(IPT_E_Entry_Action_Nage_Plonger) && FALSE)
-	{
-		spawned_rayman = CreateObject(&g_DR_rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
-	}
-
-	if (spawned_rayman != NULL) {
-
-		if (SPO_Actor(spawned_rayman)->h3dData != NULL && SPO_Actor(spawned_rayman)->h3dData->h_CurrentState != SPO_Actor(g_DR_rayman)->h3dData->h_CurrentState) {
-			PLA_fn_bSetNewState(spawned_rayman, SPO_Actor(g_DR_rayman)->h3dData->h_CurrentState, TRUE, FALSE);
-
-			SPO_SetTransparency(spawned_rayman, 0.5f);
 		}
 	}
 
@@ -490,6 +448,145 @@ void MOD_fn_vFillDynamicHierarchy(HIE_tdstSuperObject* _hSOCurrentSector, ACP_td
 	GAM_g_stEngineStructure->stEngineTimer.ulFrameNumber = oldFrameNumber;
 }
 
+
+void fn_vSimulateMindAllocationFromAnotherMind(AI_tdstMind* p_stMindSrc, AI_tdstMind* p_stMindDst)
+{
+	// mindsrc -> dsgmem -> dsgvar is NULL
+	if ((p_stMindSrc != NULL) && (p_stMindDst != NULL))
+	{
+		AI_tdstAIModel* p_stLoadedAIModel;
+		AI_tdstMind* p_stLoadedMind = p_stMindDst;
+		AI_tdstScriptAI** p_p_stScriptAI = NULL;
+		AI_tdstIntelligence* p_stIntelligenceOrReflex = NULL;
+
+		char* ptr = (char*)(p_stMindDst + 1);
+
+		/* AIModel*/
+		p_stLoadedAIModel = ((p_stMindSrc)->p_stAIModel);
+		((p_stLoadedMind)->p_stAIModel = (p_stLoadedAIModel));
+
+		/* simul alloc intelligence and link it with its script*/
+		p_p_stScriptAI = &((p_stLoadedAIModel)->a_stScriptAIIntel);
+		if (*p_p_stScriptAI != NULL)
+		{
+			(((p_stLoadedMind)->p_stIntelligence) = (AI_fn_p_stSimulateAllocIntelligence(&ptr, p_p_stScriptAI, ((*p_p_stScriptAI)->ucActionTableNbEntry))));
+			p_stIntelligenceOrReflex = ((p_stMindSrc)->p_stIntelligence);
+			if (p_stIntelligenceOrReflex != NULL)
+			{
+				((((p_stLoadedMind)->p_stIntelligence))->ulNoComportInit) = ((p_stIntelligenceOrReflex)->ulNoComportInit);
+			}
+		}
+		else
+		{
+			(((p_stLoadedMind)->p_stIntelligence) = (((void*)0)));
+		}
+
+		p_stIntelligenceOrReflex = ((p_stMindSrc)->p_stIntelligence);
+		if (p_stIntelligenceOrReflex != NULL)
+		{
+			((((p_stLoadedMind)->p_stIntelligence))->ulNoComportInit) = ((p_stIntelligenceOrReflex)->ulNoComportInit);
+		}
+
+		/* simul reflex (same structure as intelligence and link it with its script)*/
+		p_p_stScriptAI = &((p_stLoadedAIModel)->a_stScriptAIReflex);
+		if (*p_p_stScriptAI != NULL)
+		{
+			(((p_stLoadedMind)->p_stReflex) = (AI_fn_p_stSimulateAllocIntelligence(&ptr, p_p_stScriptAI, ((*p_p_stScriptAI)->ucActionTableNbEntry))));
+
+			p_stIntelligenceOrReflex = ((p_stMindSrc)->p_stReflex);
+			if (p_stIntelligenceOrReflex != NULL)
+			{
+				((((p_stLoadedMind)->p_stReflex))->ulNoComportInit) = ((p_stIntelligenceOrReflex)->ulNoComportInit);
+			}
+		}
+		else
+		{
+			(((p_stLoadedMind)->p_stReflex) = (((void*)0)));
+		}
+
+
+		/* simul alloc dsgvar*/
+		(((p_stLoadedMind)->p_stDsgMem)) = NULL;
+		if ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar) != NULL)
+		{
+			if (((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize) != 0)
+			{
+				((p_stLoadedMind)->p_stDsgMem) = AI_fn_p_stSimulateAllocDsgMem(&ptr, &(((p_stLoadedMind)->p_stAIModel)->p_stDsgVar), ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize));
+				(*(((p_stLoadedMind)->p_stDsgMem)->pp_stDsgVar)) = (*(((p_stMindSrc)->p_stDsgMem)->pp_stDsgVar));
+
+				/* dsgvar init*/
+				if ((((p_stMindSrc)->p_stDsgMem)->p_cDsgMemBufferInit) != NULL)
+				{
+					/////////////////////////
+					/// !!! C R A S H !!! ///
+					/////////////////////////
+					(((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBufferInit) = AI_fn_p_cSimulateAllocDsgMemBuffer(&ptr, ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize));
+					/////////////////////////
+					/// !!! C R A S H !!! ///
+					/////////////////////////
+
+						/* copy it from the model */
+					memcpy((((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBufferInit), (((p_stMindSrc)->p_stDsgMem)->p_cDsgMemBufferInit), ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize));
+				}
+
+			}
+		}
+
+		p_stIntelligenceOrReflex = ((p_stLoadedMind)->p_stIntelligence);
+		if (p_stIntelligenceOrReflex)
+		{
+			((p_stIntelligenceOrReflex)->p_stCurrentComport) = (AI_tdstComport*)((p_stIntelligenceOrReflex)->ulNoComportInit);
+			((p_stIntelligenceOrReflex)->p_stPrevComport) = ((p_stIntelligenceOrReflex)->p_stCurrentComport);
+		}
+		/**/
+		p_stIntelligenceOrReflex = ((p_stLoadedMind)->p_stReflex);
+		if (p_stIntelligenceOrReflex)
+		{
+			((p_stIntelligenceOrReflex)->p_stCurrentComport) = (AI_tdstComport*)((p_stIntelligenceOrReflex)->ulNoComportInit);
+			((p_stIntelligenceOrReflex)->p_stPrevComport) = ((p_stIntelligenceOrReflex)->p_stCurrentComport);
+		}
+		/**/
+		if ((((p_stLoadedMind)->p_stDsgMem)) != NULL)
+		{
+			/* copy current values*/
+			if ((((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBufferInit) == NULL)
+			{
+				/* from init values in model */
+				memcpy((((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBuffer), ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->p_cDsgMemDefaultInit), ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize));
+			}
+			else
+			{
+				/* from init values in perso*/
+				memcpy((((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBuffer), (((p_stLoadedMind)->p_stDsgMem)->p_cDsgMemBufferInit), ((((p_stLoadedMind)->p_stAIModel)->p_stDsgVar)->ulBufferSize));
+			}
+		}
+	}
+}
+
+HIE_tdstSuperObject* MOD_fn_p_stAllocateAlways(long otObjectModelType,
+	HIE_tdstSuperObject* p_stFatherSuperObject,
+	HIE_tdstSuperObject* _hGenerator,
+	unsigned short uwAction,
+	POS_tdstCompletePosition* p_stMatrix) {
+
+  HIE_tdstSuperObject* result = ALW_fn_p_stAllocateAlways(otObjectModelType, p_stFatherSuperObject, _hGenerator, uwAction, p_stMatrix);
+
+
+	return result;
+}
+
+void MOD_fn_vBrainCopyClone(HIE_tdstEngineObject* dst, HIE_tdstEngineObject* src) {
+	
+	printf("AI_M_SetAIModel(p_stLoadedMind (dst), p_stLoadedAIModel (src)), src AI model is 0x%x\n", src->hBrain->p_stMind->p_stAIModel);
+	 
+	AI_tdstMind* hMindSrc;
+	AI_tdstMind* hMindDest;
+	hMindSrc = src->hBrain->p_stMind;
+	hMindDest = dst->hBrain->p_stMind;
+	fn_vSimulateMindAllocationFromAnotherMind(
+		hMindSrc, hMindDest);
+}
+
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 {
 	switch ( dwReason )
@@ -524,16 +621,34 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vInitLevelLoop, (void*)MOD_fn_vInitLevelLoop);
+		
+			/*
+			FHK_fn_lCreateHook((void**)&fn_p_vDynRealloc, (void*)MOD_fn_p_vDynRealloc);
+			FHK_fn_lCreateHook((void**)&fn_p_vStaRealloc, (void*)MOD_fn_p_vStaRealloc);
+			FHK_fn_lCreateHook((void**)&fn_p_vGenRealloc, (void*)MOD_fn_p_vGenRealloc);
+
 			FHK_fn_lCreateHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
+			FHK_fn_lCreateHook((void**)&fn_p_vStaAlloc, (void*)MOD_fn_vStaAlloc);
 			FHK_fn_lCreateHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
+			
+			FHK_fn_lCreateHook((void**)&fn_vDynFree, (void*)MOD_fn_vDynFree);
+			FHK_fn_lCreateHook((void**)&fn_vStaFree, (void*)MOD_fn_vStaFree);
+			FHK_fn_lCreateHook((void**)&fn_vGenFree, (void*)MOD_fn_vGenFree);*/
+
+			/*
 			FHK_fn_lCreateHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
 			FHK_fn_lCreateHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
-			FHK_fn_lCreateHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
+			FHK_fn_lCreateHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);*/
 			FHK_fn_lCreateHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vFillDynamicHierarchy, (void*)MOD_fn_vFillDynamicHierarchy);
+
+			// DEBUG
+			//FHK_fn_lCreateHook((void**)&AI_fn_vBrainCopyClone, (void*)MOD_fn_vBrainCopyClone);
+			//FHK_fn_lCreateHook((void**)&ALW_fn_p_stAllocateAlways, (void*)MOD_fn_p_stAllocateAlways);
 
 			// Recording
 			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
@@ -571,11 +686,15 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
+
+			/*
 			FHK_fn_lDestroyHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
 			FHK_fn_lDestroyHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
 			FHK_fn_lDestroyHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
 			FHK_fn_lDestroyHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
 			FHK_fn_lDestroyHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
+			*/
+
 			FHK_fn_lDestroyHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lDestroyHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);

@@ -221,6 +221,30 @@ void DrawDistanceChecks(Shader* shader) {
   }
 }
 
+
+void DrawLine(Shader* shader, glm::vec3 A, glm::vec3 B, GLuint texture)
+{
+  if (glm::distance(A, B) > 0.001f) {
+    glm::vec3 dir = glm::normalize(B - A);
+    float lineLength = glm::length(B - A);
+
+    float thickness = 0.05f;
+
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
+
+    glm::mat4 lineMat = glm::mat4(1.0f);
+    lineMat = glm::translate(lineMat, A);
+    lineMat = lineMat * rotation;
+
+    lineMat = glm::translate(lineMat, glm::vec3(0.0f, 0.0f, -lineLength * 0.5f));
+    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
+
+    shader->setMat4("uModel", lineMat);
+    shader->setTex2D("tex1", texture, 0);
+    glmDirectionCube.draw();
+  }
+}
+
 void DrawGLM(Scene * scene, Shader * shader) {
 
   if (!g_DR_settings.util_showGLM) return;
@@ -248,27 +272,17 @@ void DrawGLM(Scene * scene, Shader * shader) {
     glmCube.draw();
   }
 
-  // 2. Draw the "Extended Line" Cube
-  glm::vec3 A = glm::vec3(g_DR_glmDirectionFrom.x, g_DR_glmDirectionFrom.y, g_DR_glmDirectionFrom.z);
-  glm::vec3 B = glm::vec3(g_DR_glmDirectionTo.x, g_DR_glmDirectionTo.y, g_DR_glmDirectionTo.z);
+  glm::vec3 glmTeleport = ToGLMVec(g_DR_glmTeleport);
 
-  if (glm::distance(A, B) > 0.001f) {
-    glm::vec3 dir = glm::normalize(B - A);
+  if (glm::length(glmTeleport) > 0) {
 
-    float lineLength = 2000.0f;
-    float thickness = 0.05f;
+    DrawLine(shader, ToGLMVec(g_DR_glmDirectionFrom), ToGLMVec(g_DR_glmDirectionTo), Textures::ColZdd);
+    DrawLine(shader, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos), glmTeleport, Textures::ColElectric);
+    DrawLine(shader, glmTeleport, ToGLMVec(g_DR_glmDirectionTo), Textures::ColNocol);
+  }
+  else {
 
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
-
-    glm::mat4 lineMat = glm::mat4(1.0f);
-    lineMat = glm::translate(lineMat, A);
-    lineMat = lineMat * rotation;
-     
-    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
-
-    shader->setMat4("uModel", lineMat);
-    shader->setTex2D("tex1", Textures::ColBounce, 0);
-    glmDirectionCube.draw();
+    DrawLine(shader, ToGLMVec(g_DR_glmDirectionFrom), ToGLMVec(g_DR_glmDirectionTo), Textures::ColBounce);
   }
 }
 
@@ -276,6 +290,7 @@ glm::vec3 lastGlmPos;
 void HandleGLMUpdates() {
 
   glm::vec3 glmPos = *(GetGlmPosition());
+  if (g_DR_rayman == NULL) return;
 
   char* raymanState = (char*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_RAY_Etat);
   if (*raymanState == 4 || *raymanState == 25) { // Ignore when sliding (4) or swimming (25)
@@ -285,13 +300,7 @@ void HandleGLMUpdates() {
 
   if (lastGlmPos != glmPos && glmPos != glm::vec3(0)) {
     
-    glm::vec3 delta = glmPos - lastGlmPos;
-
     lastGlmPos = glmPos;
-    
-    // Store direction for visualization
-    g_DR_glmDirectionFrom = FromGLMVec(glmPos);
-    g_DR_glmDirectionTo = FromGLMVec(glmPos + delta);
 
     if (playSoundOnGLMChange && glmSound != nullptr) {
       ma_sound_start(glmSound);

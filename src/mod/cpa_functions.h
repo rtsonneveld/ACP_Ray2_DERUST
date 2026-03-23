@@ -39,18 +39,14 @@ typedef long tdObjectType;
 extern SCT_tdstSectInfo* (*fn_vSectInfoAlloc) (HIE_tdstEngineObject* engineObject);
 extern void (*fn_v3dDataInitValueSAI) (GAM_tdst3dData* h_3dData);
 extern void (*fn_v3dDataInit) (HIE_tdstEngineObject* p_stObject, AI_tdeObjectTreeInit eObjectInit);
-extern char* (*AI_fn_p_vTrueAlloc) (unsigned int size);
 extern char* (*fnp_vGameMallocInHLM) (unsigned int size);
 extern void (*PLA_fn_vUpdateTransparencyForModules) (HIE_tdstSuperObject* superObject);
-extern HIE_tdstSuperObject* (*fn_p_stAllocateAlways) (long otObjectModelType,	HIE_tdstSuperObject* p_stFatherSuperObject,	HIE_tdstSuperObject* _hGenerator,unsigned short uwAction, POS_tdstCompletePosition* p_stMatrix);
 extern void (*fn_vKillEngineObjectOrAlwaysByPointer)(HIE_tdstEngineObject* p_stObject);
 
 // End function pointers //
 
 HIE_tdstFamilyList* fn_hFindFamily(tdObjectType otFamilyType);
 HIE_tdstSuperObject** fn_aGetChildObjects(HIE_tdstSuperObject* parent, HIE_tdstSuperObject** array, int* index, unsigned long ulTypes);
-
-AI_tdstAIModel* fn_p_stAllocAIModel();
 
 HIE_tdstEngineObject* fn_p_stAllocateAlwaysEngineObject(tdObjectType otObjectFamilyType, tdObjectType otObjectModelType, tdObjectType otObjectPersonalType);
 

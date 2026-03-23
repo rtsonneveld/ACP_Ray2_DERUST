@@ -43,6 +43,8 @@ void DR_Debugger_StepOver();
 void DR_Debugger_StepInto();
 void DR_Debugger_Continue();
 
+void DR_Debugger();
+
 #ifdef __cplusplus
 }
 #endif

@@ -118,6 +118,7 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 	io = &ImGui::GetIO(); (void)io;
 	io->ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io->ConfigErrorRecoveryEnableAssert = FALSE;
 
 	io->Fonts->AddFontDefaultVector();
 
@@ -290,45 +291,56 @@ void DR_UI_Update() {
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	UpdateViewportTexture();
+	ImGuiErrorRecoveryState recovery_state;
+	ImGui::ErrorRecoveryStoreState(&recovery_state);
 
-	ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
-	ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
+	__try {
 
-	// convert node rect → framebuffer coords
-	ImVec2 scale = ImGui::GetIO().DisplayFramebufferScale;
-	ImVec2 nodePosFB = ImVec2(node->Pos.x * scale.x, node->Pos.y * scale.y);
-	ImVec2 nodeSizeFB = ImVec2(node->Size.x * scale.x, node->Size.y * scale.y);
+		UpdateViewportTexture();
 
-	int scene_w = (int)nodeSizeFB.x;
-	int scene_h = (int)nodeSizeFB.y;
+		ImGuiID id = ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode, nullptr);
+		ImGuiDockNode* node = ImGui::DockBuilderGetCentralNode(id);
 
-	scene.render(window, scene_w, scene_h);
+		// convert node rect → framebuffer coords
+		ImVec2 scale = ImGui::GetIO().DisplayFramebufferScale;
+		ImVec2 nodePosFB = ImVec2(node->Pos.x * scale.x, node->Pos.y * scale.y);
+		ImVec2 nodeSizeFB = ImVec2(node->Size.x * scale.x, node->Size.y * scale.y);
 
-	ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+		int scene_w = (int)nodeSizeFB.x;
+		int scene_h = (int)nodeSizeFB.y;
 
-	GLuint tex = scene.getColorTexture();
-	ImTextureID texID = (ImTextureID)(intptr_t)tex;
+		scene.render(window, scene_w, scene_h);
 
-	ImVec2 p0 = node->Pos;
-	ImVec2 p1 = ImVec2(node->Pos.x + node->Size.x, node->Pos.y + node->Size.y);
-
-	// flip V because OpenGL
-	drawList->AddImage(texID, p0, p1, ImVec2(0, 1), ImVec2(1, 0));
-
-	// Background text
-	{
 		ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 
-		ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
-		ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
-		ImU32 color = IM_COL32(255, 255, 255, 255);
-		drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
+		GLuint tex = scene.getColorTexture();
+		ImTextureID texID = (ImTextureID)(intptr_t)tex;
+
+		ImVec2 p0 = node->Pos;
+		ImVec2 p1 = ImVec2(node->Pos.x + node->Size.x, node->Pos.y + node->Size.y);
+
+		// flip V because OpenGL
+		drawList->AddImage(texID, p0, p1, ImVec2(0, 1), ImVec2(1, 0));
+
+		// Background text
+		{
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+
+			ImVec2 regionMax = ImGui::GetWindowContentRegionMax();
+			ImVec2 pos(10, ImGui::GetIO().DisplaySize.y - 20);
+			ImU32 color = IM_COL32(255, 255, 255, 255);
+			drawList->AddText(pos, color, "RMB for mouselook, ESC to reset camera");
+		}
+
+		DR_DLG_Draw(hWndR2);
+
+		ShowTextureWindow(vp_texture, vp_width, vp_height);
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+		unsigned int code = GetExceptionCode();
+		printf("Caught SEH exception while drawing UI. Code: 0x%08X\n", code);
+
+		ImGui::ErrorRecoveryTryToRecoverState(&recovery_state);
 	}
-
-	DR_DLG_Draw(hWndR2);
-
-	ShowTextureWindow(vp_texture, vp_width, vp_height);
 
 	ImGui::Render();
 

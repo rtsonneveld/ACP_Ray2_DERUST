@@ -37,6 +37,13 @@ void DR_DLG_EngineGlobals_Draw() {
       ImGui::EndTabItem();
     }
 
+    if (ImGui::BeginTabItem("Always")) {
+
+      DR_DLG_EngineGlobals_Draw_Always();
+
+      ImGui::EndTabItem();
+    }
+
     ImGui::EndTabBar();
 
   }

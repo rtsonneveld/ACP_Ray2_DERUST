@@ -134,6 +134,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\ai_strings.h" />
     <ClInclude Include="src\mod\cheats.h" />
     <ClInclude Include="src\mod\debugger.h" />
+    <ClInclude Include="src\mod\glmradar.h" />
     <ClInclude Include="src\mod\randutil.h" />
     <ClInclude Include="src\mod\recording.h" />
     <ClInclude Include="src\mod\recordingfile.h" />
@@ -493,9 +494,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mod\ai_strings.c" />
     <ClCompile Include="src\mod\cheats.c" />
     <ClCompile Include="src\mod\debugger.c" />
+    <ClCompile Include="src\mod\glmradar.c" />
     <ClCompile Include="src\mod\recording.c" />
     <ClCompile Include="src\mod\recordingfile.c" />
-    <ClCompile Include="src\mod\savestates.c" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -508,6 +509,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="implot\implot_items.cpp" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\glm\glm.cppm" />
+    <ClCompile Include="src\mod\savestates.c" />
     <ClCompile Include="src\rendering\mouselook.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\mod\cpa_functions.c">
@@ -527,6 +529,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\shader.cpp" />
     <ClCompile Include="src\rendering\resourceutil.cpp" />
     <ClCompile Include="src\rendering\textures.cpp" />
+    <ClCompile Include="src\ui\dialogs\engineglobals_always.cpp" />
     <ClCompile Include="src\ui\dialogs\engineglobals_inputstructure.cpp" />
     <ClCompile Include="src\ui\dialogs\inputviewer.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp" />

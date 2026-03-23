@@ -6,3 +6,4 @@ void DR_DLG_EngineGlobals_Draw();
 void DR_DLG_EngineGlobals_Draw_EngineStructure();
 void DR_DLG_EngineGlobals_Draw_CollisionReport();
 void DR_DLG_EngineGlobals_Draw_InputStructure();
+void DR_DLG_EngineGlobals_Draw_Always();

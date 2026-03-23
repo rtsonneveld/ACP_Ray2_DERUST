@@ -6,3 +6,5 @@
 void DR_DLG_Utils_Init();
 void DR_DLG_Utils_Draw();
 void DR_DLG_Utils_DrawScene(Scene * scene, Shader * shader);
+
+void DrawLine(Shader* shader);
