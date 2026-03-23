@@ -4,7 +4,6 @@
 
 // C INCLUDE
 #include "mod/state.h"
-#include "mod/savestates.h"
 #include "mod/recording.h"
 
 #include <ACP_Ray2.h>
