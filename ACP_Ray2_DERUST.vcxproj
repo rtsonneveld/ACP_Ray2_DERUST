@@ -138,7 +138,6 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\randutil.h" />
     <ClInclude Include="src\mod\recording.h" />
     <ClInclude Include="src\mod\recordingfile.h" />
-    <ClInclude Include="src\mod\savestates.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -509,7 +508,6 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="implot\implot_items.cpp" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\glm\glm.cppm" />
-    <ClCompile Include="src\mod\savestates.c" />
     <ClCompile Include="src\rendering\mouselook.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\mod\cpa_functions.c">
