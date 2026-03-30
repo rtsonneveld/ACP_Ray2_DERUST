@@ -28,8 +28,8 @@ void DR_DLG_Inspector_Draw() {
 
       ImGui::Text(SPO_Name(spo).c_str());
 
-      ImGui::DragFloat3("GlobalMatrix.Position", (float*)&spo->p_stGlobalMatrix->stPos);
-      ImGui::DragFloat3("LocalMatrix.Position",  (float*)&spo->p_stLocalMatrix->stPos);
+      ImGui::DragFloat3("GlobalMatrix.Position", (float*)&spo->p_stGlobalMatrix->stPos, 0.1f);
+      ImGui::DragFloat3("LocalMatrix.Position",  (float*)&spo->p_stLocalMatrix->stPos, 0.1f);
 
       InputBitField("SuperObject Flags", (unsigned long*)&spo->ulFlags, BITFIELD_SPOFLAGS, IM_ARRAYSIZE(BITFIELD_SPOFLAGS));
 

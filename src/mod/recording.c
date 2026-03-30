@@ -1,4 +1,5 @@
 #include "recording.h"
+#include "bruteforce.h"
 #include "recordingfile.h"
 #include "globals.h"
 #include "util.h"
@@ -416,6 +417,7 @@ void DR_Recording_HK_fn_vSynchroSound() {
 void DR_Recording_HK_fn_vReadInput()
 {
   // Main function for recording and replaying
+  DR_Bruteforce_Update();
 
   switch (DR_recording_state) {
   case DR_IR_State_Recording:

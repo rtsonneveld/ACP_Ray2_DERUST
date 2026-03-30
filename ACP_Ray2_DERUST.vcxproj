@@ -132,6 +132,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\ai_distancechecks.h" />
     <ClInclude Include="src\mod\ai_dump.h" />
     <ClInclude Include="src\mod\ai_strings.h" />
+    <ClInclude Include="src\mod\bruteforce.h" />
     <ClInclude Include="src\mod\cheats.h" />
     <ClInclude Include="src\mod\debugger.h" />
     <ClInclude Include="src\mod\glmradar.h" />
@@ -458,6 +459,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\shaders\woit_transparencyshader.hpp" />
     <ClInclude Include="src\rendering\textures.hpp" />
     <ClInclude Include="src\rendering\textures_list.hpp" />
+    <ClInclude Include="src\tryblock.h" />
     <ClInclude Include="src\ui\audiosystem.hpp" />
     <ClInclude Include="src\ui\custominputs.hpp" />
     <ClInclude Include="src\ui\dialogs\aimodel.hpp" />
@@ -494,6 +496,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mod\ai_distancechecks.c" />
     <ClCompile Include="src\mod\ai_dump.c" />
     <ClCompile Include="src\mod\ai_strings.c" />
+    <ClCompile Include="src\mod\bruteforce.c" />
     <ClCompile Include="src\mod\cheats.c" />
     <ClCompile Include="src\mod\debugger.c" />
     <ClCompile Include="src\mod\glmradar.c" />

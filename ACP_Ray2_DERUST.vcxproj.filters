@@ -1104,6 +1104,21 @@
     <ClInclude Include="src\mod\glmradar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\mod\bruteforce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\utils_distance.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\utils_glm.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dialogs\utils_misc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tryblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.c">
@@ -1303,6 +1318,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dialogs\engineglobals_always.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod\bruteforce.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\utils_distance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\utils_glm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\dialogs\utils_misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

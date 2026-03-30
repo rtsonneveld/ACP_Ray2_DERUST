@@ -32,6 +32,7 @@
 #include "ui/ui_bridge.h"
 #include <time.h>
 #include <ddraw.h>
+#include "tryblock.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -96,21 +97,24 @@ LRESULT CALLBACK MOD_fn_WndProc(
 
 void MOD_fn_vDisplayAll(void) {
 
-	(*GLI_DRV_xSendListToViewport_)(&GAM_g_stEngineStructure->stViewportAttr);
-	if ( !GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport) )
-		return;
-	GAM_fn_vDisplayFix();
-	//ReleaseSemaphore((HANDLE)GAM_g_stEngineStructure->hDrawSem, 1, 0);
-	(*GLI_DRV_bEndScene_)();
+	TRY_BLOCK(/*void*/, {
 
-	ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
+		(*GLI_DRV_xSendListToViewport_)(&GAM_g_stEngineStructure->stViewportAttr);
+		if (!GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport))
+			return;
+		GAM_fn_vDisplayFix();
+		//ReleaseSemaphore((HANDLE)GAM_g_stEngineStructure->hDrawSem, 1, 0);
+		(*GLI_DRV_bEndScene_)();
 
-	if (DR_Recording_CurrentState() != DR_IR_State_Seeking) {
-		WaitForSingleObject(g_hFrameDoneCopying, 100);
-		WaitForSingleObject(g_hFrameEvent, 1); // This fixes random black/incomplete frames?!
-	}
+		ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
 
-	ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);
+		if (DR_Recording_CurrentState() != DR_IR_State_Seeking) {
+			WaitForSingleObject(g_hFrameDoneCopying, 100);
+			WaitForSingleObject(g_hFrameEvent, 1); // This fixes random black/incomplete frames?!
+		}
+
+		ReleaseSemaphore(GAM_g_stEngineStructure->hDrawSem, 1, NULL);
+	});
 }
 
 BOOL MOD_fn_bCreateMainDisplayScreen(void) {
