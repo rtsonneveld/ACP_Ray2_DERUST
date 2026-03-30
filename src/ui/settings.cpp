@@ -2,6 +2,7 @@
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
+#include "ui_bridge.h"
 
 using json = nlohmann::json;
 
@@ -62,4 +63,9 @@ extern "C" bool DR_Settings_Get_TryCatchExceptions()
 extern "C" bool DR_Settings_Get_DisableAutoSave()
 {
   return g_DR_settings.opt_disableAutoSave;
+}
+
+extern "C" bool DR_Settings_Get_Util_EnableGLMRadar()
+{
+  return g_DR_settings.util_enableGLMRadar;
 }

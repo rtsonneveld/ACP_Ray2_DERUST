@@ -6,6 +6,7 @@
 #include <ACP_Ray2.h>
 #include <LST.h>
 #include <mod/debugger.h>
+#include "ui/ui_bridge.h"
 
 /*
  * Defines
@@ -29,7 +30,7 @@ HIE_tdstSuperObject* spawned_rayman;
  * Functions
  */
 
-HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType modelType)
+HIE_tdstSuperObject* CreateObject(POS_tdstCompletePosition position, tdObjectType modelType)
 {
 	//DR_Debugger();
 
@@ -73,10 +74,6 @@ HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType model
 		}
 	}
 
-	POS_tdstCompletePosition stMatrix;
-	POS_fn_vSetIdentityMatrix(&stMatrix);
-	POS_fn_vSetTranslationVector(&stMatrix, position);
-
 	//DR_Debugger();
 	
 	return ALW_fn_p_stAllocateAlways(
@@ -84,7 +81,7 @@ HIE_tdstSuperObject* CreateObject(MTH3D_tdstVector* position, tdObjectType model
 		*GAM_g_p_stDynamicWorld,
 		HIE_M_hGetMainActor(),
 		0,
-		&stMatrix);
+		&position);
 }
 
 void CreateAlwaysRaymanObject() {
@@ -112,13 +109,19 @@ void RotationDuringGLMTest() {
 
 	float rotation = 0.0f;
 
-	if (IPT_g_stInputStructure->d_stEntryElementArray[0].xAnalogicValue > 20.0f || IPT_M_bActionIsValidated(IPT_E_Entry_Action_Clavier_Droite))
+	if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Clavier_Droite))
 	{
 		rotation -= 1.0f;
 	}
-	if (IPT_g_stInputStructure->d_stEntryElementArray[0].xAnalogicValue < -20.0f || IPT_M_bActionIsValidated(IPT_E_Entry_Action_Clavier_Gauche))
+	if (IPT_M_bActionIsValidated(IPT_E_Entry_Action_Clavier_Gauche))
 	{
 		rotation += 1.0f;
+	}
+	
+  float xAnalogicValue = IPT_g_stInputStructure->d_stEntryElementArray[0].xAnalogicValue;
+	if (fabs(xAnalogicValue) > 10.0f)
+	{
+		rotation -= (xAnalogicValue / 40.0f);
 	}
 
 	if (fabs(rotation) > 0.1f) {
@@ -145,39 +148,38 @@ void RotationDuringGLMTest() {
 
 }
 
-/*
-void TestGLM() {
+void RunOneGlmTest(GlmRadarData* data, int numChecks, HIE_tdstSuperObject* dummySPO, HIE_tdstEngineObject* dummy, MTH3D_tdstVector startGLM)
+{
+	POS_tdstCompletePosition newPos = *dummySPO->p_stGlobalMatrix;
+	newPos.stPos.z += 0.02f;
 
-	HIE_tdstSuperObject* raymanSPO = g_DR_rayman;
-	HIE_tdstEngineObject* rayman = g_DR_rayman->hLinkedObject.p_stActor;
+	memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+	memcpy(dummySPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
 
+	memcpy(dummy->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, g_DR_rayman->hLinkedObject.p_stActor->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, dummy->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
 
-	POS_tdstCompletePosition orgPos = *raymanSPO->p_stGlobalMatrix;
-	POS_tdstCompletePosition newPos = *raymanSPO->p_stGlobalMatrix;
+	// Set initial GLM vec
+	*(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2) = startGLM;
+	data->g_DR_glmDirectionFrom = startGLM;
+	data->g_DR_glmDirectionTo = startGLM;
 
-	newPos.stPos.z += 0.01f;
+	data->g_DR_glmTeleport = (MTH3D_tdstVector){ 0 };
 
-	GAM_tdst3dData org3dData = *rayman->h3dData;
+	memset(data->g_DR_glmCoordinateList, 0, sizeof(data->g_DR_glmCoordinateList));
 
-	void* dsgVarBufferOrg = malloc(rayman->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
-	memcpy(dsgVarBufferOrg, rayman->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, rayman->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
+	for (int i = 0;i < numChecks;i++) {
+		PLA_fn_bSetNewState(dummySPO, ACT_GetStateByIndex(dummy, YLT_St_ry_saut1_cycled), TRUE, FALSE);
+		ACT_ChangeComportRule(dummy, YLT_SautReception);
 
-	//
+		memcpy(&dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+		memcpy(&dummy->hDynam->p_stDynamics->stDynamicsBase.stCurrentMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+		memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
+		memcpy(dummySPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
 
-	g_DR_glmDirectionFrom = *(MTH_tdstVector*)ACT_DsgVarPtr(rayman, DV_RAY_INTERN_TmpVector2);
+		GAM_fn_vMakeCharacterMechanicallyReact(dummySPO);
+		GAM_fn_vMakeCharacterReact(dummySPO);
 
-	for (int i = 0;i < 100;i++) {
-		PLA_fn_bSetNewState(raymanSPO, ACT_GetStateByIndex(rayman, YLT_St_ry_saut1_cycled), TRUE, FALSE);
-		ACT_ChangeComportRule(rayman, YLT_SautReception);
-
-		memcpy(raymanSPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-		memcpy(raymanSPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-		memcpy(&rayman->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-
-		GAM_fn_vMakeCharacterMechanicallyReact(raymanSPO);
-		GAM_fn_vMakeCharacterReact(raymanSPO);
-
-		MTH3D_tdstVector posAfterAttempt = rayman->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix.stPos;
+		MTH3D_tdstVector posAfterAttempt = dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix.stPos;
 
 		float xDiff = posAfterAttempt.x - newPos.stPos.x;
 		float yDiff = posAfterAttempt.y - newPos.stPos.y;
@@ -185,26 +187,28 @@ void TestGLM() {
 		float distanceMovedSquared = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
 		float distanceMoved = sqrtf(distanceMovedSquared);
 
-		printf("distanceMoved: %f\n", distanceMoved);
+		MTH_tdstVector newGlmPos = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
+		data->g_DR_glmCoordinateList[i] = newGlmPos;
+
+		if (distanceMoved > GLM_Radar_TeleportDetectionThreshold) {
+
+			// Teleport detected, run one more frame to update the position
+			GAM_fn_vMakeCharacterMechanicallyReact(dummySPO);
+			GAM_fn_vMakeCharacterReact(dummySPO);
+
+			posAfterAttempt = dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix.stPos;
+			data->g_DR_glmTeleport = posAfterAttempt;
+			break;
+		}
+		else {
+			data->g_DR_glmDirectionTo = newGlmPos;
+		}
 	}
-
-	g_DR_glmDirectionTo = *(MTH_tdstVector*)ACT_DsgVarPtr(rayman, DV_RAY_INTERN_TmpVector2);
-
-	// Reset state and animation, restore original position and dsgvar buffer
-	ACT_ChangeComportRule(rayman, YLT_Attente);
-	PLA_fn_bSetNewState(raymanSPO, org3dData.h_CurrentState, TRUE, FALSE);
-	memcpy(&rayman->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &orgPos, sizeof(POS_tdstCompletePosition));
-	memcpy(&rayman->hDynam->p_stDynamics->stDynamicsBase.stCurrentMatrix, &orgPos, sizeof(POS_tdstCompletePosition));
-	memcpy(raymanSPO->p_stGlobalMatrix, &orgPos, sizeof(POS_tdstCompletePosition));
-	memcpy(raymanSPO->p_stLocalMatrix, &orgPos, sizeof(POS_tdstCompletePosition));
-	memcpy(rayman->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, dsgVarBufferOrg, rayman->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
-}*/
+}
 
 void TestGLM() {
 
-	RotationDuringGLMTest();
-	
-	HIE_tdstSuperObject* dummySPO = CreateObject(&g_DR_rayman->p_stGlobalMatrix->stPos, alwaysRaymanObjectType);
+	HIE_tdstSuperObject* dummySPO = CreateObject(*g_DR_rayman->p_stGlobalMatrix, alwaysRaymanObjectType);
 
 	if (dummySPO == NULL) {
 		return;
@@ -217,47 +221,13 @@ void TestGLM() {
 	COL_fn_vCollSetCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
 	DNM_fn_vDynamCopyClone(dummy, g_DR_rayman->hLinkedObject.p_stActor);
 
-	POS_tdstCompletePosition newPos = *dummySPO->p_stGlobalMatrix;
-	newPos.stPos.z += 0.01f;
+	memset(&g_DR_glmData, 0, sizeof(g_DR_glmData));
+	for (int bookmarkIndex = 0; bookmarkIndex < g_DR_glmBookmarkCount; bookmarkIndex++) {
+		GlmRadarData* data = &g_DR_glmData[bookmarkIndex];
+		int numChecks = GLMRadar_NumChecks / g_DR_glmBookmarkCount;
 
-	memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-	memcpy(dummySPO->p_stLocalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-
-	memcpy(dummy->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, g_DR_rayman->hLinkedObject.p_stActor->hBrain->p_stMind->p_stDsgMem->p_cDsgMemBuffer, dummy->hBrain->p_stMind->p_stAIModel->p_stDsgVar->ulBufferSize);
-
-	g_DR_glmDirectionFrom = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
-	g_DR_glmDirectionTo = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
-
-	g_DR_glmTeleport = (MTH3D_tdstVector){ 0 };
-
-	for (int i = 0;i < 50;i++) {
-		PLA_fn_bSetNewState(dummySPO, ACT_GetStateByIndex(dummy, YLT_St_ry_saut1_cycled), TRUE, FALSE);
-		ACT_ChangeComportRule(dummy, YLT_SautReception);
-
-		memcpy(&dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-		memcpy(dummySPO->p_stGlobalMatrix, &newPos, sizeof(POS_tdstCompletePosition));
-
-		GAM_fn_vMakeCharacterMechanicallyReact(dummySPO);
-		GAM_fn_vMakeCharacterReact(dummySPO);
-		
-		MTH3D_tdstVector posAfterAttempt = dummy->hDynam->p_stDynamics->stDynamicsBase.stPreviousMatrix.stPos;
-
-		float xDiff = posAfterAttempt.x - newPos.stPos.x;
-		float yDiff = posAfterAttempt.y - newPos.stPos.y;
-		float zDiff = posAfterAttempt.z - newPos.stPos.z;
-		float distanceMovedSquared = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
-    float distanceMoved = sqrtf(distanceMovedSquared);
-
-		if (distanceMoved > GLM_Radar_TeleportDetectionThreshold) {
-
-			// Teleported detected
-			g_DR_glmTeleport = posAfterAttempt;
-			break;
-		}	else {
-			g_DR_glmDirectionTo = *(MTH_tdstVector*)ACT_DsgVarPtr(dummy, DV_RAY_INTERN_TmpVector2);
-		}
+		RunOneGlmTest(data, numChecks < 10 ? 10 : numChecks, dummySPO, dummy, g_DR_glmBookmarks[bookmarkIndex]);
 	}
-
 
 	fn_vKillEngineObjectOrAlwaysByPointer(dummy);
 }
@@ -267,6 +237,10 @@ void TestGLM() {
  */
 
 void GLMRadar_Before_fn_vEngine() {
+
+	if (!DR_Settings_Get_Util_EnableGLMRadar()) {
+		return;
+	}
 
 	CreateAlwaysRaymanObject();
 
@@ -279,6 +253,7 @@ void GLMRadar_Before_fn_vEngine() {
 
 	if (IPT_M_bActionIsValidated(GLM_Radar_Action))
 	{
+		RotationDuringGLMTest();
 		TestGLM();
 	}
 

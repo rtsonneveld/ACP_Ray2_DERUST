@@ -479,6 +479,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\playback.hpp" />
     <ClInclude Include="src\ui\dialogs\stats.hpp" />
     <ClInclude Include="src\ui\dialogs\utils.hpp" />
+    <ClInclude Include="src\ui\dialogs\utils_distance.hpp" />
+    <ClInclude Include="src\ui\dialogs\utils_glm.hpp" />
+    <ClInclude Include="src\ui\dialogs\utils_misc.hpp" />
     <ClInclude Include="src\ui\settings.hpp" />
     <ClInclude Include="src\ui\ui.hpp" />
     <ClInclude Include="src\ui\ui_bridge.h" />
@@ -532,6 +535,9 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\dialogs\inputviewer.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_sectinfo.cpp" />
+    <ClCompile Include="src\ui\dialogs\utils_distance.cpp" />
+    <ClCompile Include="src\ui\dialogs\utils_glm.cpp" />
+    <ClCompile Include="src\ui\dialogs\utils_misc.cpp" />
     <ClCompile Include="src\ui\nameLookup.cpp" />
     <ClInclude Include="src\ui\nameLookup.hpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />

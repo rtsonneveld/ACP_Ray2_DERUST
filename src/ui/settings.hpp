@@ -39,6 +39,8 @@ using json = nlohmann::json;
     X(float, opt_tooFarLimitHideRange, 0.0f) \
     X(DistanceCheckVisibility, opt_distanceCheckVisibility, DistanceCheckVisibility::FadeOut) \
 /* Utilities */ \
+    X(bool, util_enableGLMRadar, false) \
+    X(bool, util_glmRadarEachBookmark, false) \
     X(bool, util_showGLM, false) \
     X(bool, util_showDirection, false) \
     /* Format: X(type, name, default_value) */

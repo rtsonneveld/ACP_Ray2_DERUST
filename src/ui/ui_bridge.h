@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include "basedef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,7 @@ void DR_DLG_AiModel_SetSelectedComport_Reflex(int comportIndex);
 void DR_DLG_AiModel_SetSelectedComport_Macro(int comportIndex);
 bool DR_Settings_Get_TryCatchExceptions();
 bool DR_Settings_Get_DisableAutoSave();
+bool DR_Settings_Get_Util_EnableGLMRadar();
 
 void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame);
 
