@@ -10,6 +10,7 @@ typedef struct DR_tdstBruteforceSettings {
   BOOL active;
   unsigned int currentAttempt;
   unsigned int maxAttempts;
+  unsigned int skipFrames;
   MTH3D_tdstVector targetPosition;
   BOOL ignoreZ;
   float targetDistance;

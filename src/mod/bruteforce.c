@@ -61,7 +61,8 @@ void DR_Bruteforce_Update() {
     return;
   }
   
-  if (DR_Recording_CurrentState() == DR_IR_State_Seeking) {
+  if (DR_Recording_CurrentState() == DR_IR_State_Seeking && DR_recording.ulCurrentFrame > DR_bruteforceSettings.skipFrames) {
+    
     MTH3D_tdstVector rayPos = g_DR_rayman->p_stGlobalMatrix->stPos;
     MTH3D_tdstVector targetPos = DR_bruteforceSettings.targetPosition;
     float xDiff = (rayPos.x - targetPos.x);
@@ -92,6 +93,11 @@ void DR_Bruteforce_Update() {
   if (DR_bruteforceSettings.currentAttempt > 1) {
     DR_InputRecordingFrame* frame = DR_recording.pFirstFrame;
     for (int i = 0;i < DR_recording.ulNumFrames;i++) {
+
+      if (i < DR_bruteforceSettings.skipFrames) {
+        frame = frame->pNextFrame;
+        continue;
+      }
 
       frame->a_stEntries[0].xAnalogicValue = RandomizeFloat(frame->a_stEntries[0].xAnalogicValue, DR_bruteforceSettings.analogRandomness);
       frame->a_stEntries[1].xAnalogicValue = RandomizeFloat(frame->a_stEntries[1].xAnalogicValue, DR_bruteforceSettings.analogRandomness);

@@ -228,7 +228,12 @@ BOOL DR_Recording_PlayBackFrame() {
   }
 
   GAM_g_stEngineStructure->stEngineTimer = DR_recording.pCurrentFrame->stEngineTimer;
-  //*GAM_g_stEngineStructure->g_hStdCamCharacter->p_stGlobalMatrix = DR_recording.pCurrentFrame->stCameraPos; // Ideally not needed
+  GAM_g_stEngineStructure->stEngineTimer.ulPauseTime = GAM_g_stEngineStructure->stEngineTimer.ulCurrentTimerCount;
+  GAM_g_stEngineStructure->stEngineTimer.stPauseTime.ulHighPart = GAM_g_stEngineStructure->stEngineTimer.stRealTimeCount.ulHighPart;
+  GAM_g_stEngineStructure->stEngineTimer.stPauseTime.ulLowPart = GAM_g_stEngineStructure->stEngineTimer.stRealTimeCount.ulLowPart;
+
+  // Load engine clock
+  GAM_fn_vLoadEngineClock();
 
   for(int i=0;i< IPT_g_stInputStructure->ulNumberOfEntryElement;i++) {
 
@@ -265,6 +270,9 @@ void DR_Recording_RecordFrame() {
   if (DR_recording_state != DR_IR_State_Recording) {
     return;
   }
+
+  // Save engine clock each frame
+  GAM_fn_vSaveEngineClock();
 
   DR_InputRecordingFrame* newFrame = malloc(sizeof(DR_InputRecordingFrame));
   newFrame->pNextFrame = NULL;
@@ -339,7 +347,8 @@ void DR_Recording_HK_fn_vComputeRandomTable() {
 
     printf("Regular random table computation\n");
 
-    return RND_fn_vComputeRandomTable();
+    RND_fn_vComputeRandomTable();
+    return;
   }
 
   printf("Predictable random table computation\n");
@@ -350,7 +359,7 @@ void DR_Recording_HK_fn_vComputeRandomTable() {
   RND_g_stRandomStructure->ulMaxValueInTable = 0;
   for (long i = 0;i < RND_g_stRandomStructure->ulSizeOfTable;i++)
   {
-    RND_g_stRandomStructure->p_ulTable[i] = my_rand();
+    RND_g_stRandomStructure->p_ulTable[i] = my_rand() % 0x7FFF; // Random table uses 15-bit entries
   }
   RND_fn_vRemapRandomTable();
 }

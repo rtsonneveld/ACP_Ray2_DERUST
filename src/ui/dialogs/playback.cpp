@@ -137,6 +137,7 @@ void DR_DLG_Playback_TabRecording()
 
 void DR_DLG_Playback_TabBruteForce() {
   ImGui::InputInt("Max attempts", (int*)&DR_bruteforceSettings.maxAttempts);
+  ImGui::InputInt("Skip frames", (int*)&DR_bruteforceSettings.skipFrames);
   ImGui::InputFloat3("Target position", (float*)&DR_bruteforceSettings.targetPosition.x);
   ImGui::SameLine();
   if (ImGui::Button("Copy from Rayman")) {

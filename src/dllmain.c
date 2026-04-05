@@ -182,10 +182,10 @@ void MOD_fn_vChooseTheGoodDesInit() {
 	GLMRadar_DeInit();
 
 	if (GAM_g_stEngineStructure->eEngineMode == E_EM_ModeChangeLevel) {
-		g_DR_selectedObject = NULL;
 		// Level changed?
 		if (_stricmp(GAM_g_stEngineStructure->szLevelName, GAM_g_stEngineStructure->szNextLevelName) != 0) {
 			DR_Cheats_ResetSavedPosition();
+			g_DR_selectedObject = NULL;
 		}
 
 		if (g_DR_Cheats_FreezeProgress) {
