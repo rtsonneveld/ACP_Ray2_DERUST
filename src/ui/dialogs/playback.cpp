@@ -1,6 +1,8 @@
 ﻿#include "playback.hpp"
 #include "ui/ui.hpp"
 #include "ui/settings.hpp"
+#include "ui/custominputs.hpp"
+#include "rendering/scene.hpp"
 
 // C INCLUDE
 #include "mod/state.h"
@@ -9,6 +11,8 @@
 #include "mod/globals.h"
 
 #include <ACP_Ray2.h>
+
+unsigned int rewindFrames = 60;
 
 void DR_DLG_Playback_TabRecording()
 {
@@ -47,6 +51,10 @@ void DR_DLG_Playback_TabRecording()
       DR_Recording_StopPlayback();
     }
     ImGui::SameLine();
+    if (ImGui::Button("Resume recording")) {
+      DR_Recording_ResumeRecording();
+    }
+    ImGui::SameLine();
 
     break;
 
@@ -74,12 +82,18 @@ void DR_DLG_Playback_TabRecording()
   }
 
   if (ImGui::Button("Save Recording")) {
-    DR_Recording_Save();
+    DR_Recording_Save("recording.bin");
   }
 
+  ImGui::SameLine();
+
   if (ImGui::Button("Load Recording")) {
-    DR_Recording_Load();
+    DR_Recording_Load("recording.bin");
   }
+
+  ImGui::SameLine();
+
+  ImGui::InputInt("Rewind amount", (int*)&rewindFrames);
 
   switch (DR_Recording_CurrentState()) {
   case DR_IR_State_Idle:           ImGui::Text("Idle"); break;
@@ -116,48 +130,68 @@ void DR_DLG_Playback_TabRecording()
   unsigned long minFrame = 0;
 
   if (DR_Recording_CurrentState() == DR_IR_State_Recording && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Affiche_Jauge) && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Strafe)) { // F6
-    DR_Recording_SeekTo(targetFrame - 60);
+    DR_Recording_SeekTo(targetFrame - rewindFrames, FALSE, FALSE);
   }
 
   if (ImGui::Button("<")) {
-    DR_Recording_SeekTo(targetFrame - 1);
+    DR_Recording_SeekTo(targetFrame - 1, FALSE, FALSE);
   }
   ImGui::SameLine();
   if (ImGui::Button(">")) {
-    DR_Recording_SeekTo(targetFrame + 1);
+    DR_Recording_SeekTo(targetFrame + 1, FALSE, FALSE);
   }
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
   if (ImGui::SliderScalar("##PlaybackSeek", ImGuiDataType_U32, &targetFrame, &minFrame, &DR_recording.ulNumFrames, "", ImGuiSliderFlags_AlwaysClamp)) {
-    DR_Recording_SeekTo(targetFrame);
+    DR_Recording_SeekTo(targetFrame, FALSE, FALSE);
   }
 }
 
 void DR_DLG_Playback_TabBruteForce() {
   ImGui::InputInt("Max attempts", (int*)&DR_bruteforceSettings.maxAttempts);
-  ImGui::InputInt("Skip frames", (int*)&DR_bruteforceSettings.skipFrames);
+  ImGui::InputInt("Start frame", (int*)&DR_bruteforceSettings.randomizeStart);
+  ImGui::InputInt("End frame (0 for all)", (int*)&DR_bruteforceSettings.randomizeEnd);
+  ImGui::Checkbox("Randomize frame range", (bool*)&DR_bruteforceSettings.randomizeRange);
+  InputPerso("Target object (default is MainActor)", &DR_bruteforceSettings.targetObject);
+  ImGui::InputInt("DsgVar ID (-1 for none)", (int*)&DR_bruteforceSettings.dsgVarID);
   ImGui::InputFloat3("Target position", (float*)&DR_bruteforceSettings.targetPosition.x);
-  ImGui::SameLine();
-  if (ImGui::Button("Copy from Rayman")) {
-    DR_bruteforceSettings.targetPosition = g_DR_rayman->p_stGlobalMatrix->stPos;
+  ImGui::Checkbox("Invert score", (bool*)&DR_bruteforceSettings.invertScore);
+  if (ImGui::Button("Copy from Selection")) {
+    DR_bruteforceSettings.targetPosition = (g_DR_selectedObject != NULL ? g_DR_selectedObject:g_DR_rayman)->p_stGlobalMatrix->stPos;
   }
-  ImGui::InputFloat("Target distance", (float*)&DR_bruteforceSettings.targetDistance);
+  if (ImGui::Button("Copy from Viewport position")) {
+    DR_bruteforceSettings.targetPosition = FromGLMVec(scene.mouseLook.position);
+  }
+  ImGui::InputFloat("Target score", (float*)&DR_bruteforceSettings.targetScore);
+  ImGui::Text("Current score: %f", DR_bruteforceSettings.currentScore);
   ImGui::Checkbox("Ignore Z", (bool*) & DR_bruteforceSettings.ignoreZ);
+  ImGui::DragFloat("Analog modification chance", (float*)&DR_bruteforceSettings.analogModChance, 1.0f, 0.0f, 100.0f);
   ImGui::DragFloat("Analog randomness", (float*)&DR_bruteforceSettings.analogRandomness, 1.0f, 0.0f, 100.0f);
+  ImGui::DragFloat("Input length modification chance", (float*)&DR_bruteforceSettings.inputLengthModChance, 1.0f, 0.0f, 100.0f);
+  ImGui::Checkbox("Disqualify touching walls", (bool*)&DR_bruteforceSettings.disqualifyTouchingWalls);
+  ImGui::Checkbox("Disqualify falling", (bool*)&DR_bruteforceSettings.disqualifyFalling);
+  ImGui::Checkbox("Stop on map change", (bool*)&DR_bruteforceSettings.stopOnMapChange);
 
   if (!DR_bruteforceSettings.active) {
     if (ImGui::Button("Start bruteforce")) {
-      DR_Bruteforce_Start();
+      DR_Bruteforce_Signal_Start();
     }
   } else {
     if (ImGui::Button("Stop bruteforce")) {
-      DR_bruteforceSettings.active = FALSE;
+      DR_Bruteforce_Signal_Stop();
     }
 
     ImGui::Text("Attempt %u/%u", DR_bruteforceSettings.currentAttempt, DR_bruteforceSettings.maxAttempts); 
-    ImGui::Text("Current best %.4f", DR_bruteforceSettings.currentBest); 
+    ImGui::Text("Current best %.4f", DR_bruteforceSettings.currentBestScore); 
+    ImGui::Text("Last attempt %.4f", DR_bruteforceSettings.lastAttemptScore); 
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button("Load Best Attempt")) {
+    DR_Recording_Load("bruteforcebest.bin");
   }
 }
 

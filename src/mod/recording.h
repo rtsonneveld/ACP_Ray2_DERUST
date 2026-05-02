@@ -58,13 +58,15 @@ DR_InputRecording_State DR_Recording_CurrentState();
 void DR_Recording_Start();
 void DR_Recording_RecordFrame();
 void DR_Recording_StopPlayback();
+void DR_Recording_ResumeRecording();
+void DR_Recording_StopSeeking();
 BOOL DR_Recording_PlayBackFrame();
-void DR_Recording_SeekTo(unsigned long frameNum);
+void DR_Recording_SeekTo(unsigned long frameNum, BOOL pauseAfterSeek, BOOL forceReload);
 void DR_Recording_Stop();
 void DR_Recording_StartPlayback();
 
-void DR_Recording_Save();
-void DR_Recording_Load();
+void DR_Recording_Save(const char* filename);
+void DR_Recording_Load(const char* filename);
 
 // Hooked functions
 void DR_Recording_HK_fn_vComputeRandomTable();

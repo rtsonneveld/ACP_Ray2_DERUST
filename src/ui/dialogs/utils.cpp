@@ -58,4 +58,8 @@ void DR_DLG_Utils_DrawScene(Scene* scene, Shader* shader) {
   if (g_DR_settings.util_showDirection) {
     DrawRaymanDirection(shader);
   }
+
+  if (g_DR_settings.util_showSlideSpeed) {
+    DrawRaymanSlideSpeed(shader);
+  }
 }

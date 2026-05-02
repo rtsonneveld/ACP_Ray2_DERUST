@@ -23,14 +23,14 @@
 #define COLOR_ZDR glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 #define COLOR_DEFAULT glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
 
-MouseLook mouseLook;
 bool useMouseLook = false;
 bool captureMouseLookInput = false;
 bool wasTeleporting = false;
 
 float mouseLookYaw = 0.0f, mouseLookPitch = 0.0f;
 
-Mesh sphere;
+Mesh bvSphere;
+Mesh bvCube;
 Mesh tooFarLimitMesh;
 Mesh fullScreenQuad;
 Mesh sectorBordersCube;
@@ -42,7 +42,8 @@ void Scene::init() {
   geometryShader = new Shader(Shaders::Basic::Vertex, Shaders::Basic::Fragment);
   woitFullScreenPresentShader = new Shader(Shaders::WOIT_FullScreenPresent::Vertex, Shaders::WOIT_FullScreenPresent::Fragment);
 
-  sphere = Mesh::createSphere(1.0f);
+  bvSphere = Mesh::createSphere(1.0f, glm::vec3(0,0,0), 64.0f, 64.0f);
+  bvCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
   tooFarLimitMesh = Mesh::createOctahedron(glm::vec3(1, 1, 1));
   fullScreenQuad = Mesh::createQuad(1.0f, 1.0f);
   sectorBordersCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -377,24 +378,30 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
     }
   }
 
-  if (spo == g_DR_selectedObject && DR_DLG_Inspector_DebugSphereEnabled) {
+  if (spo == g_DR_selectedObject && DR_DLG_Inspector_ShowBoundingVolume && spo->pBoundingVolume != nullptr) {
 
-    glm::vec3 position = glm::vec3(model[3]);  // last column is translation in GLM
+    if (spo->ulFlags & HIE_C_Flag_TypeOfBoundingVolume) {
+      GEO_tdstParallelBox* boundingBox = (GEO_tdstParallelBox*)spo->pBoundingVolume;
+    }
+    else {
+      GEO_tdstBoundingSphere* boundingSphere = (GEO_tdstBoundingSphere*)spo->pBoundingVolume;
+      
+      glm::vec3 position = glm::vec3(model[3]) + ToGLMVec(boundingSphere->stCenterPoint);
 
-    // Your custom scale
-    glm::vec3 scale(DR_DLG_Inspector_DebugSphereRadius, DR_DLG_Inspector_DebugSphereRadius, DR_DLG_Inspector_DebugSphereRadius);
+      glm::vec3 scale(boundingSphere->xRadius, boundingSphere->xRadius, boundingSphere->xRadius);
 
-    // Build a new matrix with only position and scale
-    glm::mat4 debugSphereModelMatrix = glm::translate(glm::mat4(1.0f), position);
-    debugSphereModelMatrix = glm::scale(debugSphereModelMatrix, scale);
+      glm::mat4 boundingSphereModelMatrix = glm::translate(glm::mat4(1.0f), position);
+      boundingSphereModelMatrix = glm::scale(boundingSphereModelMatrix, scale);
 
-    shader->use();
+      shader->use();
 
-    shader->setMat4("uModel", debugSphereModelMatrix);
-    shader->setVec4("uColor", COLOR_DEFAULT);
-    shader->setTex2D("tex1", Textures::ColDefault, 0);
-    shader->setBool("useSecondTexture", false);
-    sphere.draw(shader);
+      shader->setMat4("uModel", boundingSphereModelMatrix);
+      shader->setVec4("uColor", COLOR_DEFAULT);
+      shader->setTex2D("tex1", Textures::ColDefault, 0);
+      shader->setBool("useSecondTexture", false);
+      bvSphere.draw(shader);
+    }
+
   }
 
   HIE_tdstSuperObject* child;

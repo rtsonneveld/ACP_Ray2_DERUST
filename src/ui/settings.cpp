@@ -60,6 +60,11 @@ extern "C" bool DR_Settings_Get_TryCatchExceptions()
   return g_DR_settings.opt_tryCatchExceptions;
 }
 
+extern "C" bool DR_Settings_Get_DisplaySeeking()
+{
+  return g_DR_settings.opt_displaySeeking;
+}
+
 extern "C" bool DR_Settings_Get_DisableAutoSave()
 {
   return g_DR_settings.opt_disableAutoSave;

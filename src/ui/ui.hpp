@@ -26,3 +26,7 @@
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
+
+class Scene;
+
+extern Scene scene;

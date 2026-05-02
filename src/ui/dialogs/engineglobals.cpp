@@ -14,6 +14,19 @@ void DR_DLG_EngineGlobals_Draw() {
     ImGui::Text("(DR) Total frames: %lu", g_DR_totalFrameCount);
     ImGui::Text("(DR) Current map frames: %lu", g_DR_currentMapFrameCount);
 
+    /*
+    *IPT_g_FieldPadGlobalVectorX = 0;
+    *IPT_g_FieldPadGlobalVectorY = 0;
+    *IPT_g_FieldPadGlobalVectorZ = 0;
+    *IPT_g_FieldPadHorizontalAxis = 0;
+    *IPT_g_FieldPadVerticalAxis = 0;
+    *IPT_g_FieldPadAnalogForce = 0;
+    *IPT_g_FieldPadTrueAnalogForce = 0;
+    *IPT_g_FieldPadRotationAngle = 0;
+    *IPT_g_FieldPadSector = 0;*/
+    ImGui::Text("PadAnalogForce = %.2f", *IPT_g_FieldPadAnalogForce);
+    ImGui::Text("PadTrueAnalogForce = %.2f", *IPT_g_FieldPadTrueAnalogForce);
+
     ImGui::BeginTabBar("engineGlobalsTabs");
 
     if (ImGui::BeginTabItem("Engine Structure")) {

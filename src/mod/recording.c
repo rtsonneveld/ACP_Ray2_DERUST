@@ -9,7 +9,8 @@
 DR_InputRecording DR_recording = { 0 };
 DR_InputRecording_State DR_recording_state = DR_IR_State_Idle;
 DR_InputRecording_State DR_recording_stateAfterSeek;
-//BOOL DR_recording_pauseAfterSeek;
+BOOL DR_recording_pauseAfterSeek;
+BOOL DR_recording_seekForceReload;
 unsigned long DR_recording_seekTarget = 0;
 float DR_recording_desync = 0.0f;
 
@@ -61,13 +62,14 @@ void FullResetCineInfo(CAM_tdstCineinfo* cineInfo) {
   memcpy(hCurrent, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
   memcpy(hVisibility, hInit, sizeof(CAM_tdstInternalStructurCineinfo));
   memcpy(hWork, hInit, sizeof(CAM_tdstInternalStructurCineinfo)); 
-
-  memset(cineInfo, 0, sizeof(CAM_tdstCineinfo)); 
+  memset(cineInfo, 0, sizeof(CAM_tdstCineinfo));
 
   cineInfo->hInit = hInit;
   cineInfo->hCurrent = hCurrent;
   cineInfo->hVisibility = hVisibility;
   cineInfo->hWork = hWork;
+
+  CAM_fn_vInitCompleteCineinfo(cineInfo);
 
   memset(CAM_g_stIdeal, 0, sizeof(CAM_tdstInternalStructurCineinfo));
 
@@ -78,6 +80,25 @@ void FullResetCineInfo(CAM_tdstCineinfo* cineInfo) {
 
   memset(CAM_g_stCameraConstants, 0, sizeof(CAM_tdstCameraConstants));
   memset(CAM_g_stCameraCopyConstants, 0, sizeof(CAM_tdstCameraConstants));
+
+  CAM_fn_vInitCameras(); // Loads camera constants
+}
+
+void ResetBrainCounters() {
+  HIE_tdstEngineObject* actor;
+  GAM_tdst3dData* data;
+
+  // Consistent brain counter
+  HIE_M_ForEachActor(actor) {
+    data = actor->hLinkedObject.p_stActor->h3dData;
+    if (data != NULL) {
+      my_srand((int)actor->hLinkedObject.p_stActor->hStandardGame->lObjectPersonalType);
+      data->cBrainCounter = 0;
+      data->uwBrainMainCounter = my_rand() % 16;
+    }
+  }
+
+  *AI_gcGlobAleat = 0;
 }
 
 void DR_Recording_ReloadTheMap() {
@@ -96,6 +117,7 @@ void DR_Recording_ReloadTheMap() {
   POS_fn_vSetIdentityMatrix(GAM_g_stEngineStructure->g_hStdCamCharacter->p_stLocalMatrix);
 
   const char* src = GAM_fn_p_szGetLevelName();
+  BOOL levelChanged = strcmp(src, DR_recording.firstLevelName) != 0;
   memcpy(GAM_g_stEngineStructure->szLevelName, DR_recording.firstLevelName, sizeof(GAM_g_stEngineStructure->szLevelName) - 1);
 
   FullResetCineInfo(stdCamObj->hCineInfo);
@@ -103,8 +125,28 @@ void DR_Recording_ReloadTheMap() {
   // Clear the data of the Module Allowing the Communication of Datas from the Player or the Intelligence to the Dynamics
   memset(&stdCamObj->hDynam->p_stDynamics->stDynamicsComplex.stExternalDatas, 0, sizeof(DNM_tdstMACDPID));
 
-  GAM_fn_vReinitTheMap(); // Resets a bunch of stuff including the camera
-  MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
+  DR_Recording_HK_fn_vComputeRandomTable();
+
+  ResetBrainCounters(); // For some reason it's important this happens twice
+
+  if (FALSE) { // TODO: only do a partial reload, currently still experiencing desyncs
+
+    GAM_fn_vActualizeEngineClock();
+    GAM_fn_vReinitTheMap();
+
+    ResetBrainCounters(); // For some reason it's important this happens twice
+
+    GAM_fn_vActualizeEngineClock();
+    CAM_fn_vInitCameras();
+
+    // If the level changed since recording start
+    if (levelChanged) {
+      MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
+    }
+  }
+  else {
+    MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
+  }
 }
 
 void DR_Recording_Cleanup() {
@@ -167,7 +209,7 @@ void DR_Recording_LoadProgress() {
   g_DR_rayman->hLinkedObject.p_stActor->hStandardGame->ucHitPointsMaxMax = DR_recording.hitPointsMaxMax;
 }
 
-void DR_Recording_SeekTo(unsigned long frameNum) {
+void DR_Recording_SeekTo(unsigned long frameNum, BOOL pauseAfterSeek, BOOL forceReload) {
 
   if (DR_recording_state == DR_IR_State_Idle) {
     DR_recording_state = DR_IR_State_Playback;
@@ -175,15 +217,17 @@ void DR_Recording_SeekTo(unsigned long frameNum) {
     return;
   }
 
-  if (frameNum < 0) {
-    frameNum = 0;
-  }
   if (frameNum >= DR_recording.ulNumFrames) {
     frameNum = DR_recording.ulNumFrames - 1;
+  }
+  if (frameNum < 0) {
+    frameNum = 0;
   }
 
   DR_recording_seekTarget = frameNum;
   DR_recording_stateAfterSeek = DR_recording_state;
+  DR_recording_pauseAfterSeek = pauseAfterSeek;
+  DR_recording_seekForceReload = forceReload;
   DR_recording_state = DR_IR_State_StartSeeking;
 }
 
@@ -313,6 +357,25 @@ void DR_Recording_StopPlayback() {
   DR_recording_state = DR_IR_State_Idle;
 }
 
+void DR_Recording_ResumeRecording() {
+
+  if (DR_recording_state != DR_IR_State_Playback) {
+    return;
+  }
+
+  DR_recording_state = DR_IR_State_Recording;
+  DR_Recording_SeekTo(DR_recording.ulCurrentFrame, FALSE, TRUE);
+}
+
+void DR_Recording_StopSeeking() {
+
+  if (DR_recording_state != DR_IR_State_Seeking) {
+    return;
+  }
+
+  DR_recording_state = DR_IR_State_Idle;
+}
+
 void DR_Recording_Stop() {
 
   if (DR_recording_state != DR_IR_State_Recording) {
@@ -328,12 +391,12 @@ void DR_Recording_StartPlayback() {
   DR_recording_state = DR_IR_State_StartPlayback;
 }
 
-void DR_Recording_Save() {
-  DR_RecordingFile_Save("recording.bin", &DR_recording);
+void DR_Recording_Save(const char* filename) {
+  DR_RecordingFile_Save(filename, &DR_recording);
 }
 
-void DR_Recording_Load() {
-  DR_RecordingFile_Load("recording.bin", &DR_recording);
+void DR_Recording_Load(const char* filename) {
+  DR_RecordingFile_Load(filename, &DR_recording);
   DR_Recording_LoadProgress(); // Load progress from the recording file
 }
 
@@ -341,9 +404,7 @@ void DR_Recording_Load() {
 
 void DR_Recording_HK_fn_vComputeRandomTable() {
 
-  if (DR_recording_state != DR_IR_State_Recording &&
-    DR_recording_state != DR_IR_State_Playback &&
-    DR_recording_state != DR_IR_State_Seeking) {
+  if (DR_recording_state == DR_IR_State_Idle) {
 
     printf("Regular random table computation\n");
 
@@ -378,7 +439,7 @@ void DR_Recording_HK_fn_vActualizeEngineClock() {
 }
 
 BOOL DR_Recording_HK_bFlipDeviceWithSynchro() {
-  if (DR_recording_state == DR_IR_State_Seeking) {
+  if (DR_recording_state == DR_IR_State_Seeking && !DR_Settings_Get_DisplaySeeking()) {
     // When seeking, skip this synchronisation
     return TRUE;
   }
@@ -388,7 +449,7 @@ BOOL DR_Recording_HK_bFlipDeviceWithSynchro() {
 
 void DR_Recording_HK_fn_vSendStaticWorldToViewport(GLD_tdstViewportAttributes* _p_stVpt, HIE_tdstSuperObject* _hSprObjSector, long _lDrawMask, long _lCullingResult) {
 
-  if (DR_recording_state == DR_IR_State_Seeking) {
+  if (DR_recording_state == DR_IR_State_Seeking && !DR_Settings_Get_DisplaySeeking()) {
     return;
   }
   return HIE_fn_vSendStaticWorldToViewport(_p_stVpt, _hSprObjSector, _lDrawMask, _lCullingResult);
@@ -396,7 +457,7 @@ void DR_Recording_HK_fn_vSendStaticWorldToViewport(GLD_tdstViewportAttributes* _
 
 void DR_Recording_HK_fn_vSendCharacterModulesToViewPort(GLD_tdstViewportAttributes* _hVpt, HIE_tdstSuperObject* _hSprObj, long _DrawMask) {
 
-  if (DR_recording_state == DR_IR_State_Seeking) {
+  if (DR_recording_state == DR_IR_State_Seeking && !DR_Settings_Get_DisplaySeeking()) {
     // When seeking, don't bother sending character graphics to the viewport
     return;
   }
@@ -446,7 +507,9 @@ void DR_Recording_HK_fn_vReadInput()
 
     if (!DR_Recording_PlayBackFrame() || DR_recording.ulCurrentFrame >= DR_recording_seekTarget) {
       DR_recording_state = DR_recording_stateAfterSeek;
-      //GAM_g_stEngineStructure->bEngineIsInPaused = DR_recording_pauseAfterSeek;
+      if (DR_recording_pauseAfterSeek) {
+        GAM_g_stEngineStructure->bEngineIsInPaused = TRUE;
+      }
     }
 
     break;
@@ -492,7 +555,7 @@ void DR_Recording_HK_fn_vReadInput()
       }
     }
 
-    if (DR_recording_seekTarget <= DR_recording.ulCurrentFrame) {
+    if (DR_recording_seekTarget <= DR_recording.ulCurrentFrame || DR_recording_seekForceReload) {
       DR_Recording_StartFromBeginning();
     }
 

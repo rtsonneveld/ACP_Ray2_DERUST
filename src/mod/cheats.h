@@ -1,4 +1,6 @@
 #pragma once
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,8 +57,17 @@ char DR_Cheats_GetFlag(int index);
 void DR_Cheats_ToggleFlag(int index);
 void DR_Cheats_SetFlag(int index, char state);
 void DR_Cheats_SavePosition();
+
 void DR_Cheats_LoadPosition();
 void DR_Cheats_ResetSavedPosition();
+bool DR_Cheats_HasSavedPosition();
+
+typedef struct DNM_tdstComplexDynamics DNM_tdstComplexDynamics;
+typedef DNM_tdstComplexDynamics DNM_tdstDynamics;
+
+void DR_Cheats_SaveCustomPosition(DNM_tdstDynamics customPos);
+DNM_tdstDynamics DR_Cheats_GetSavedPosition();
+
 void DR_Cheats_SaveProgress();
 void DR_Cheats_LoadProgress();
 void DR_Cheats_ResetProgress();

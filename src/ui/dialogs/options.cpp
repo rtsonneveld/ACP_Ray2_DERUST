@@ -29,6 +29,7 @@ void DR_DLG_Options_Draw() {
     ImGui::Checkbox("Disable autosaves", &newSettings.opt_disableAutoSave);
     ImGui::SetItemTooltip("Autosave interferes with saving/loading/freezing progress, so it's best to disable it.");
     ImGui::Checkbox("Try catching exceptions", &newSettings.opt_tryCatchExceptions);
+    ImGui::Checkbox("Display while seeking", &newSettings.opt_displaySeeking);
     ImGui::SeparatorText("Zones");
     ImGui::Checkbox("Draw visual sets", &newSettings.opt_drawVisuals);
     ImGui::BeginDisabled(newSettings.opt_drawVisuals); {

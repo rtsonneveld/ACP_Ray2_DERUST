@@ -103,12 +103,12 @@ void MOD_fn_vDisplayAll(void) {
 		if (!GLD_bWriteToViewportFinished(GAM_g_stEngineStructure->hGLDDevice, GAM_g_stEngineStructure->hGLDViewport))
 			return;
 		GAM_fn_vDisplayFix();
-		//ReleaseSemaphore((HANDLE)GAM_g_stEngineStructure->hDrawSem, 1, 0);
+
 		(*GLI_DRV_bEndScene_)();
 
 		ReleaseSemaphore(g_hAFrameIsWaiting, 1, NULL);
 
-		if (DR_Recording_CurrentState() != DR_IR_State_Seeking) {
+		if (DR_Recording_CurrentState() != DR_IR_State_Seeking || DR_Settings_Get_DisplaySeeking()) {
 			WaitForSingleObject(g_hFrameDoneCopying, 100);
 			WaitForSingleObject(g_hFrameEvent, 1); // This fixes random black/incomplete frames?!
 		}
@@ -132,7 +132,7 @@ void MOD_fn_vInitGameLoop(void) {
 }
 
 void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame) {
-	
+
 	g_DR_currentMapFrameCount = 0;
 
 	if (DR_Settings_Get_DisableAutoSave()) {
@@ -186,6 +186,8 @@ void MOD_fn_vChooseTheGoodDesInit() {
 		if (_stricmp(GAM_g_stEngineStructure->szLevelName, GAM_g_stEngineStructure->szNextLevelName) != 0) {
 			DR_Cheats_ResetSavedPosition();
 			g_DR_selectedObject = NULL;
+
+			DR_Bruteforce_OnMapChange();
 		}
 
 		if (g_DR_Cheats_FreezeProgress) {
@@ -238,9 +240,9 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 
 	while (g_bRunning)
 	{
-		if (DR_Recording_CurrentState() == DR_IR_State_Seeking) {
+		if (DR_Recording_CurrentState() == DR_IR_State_Seeking && !DR_Settings_Get_DisplaySeeking()) {
 
-			ReleaseSemaphore(g_hFrameDoneCopying, 1, NULL);
+			ReleaseSemaphore(g_hFrameDoneCopying, 1, NULL); 
 			continue;
 		}
 		// Wait until the game loop signals a new frame

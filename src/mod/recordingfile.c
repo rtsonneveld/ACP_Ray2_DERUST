@@ -47,6 +47,13 @@ int DR_RecordingFile_Save(const char* filename, DR_InputRecording* rec)
   write_s8(f, rec->cJoystickXmax);
   write_s8(f, rec->cJoystickYmax);
 
+  write_u8(f, DR_Cheats_HasSavedPosition() ? 1 : 0);
+
+  if (DR_Cheats_HasSavedPosition()) {
+    DNM_tdstDynamics savedPosition = DR_Cheats_GetSavedPosition();
+    fwrite(&savedPosition, sizeof(savedPosition), 1, f);
+  }
+
   long metaEnd = ftell(f);
   fseek(f, metaSizePos, SEEK_SET);
   write_u32(f, (uint32_t)(metaEnd - metaSizePos - 4));
@@ -198,6 +205,16 @@ int DR_RecordingFile_Load(const char* filename, DR_InputRecording* rec)
       rec->cJoystickYmin = read_s8(f);
       rec->cJoystickXmax = read_s8(f);
       rec->cJoystickYmax = read_s8(f);
+
+      BOOL hasCustomPosition = (BOOL)read_u8(f);
+      if (hasCustomPosition) {
+        DNM_tdstDynamics customPosition;
+        fread(&customPosition, sizeof(DNM_tdstDynamics), 1, f);
+        DR_Cheats_SaveCustomPosition(customPosition);
+      }
+      else {
+        DR_Cheats_ResetSavedPosition();
+      }
 
       break;
 

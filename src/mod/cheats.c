@@ -61,12 +61,35 @@ void DR_Cheats_SavePosition() {
   hasSavedPosition = TRUE;
 }
 
+void DR_Cheats_SaveCustomPosition(DNM_tdstDynamics customPos) {
+  savedPosition = customPos;
+  hasSavedPosition = TRUE;
+}
+
+bool DR_Cheats_HasSavedPosition() {
+  return hasSavedPosition;
+}
+
+DNM_tdstDynamics DR_Cheats_GetSavedPosition() {
+  DNM_tdstDynamics empty = { 0 };
+  return hasSavedPosition ? savedPosition : empty;
+}
+
 void DR_Cheats_LoadPosition() {
 
   if (!hasSavedPosition) return;
 
   ACT_Teleport(g_DR_rayman, savedPosition.stDynamicsBase.stCurrentMatrix.stPos);
-  *g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics = savedPosition;
+
+  DNM_tdstDynam* rayDynam = g_DR_rayman->hLinkedObject.p_stActor->hDynam;
+  DNM_tdstDynamics newDynamics = savedPosition;
+  
+  // Keep pointers
+  newDynamics.stDynamicsBase.p_stReport = rayDynam->p_stDynamics->stDynamicsBase.p_stReport;
+  newDynamics.stDynamicsBase.pCurrentIdCard = rayDynam->p_stDynamics->stDynamicsBase.pCurrentIdCard;
+  newDynamics.stDynamicsComplex.p_stPlatform = rayDynam->p_stDynamics->stDynamicsComplex.p_stPlatform;
+
+  *g_DR_rayman->hLinkedObject.p_stActor->hDynam->p_stDynamics = newDynamics;
   *GAM_g_ucIsEdInGhostMode = TRUE;
   resetGhostMode = TRUE;
 }

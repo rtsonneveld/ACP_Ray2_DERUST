@@ -17,6 +17,7 @@ using json = nlohmann::json;
     X(bool, dlg_inputviewer, false) \
 /* Options */ \
     X(bool, opt_tryCatchExceptions, true) \
+    X(bool, opt_displaySeeking, true) \
     X(bool, opt_disableAutoSave, true) \
     X(bool, opt_drawVisuals, false) \
     X(unsigned int, opt_drawCollisionZones, (int)CollisionZoneMask::ZDM | (int)CollisionZoneMask::ZDR | (int)CollisionZoneMask::ZDE | (int)CollisionZoneMask::ZDD) \
@@ -43,6 +44,7 @@ using json = nlohmann::json;
     X(bool, util_glmRadarEachBookmark, false) \
     X(bool, util_showGLM, false) \
     X(bool, util_showDirection, false) \
+    X(bool, util_showSlideSpeed, false) \
     /* Format: X(type, name, default_value) */
 
 struct DR_Settings {

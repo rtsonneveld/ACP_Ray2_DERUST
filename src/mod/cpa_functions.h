@@ -19,20 +19,27 @@ typedef long tdObjectType;
 #define MAX_ACTORS 1024
 #define MAX_SECTORS 128
 
+#define HIE_CONCAT_INNER(a, b) a ## b
+#define HIE_CONCAT(a, b) HIE_CONCAT_INNER(a, b)
+
 #define HIE_M_ForEachActor(actorVar) \
-    HIE_tdstSuperObject* actors[MAX_ACTORS]; \
-    int index = 0; \
-    fn_aGetChildObjects(*GAM_g_p_stDynamicWorld, actors, &index, HIE_C_Type_Actor); \
-    fn_aGetChildObjects(*GAM_g_p_stInactiveDynamicWorld, actors, &index, HIE_C_Type_Actor); \
-    for (int i = 0; i < index && actors[i] != NULL; i++) \
-        for (HIE_tdstSuperObject* actorVar = actors[i]; actorVar; actorVar = NULL)
+    HIE_tdstSuperObject* HIE_CONCAT(_act, __LINE__)[MAX_ACTORS]; \
+    int HIE_CONCAT(_idx, __LINE__) = 0; \
+    fn_aGetChildObjects(*GAM_g_p_stDynamicWorld, HIE_CONCAT(_act, __LINE__), &HIE_CONCAT(_idx, __LINE__), HIE_C_Type_Actor); \
+    fn_aGetChildObjects(*GAM_g_p_stInactiveDynamicWorld, HIE_CONCAT(_act, __LINE__), &HIE_CONCAT(_idx, __LINE__), HIE_C_Type_Actor); \
+    for (int HIE_CONCAT(_i, __LINE__) = 0; HIE_CONCAT(_i, __LINE__) < HIE_CONCAT(_idx, __LINE__) && HIE_CONCAT(_act, __LINE__)[HIE_CONCAT(_i, __LINE__)] != NULL; HIE_CONCAT(_i, __LINE__)++) \
+        for (HIE_tdstSuperObject* actorVar = HIE_CONCAT(_act, __LINE__)[HIE_CONCAT(_i, __LINE__)]; actorVar; actorVar = NULL)
 
 #define HIE_M_ForEachSector(sectorVar) \
-    HIE_tdstSuperObject* sectors[MAX_SECTORS]; \
-    int index = 0; \
-    fn_aGetChildObjects(*GAM_g_p_stFatherSector, sectors, &index, HIE_C_Type_Sector); \
-    for (int i = 0; i < index && sectors[i] != NULL; i++) \
-        for (HIE_tdstSuperObject* sectorVar = sectors[i]; sectorVar; sectorVar = NULL)
+    HIE_tdstSuperObject* HIE_CONCAT(_sec, __LINE__)[MAX_SECTORS]; \
+    int HIE_CONCAT(_sIdx, __LINE__) = 0; \
+    fn_aGetChildObjects(*GAM_g_p_stFatherSector, HIE_CONCAT(_sec, __LINE__), &HIE_CONCAT(_sIdx, __LINE__), HIE_C_Type_Sector); \
+    for (int HIE_CONCAT(_si, __LINE__) = 0; \
+         HIE_CONCAT(_si, __LINE__) < HIE_CONCAT(_sIdx, __LINE__) && HIE_CONCAT(_sec, __LINE__)[HIE_CONCAT(_si, __LINE__)] != NULL; \
+         HIE_CONCAT(_si, __LINE__)++) \
+        for (HIE_tdstSuperObject* sectorVar = HIE_CONCAT(_sec, __LINE__)[HIE_CONCAT(_si, __LINE__)]; \
+             sectorVar; \
+             sectorVar = NULL)
 
 // Function pointers //
 

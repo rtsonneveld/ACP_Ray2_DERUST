@@ -10,6 +10,7 @@
 #include "rendering/shader.hpp"
 #include "rendering/camera.hpp"
 #include "rendering/mesh.hpp"
+#include "mouselook.hpp"
 
 #include <ACP_Ray2.h>
 #include <GAM/GAM.h>
@@ -22,6 +23,8 @@ public:
   GLuint getColorTexture() const;
   void render(GLFWwindow * window, float display_w, float display_h);
   void setCameraPosition(glm::vec3 from, glm::vec3 to);
+
+  MouseLook mouseLook;
 
 private:
 

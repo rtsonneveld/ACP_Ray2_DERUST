@@ -14,8 +14,7 @@
 
 #include <ACP_Ray2.h>
 
-bool DR_DLG_Inspector_DebugSphereEnabled = FALSE;
-float DR_DLG_Inspector_DebugSphereRadius = 1.0f;
+bool DR_DLG_Inspector_ShowBoundingVolume = FALSE;
 
 void DR_DLG_Inspector_Draw() {
 
@@ -33,9 +32,22 @@ void DR_DLG_Inspector_Draw() {
 
       InputBitField("SuperObject Flags", (unsigned long*)&spo->ulFlags, BITFIELD_SPOFLAGS, IM_ARRAYSIZE(BITFIELD_SPOFLAGS));
 
-      ImGui::Checkbox("Debug Sphere", &DR_DLG_Inspector_DebugSphereEnabled);
-      if (DR_DLG_Inspector_DebugSphereEnabled) {
-        ImGui::InputFloat("Radius", &DR_DLG_Inspector_DebugSphereRadius);
+      if (spo->pBoundingVolume != nullptr) {
+        if (spo->ulFlags & HIE_C_Flag_TypeOfBoundingVolume) {
+          GEO_tdstParallelBox* boundingBox = (GEO_tdstParallelBox*)spo->pBoundingVolume;
+          ImGui::InputFloat3("Bounding Box Min", &boundingBox->stMinPoint.x);
+          ImGui::InputFloat3("Bounding Box Max", &boundingBox->stMaxPoint.x);
+        }
+        else {
+          GEO_tdstBoundingSphere* boundingSphere = (GEO_tdstBoundingSphere*)spo->pBoundingVolume;
+          ImGui::InputFloat3("Bounding Sphere Center", &boundingSphere->stCenterPoint.x);
+          ImGui::InputFloat("Bounding Sphere Radius", &boundingSphere->xRadius);
+        }
+
+        ImGui::Checkbox("Show Bounding Volume", &DR_DLG_Inspector_ShowBoundingVolume);
+      }
+      else {
+        ImGui::Text("Object has no bounding volume");
       }
 
       switch (spo->ulType) {
