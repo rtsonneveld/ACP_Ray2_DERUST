@@ -130,33 +130,34 @@ void DrawGLM(Scene* scene, Shader* shader) {
   if (glmPtr == nullptr) return;
   glm::vec3 glmPos = *glmPtr;
 
+
+  if (focusCameraOnGLM) {
+
+    if (glmPos != glm::vec3(0.0f)) {
+      scene->setCameraPosition(glmPos + glmCameraOffset, glmPos);
+    }
+  }
+
+  glm::mat4 mat = glm::translate(glm::mat4(1.0f), glmPos);
+
+  shader->use();
+  shader->setMat4("uModel", mat);
+  shader->setTex2D("tex1", Textures::ColUnknown, 0);
+  shader->setVec3("uvScale", glm::vec3(1.0f));
+  shader->setBool("useSecondTexture", false);
+
+  if (glmPos != glm::vec3(0.0f)) {
+    glm::mat4 mat2 = glm::translate(glm::mat4(1.0f), glmPos);
+    shader->setMat4("uModel", mat2);
+    glmCube.draw();
+  }
+
   for (int bookmarkIndex = 0; bookmarkIndex < glmBookmarks.size(); bookmarkIndex++) {
 
     if (bookmarkIndex >= GLMRadar_MaxBookmarks) break; // In C we have a fixed-size array to avoid headaches
 
     glm::vec3 bookmarkPos = glmBookmarks[bookmarkIndex];
     GlmRadarData data = g_DR_glmData[bookmarkIndex];
-
-    if (focusCameraOnGLM) {
-
-      if (glmPos != glm::vec3(0.0f)) {
-        scene->setCameraPosition(glmPos + glmCameraOffset, glmPos);
-      }
-    }
-
-    glm::mat4 mat = glm::translate(glm::mat4(1.0f), glmPos);
-
-    shader->use();
-    shader->setMat4("uModel", mat);
-    shader->setTex2D("tex1", Textures::ColUnknown, 0);
-    shader->setVec3("uvScale", glm::vec3(1.0f));
-    shader->setBool("useSecondTexture", false);
-
-    if (glmPos != glm::vec3(0.0f)) {
-      glm::mat4 mat2 = glm::translate(glm::mat4(1.0f), glmPos);
-      shader->setMat4("uModel", mat2);
-      glmCube.draw();
-    }
 
     glm::vec3 glmTeleport = ToGLMVec(data.g_DR_glmTeleport);
 

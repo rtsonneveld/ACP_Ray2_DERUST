@@ -167,6 +167,10 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 	return 0;
 }
 
+void DR_UI_OnMapEnter() {
+	DR_DLG_Waypoints_OnMapEnter();
+}
+
 void DR_UI_OnMapExit() {
   GeometricObjectMesh::clearCache();
 }

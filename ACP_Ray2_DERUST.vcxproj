@@ -484,6 +484,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\utils_distance.hpp" />
     <ClInclude Include="src\ui\dialogs\utils_glm.hpp" />
     <ClInclude Include="src\ui\dialogs\utils_misc.hpp" />
+    <ClInclude Include="src\ui\dialogs\waypoints.hpp" />
     <ClInclude Include="src\ui\settings.hpp" />
     <ClInclude Include="src\ui\ui.hpp" />
     <ClInclude Include="src\ui\ui_bridge.h" />
@@ -541,6 +542,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\dialogs\utils_distance.cpp" />
     <ClCompile Include="src\ui\dialogs\utils_glm.cpp" />
     <ClCompile Include="src\ui\dialogs\utils_misc.cpp" />
+    <ClCompile Include="src\ui\dialogs\waypoints.cpp" />
     <ClCompile Include="src\ui\nameLookup.cpp" />
     <ClInclude Include="src\ui\nameLookup.hpp" />
     <ClCompile Include="src\ui\custominputs.cpp" />
@@ -758,6 +760,8 @@ Ray2x.exe -level:learn_31</Command>
     <Image Include="resources\sectorborder.png" />
     <Image Include="resources\toofar.png" />
     <Image Include="resources\unknown.png" />
+    <Image Include="resources\waypoint.png" />
+    <Image Include="resources\white.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="resources\glm.wav" />

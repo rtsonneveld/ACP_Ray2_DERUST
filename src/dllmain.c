@@ -155,6 +155,8 @@ void MOD_fn_vChooseTheGoodInit() {
 	GAM_fn_vChooseTheGoodInit();
 	GAM_tdeEngineMode currentMode = GAM_g_stEngineStructure->eEngineMode; // The mode is reset after the requested mode has been initialized.
 
+	DR_UI_OnMapEnter();
+
 	if (requestedMode == E_EM_ModeDeadLoop) {
 		DR_Cheats_LoadPosition();
 	}

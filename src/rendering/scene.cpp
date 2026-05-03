@@ -10,6 +10,7 @@
 #include <ui/dialogs/inspector.hpp>
 #include <ui/dialogs/options.hpp>
 #include <ui/dialogs/utils.hpp>
+#include <ui/dialogs/waypoints.hpp>
 #include <ui/settings.hpp>
 
 #include "rendering/shaders/basic.hpp"
@@ -547,6 +548,7 @@ void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4&
   renderSPO(geometryShader, *GAM_g_p_stInactiveDynamicWorld, false, view, proj, mainCharPos);
 
   DR_DLG_Utils_DrawScene(this, geometryShader);
+  DR_DLG_Waypoints_DrawScene(this, geometryShader);
 }
 
 void Scene::setCameraPosition(glm::vec3 from, glm::vec3 to) {

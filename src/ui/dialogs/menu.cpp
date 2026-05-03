@@ -175,6 +175,7 @@ void DR_DLG_Menu_Draw() {
     if (ImGui::BeginMenu("Windows")) {
       ImGui::MenuItem("Hierarchy", nullptr, &g_DR_settings.dlg_hierarchy);
       ImGui::MenuItem("Inspector", nullptr, &g_DR_settings.dlg_inspector);
+      ImGui::MenuItem("Waypoints", nullptr, &g_DR_settings.dlg_waypoints);
       ImGui::MenuItem("AI Model", nullptr, &g_DR_settings.dlg_aimodel);
       ImGui::MenuItem("AI Debugger", nullptr, &g_DR_settings.dlg_debugwindow);
       ImGui::MenuItem("Playback", nullptr, &g_DR_settings.dlg_playback);

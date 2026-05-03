@@ -4,6 +4,7 @@
 
 void DR_DLG_Init(HWND window_r2) {
   DR_DLG_Utils_Init();
+  DR_DLG_Waypoints_Init();
 }
 
 void DR_DLG_Draw(HWND window_r2) {
@@ -19,5 +20,6 @@ void DR_DLG_Draw(HWND window_r2) {
     DR_DLG_EngineGlobals_Draw();
     DR_DLG_Options_Draw();
     DR_DLG_InputViewer_Draw();
+    DR_DLG_Waypoints_Draw();
 
 }
