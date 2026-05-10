@@ -28,6 +28,7 @@
 #include "mod/cheats.h"
 #include "mod/debugger.h"
 #include "mod/recording.h"
+#include "mod/raycastdisplay.h"
 #include <ACP_Ray2.h>
 #include "ui/ui_bridge.h"
 #include <time.h>
@@ -264,6 +265,7 @@ void MOD_fn_vEngine()
 	DR_Cheats_Apply();
 	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
 		DR_DistanceChecks_Update();
+		DR_UpdateRaycasts();
 	}
 
 	GLMRadar_Before_fn_vEngine();
@@ -431,6 +433,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vInitGameLoop, (void*)MOD_fn_vInitGameLoop);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vFillDynamicHierarchy, (void*)MOD_fn_vFillDynamicHierarchy);
+			FHK_fn_lCreateHook((void**)&GAM_fn_vMakeCharacterReact, (void*)DR_Cheats_MakeCharacterReact);
+			FHK_fn_lCreateHook((void**)&AI_fn_vComputeCollideResult, (void*)MOD_fn_vComputeCollideResult_RayCastDisplay);
 
 			// Recording
 			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
@@ -468,15 +472,6 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vAskToChangeLevel, (void*)MOD_fn_vAskToChangeLevel);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodDesInit, (void*)MOD_fn_vChooseTheGoodDesInit);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vChooseTheGoodInit, (void*)MOD_fn_vChooseTheGoodInit);
-
-			/*
-			FHK_fn_lDestroyHook((void**)&fn_p_vDynAlloc, (void*)MOD_fn_vDynAlloc);
-			FHK_fn_lDestroyHook((void**)&fn_p_vGenAlloc, (void*)MOD_fn_vGenAlloc);
-			FHK_fn_lDestroyHook((void**)&Mmg_fn_vInitSpecificBlock, (void*)MOD_fn_vInitSpecificBlock);
-			FHK_fn_lDestroyHook((void**)&Mmg_fn_v_InitMmg, (void*)MOD_fn_v_InitMmg);
-			FHK_fn_lDestroyHook((void**)&SNA_fn_ulFRead, (void*)MOD_fn_ulFRead);
-			*/
-
 			FHK_fn_lDestroyHook((void**)&GAM_fn_bCreateMainDisplayScreen, (void*)MOD_fn_bCreateMainDisplayScreen);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vDisplayAll, (void*)MOD_fn_vDisplayAll);
 			FHK_fn_lDestroyHook((void**)&INO_fn_wInit, (void*)MOD_INO_fn_wInit);

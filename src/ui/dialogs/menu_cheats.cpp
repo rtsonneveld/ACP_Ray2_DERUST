@@ -37,6 +37,9 @@ void DR_DLG_Cheats_Draw() {
   if (ImGui::MenuItem("Automatic perfect void", nullptr, g_DR_Cheats_AutoVoid)) {
     g_DR_Cheats_AutoVoid = !g_DR_Cheats_AutoVoid;
   }
+  if (ImGui::MenuItem("Laser bullets", nullptr, g_DR_Cheats_LaserBullets)) {
+    g_DR_Cheats_LaserBullets = !g_DR_Cheats_LaserBullets;
+  }
   if (ImGui::MenuItem("Disable random optimisations", nullptr, g_DR_Cheats_DisableRandomOptimisations)) {
     g_DR_Cheats_DisableRandomOptimisations = !g_DR_Cheats_DisableRandomOptimisations;
   }

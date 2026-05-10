@@ -10,6 +10,7 @@ char g_DR_Cheats_DisableStartingCutscenes = FALSE;
 char g_DR_Cheats_DisableDeathAnimations = FALSE;
 char g_DR_Cheats_ForceDefaultCamera = FALSE;
 char g_DR_Cheats_AutoVoid = FALSE;
+char g_DR_Cheats_LaserBullets = FALSE;
 char g_DR_Cheats_FreezeProgress = FALSE;
 char g_DR_Cheats_HasSavedProgress = FALSE;
 char g_DR_Cheats_DisableRandomOptimisations = FALSE;
@@ -273,6 +274,26 @@ void DR_Cheats_Apply() {
         MOD_fn_vAskToChangeLevel(GAM_fn_p_szGetLevelName(), FALSE);
       }
     }
+}
+
+void DR_Cheats_MakeCharacterReact(HIE_tdstSuperObject* spo) {
+
+  if (g_DR_Cheats_LaserBullets && IPT_M_bActionIsValidated(IPT_E_Entry_Action_Tirer)) {
+
+    HIE_tdstEngineObject* raymanActor = g_DR_rayman->hLinkedObject.p_stActor;
+
+    if (spo->hLinkedObject.p_stActor == raymanActor) {
+      *((char*)ACT_DsgVarPtr(raymanActor, DV_RAY_INTERN_PoingDemande)) = TRUE;
+
+      if (raymanActor->h3dData->ucNextEvent != 0) {
+
+        raymanActor->h3dData->ucFrameRate = 255;
+        raymanActor->h3dData->ucUserEventFlags = 1;
+      }
+    }
+  }
+
+  return GAM_fn_vMakeCharacterReact(spo);
 }
 
 char DR_Cheats_GetFlag(int index) {

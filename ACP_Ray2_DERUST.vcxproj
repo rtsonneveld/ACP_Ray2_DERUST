@@ -137,6 +137,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\mod\debugger.h" />
     <ClInclude Include="src\mod\glmradar.h" />
     <ClInclude Include="src\mod\randutil.h" />
+    <ClInclude Include="src\mod\raycastdisplay.h" />
     <ClInclude Include="src\mod\recording.h" />
     <ClInclude Include="src\mod\recordingfile.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
@@ -450,6 +451,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\rendering\geo_mesh.hpp" />
     <ClInclude Include="src\rendering\mesh.hpp" />
     <ClInclude Include="src\rendering\primitives\octahedron.hpp" />
+    <ClInclude Include="src\rendering\renderutil.hpp" />
     <ClInclude Include="src\rendering\resourceutil.hpp" />
     <ClInclude Include="src\rendering\scene.hpp" />
     <ClInclude Include="src\rendering\shader.hpp" />
@@ -479,6 +481,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClInclude Include="src\ui\dialogs\menu.hpp" />
     <ClInclude Include="src\ui\dialogs\options.hpp" />
     <ClInclude Include="src\ui\dialogs\playback.hpp" />
+    <ClInclude Include="src\ui\dialogs\raycasts.hpp" />
     <ClInclude Include="src\ui\dialogs\stats.hpp" />
     <ClInclude Include="src\ui\dialogs\utils.hpp" />
     <ClInclude Include="src\ui\dialogs\utils_distance.hpp" />
@@ -501,6 +504,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\mod\cheats.c" />
     <ClCompile Include="src\mod\debugger.c" />
     <ClCompile Include="src\mod\glmradar.c" />
+    <ClCompile Include="src\mod\raycastdisplay.c" />
     <ClCompile Include="src\mod\recording.c" />
     <ClCompile Include="src\mod\recordingfile.c" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
@@ -530,6 +534,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\rendering\camera.cpp" />
     <ClCompile Include="src\rendering\geo_mesh.cpp" />
     <ClCompile Include="src\rendering\mesh.cpp" />
+    <ClCompile Include="src\rendering\renderutil.cpp" />
     <ClCompile Include="src\rendering\scene.cpp" />
     <ClCompile Include="src\rendering\shader.cpp" />
     <ClCompile Include="src\rendering\resourceutil.cpp" />
@@ -539,6 +544,7 @@ Ray2x.exe -level:learn_31</Command>
     <ClCompile Include="src\ui\dialogs\inputviewer.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_collset.cpp" />
     <ClCompile Include="src\ui\dialogs\inspector_actor_sectinfo.cpp" />
+    <ClCompile Include="src\ui\dialogs\raycasts.cpp" />
     <ClCompile Include="src\ui\dialogs\utils_distance.cpp" />
     <ClCompile Include="src\ui\dialogs\utils_glm.cpp" />
     <ClCompile Include="src\ui\dialogs\utils_misc.cpp" />

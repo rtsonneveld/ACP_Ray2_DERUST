@@ -435,7 +435,14 @@ void InputSector(const char* label, HIE_tdstSuperObject** p_spo) {
   );
 }
 
-static void InputVector3(const char* label, char* buffer, int offsetInBuffer = 0) {
+void InputVector3(const char* label, MTH3D_tdstVector* vector) {
+  char full_label[64];
+  snprintf(full_label, sizeof(full_label), "%s##%p", label, (void*)(vector));
+
+  ImGui::InputScalarN(full_label, ImGuiDataType_Float, (void*)& (vector->x), 3, nullptr, nullptr, "%.3f", 0);
+}
+
+void InputVector3(const char* label, char* buffer, int offsetInBuffer = 0) {
   char full_label[64];
   snprintf(full_label, sizeof(full_label), "%s##%p", label, (void*)(&buffer[offsetInBuffer]));
 

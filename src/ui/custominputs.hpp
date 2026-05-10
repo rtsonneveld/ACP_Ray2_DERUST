@@ -13,6 +13,7 @@ struct GMT_tdstCollideMaterial;
 struct GMT_tdstGameMaterial;
 struct HIE_tdstSuperObject;
 struct HIE_tdstEngineObject;
+struct MTH3D_tdstVector;
 enum AI_tdeDsgVarType;
 
 typedef long GAM_tdxObjectType;
@@ -28,6 +29,8 @@ void InputModelType(const char* label, GAM_tdxObjectType* modelType);
 void InputPerso(const char* label, HIE_tdstSuperObject** p_data);
 void InputPerso(const char* label, HIE_tdstEngineObject** p_data);
 void InputSector(const char* label, HIE_tdstSuperObject** p_spo);
+void InputVector3(const char* label, MTH3D_tdstVector* vector);
+void InputVector3(const char* label, char* buffer, int offsetInBuffer);
 void DrawDsgVar(char* buffer, unsigned long offset, AI_tdeDsgVarType type);
 void DrawDsgVarId(HIE_tdstSuperObject* spo, int dsgVarId);
 

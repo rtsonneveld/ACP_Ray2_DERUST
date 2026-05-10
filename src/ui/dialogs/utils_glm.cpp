@@ -20,6 +20,7 @@
 #include "resource.h"
 #include <time.h>
 #include <ACP_Ray2.h>
+#include <rendering/renderutil.hpp>
 
 namespace {
   Mesh glmCube;
@@ -73,6 +74,11 @@ void DR_DLG_Utils_DrawTab_GLM()
     } else {
       ImGui::Text("GLM position unavailable");
     }
+    bool* giBloqueAvant = (bool*)(g_DR_rayman != nullptr ? ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_INTERN_GiBloqueAvant) : nullptr);
+    if (giBloqueAvant != nullptr) {
+      ImGui::Checkbox("GLM possible (dsgvar 45)", giBloqueAvant);
+    }
+
     ImGui::Checkbox("Play sound on GLM change", &playSoundOnGLMChange);
     ImGui::Checkbox("Auto-focus camera on GLM", &focusCameraOnGLM);
     if (focusCameraOnGLM) {
@@ -89,6 +95,9 @@ void DR_DLG_Utils_DrawTab_GLM()
     }
     ImGui::SameLine();
     ImGui::Checkbox("Automatically save", &autoBookmarkGlmPositions);
+    if (ImGui::Button("Set from viewport")) {
+      *glmPos = scene.mouseLook.position;
+    }
 
     if (ImGui::BeginListBox("GLM Bookmarks")) {
 
@@ -109,17 +118,6 @@ void DR_DLG_Utils_DrawTab_GLM()
 
   }
   ImGui::EndDisabled();
-
-  if (g_DR_settings.util_glmRadarEachBookmark) {
-    g_DR_glmBookmarkCount = glmBookmarks.size();
-    for (int i = 0;i < g_DR_glmBookmarkCount;i++) {
-      g_DR_glmBookmarks[i] = FromGLMVec(glmBookmarks[i]);
-    }
-  }
-  else {
-    g_DR_glmBookmarkCount = 1;
-    g_DR_glmBookmarks[0] = FromGLMVec(*glmPos);
-  }
 }
 
 void DrawGLM(Scene* scene, Shader* shader) {
@@ -130,6 +128,16 @@ void DrawGLM(Scene* scene, Shader* shader) {
   if (glmPtr == nullptr) return;
   glm::vec3 glmPos = *glmPtr;
 
+  if (g_DR_settings.util_glmRadarEachBookmark) {
+    g_DR_glmBookmarkCount = glmBookmarks.size();
+    for (int i = 0;i < g_DR_glmBookmarkCount;i++) {
+      g_DR_glmBookmarks[i] = FromGLMVec(glmBookmarks[i]);
+    }
+  }
+  else {
+    g_DR_glmBookmarkCount = 1;
+    g_DR_glmBookmarks[0] = FromGLMVec(glmPos);
+  }
 
   if (focusCameraOnGLM) {
 
@@ -152,11 +160,12 @@ void DrawGLM(Scene* scene, Shader* shader) {
     glmCube.draw();
   }
 
-  for (int bookmarkIndex = 0; bookmarkIndex < glmBookmarks.size(); bookmarkIndex++) {
+  const float thickness = 0.1f;
+
+  for (int bookmarkIndex = 0; bookmarkIndex < g_DR_glmBookmarkCount; bookmarkIndex++) {
 
     if (bookmarkIndex >= GLMRadar_MaxBookmarks) break; // In C we have a fixed-size array to avoid headaches
 
-    glm::vec3 bookmarkPos = glmBookmarks[bookmarkIndex];
     GlmRadarData data = g_DR_glmData[bookmarkIndex];
 
     glm::vec3 glmTeleport = ToGLMVec(data.g_DR_glmTeleport);
@@ -178,13 +187,13 @@ void DrawGLM(Scene* scene, Shader* shader) {
 
     if (glm::length(glmTeleport) > 0.0f) {
 
-      DrawLine(shader, ToGLMVec(data.g_DR_glmDirectionFrom), ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColZdd);
-      DrawLine(shader, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos), glmTeleport, Textures::ColElectric);
-      DrawLine(shader, glmTeleport, ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColNocol);
+      RenderUtil::DrawLine(shader, ToGLMVec(data.g_DR_glmDirectionFrom), ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColZdd, thickness);
+      RenderUtil::DrawLine(shader, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos), glmTeleport, Textures::ColElectric, thickness);
+      RenderUtil::DrawLine(shader, glmTeleport, ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColNocol, thickness);
     }
     else {
 
-      DrawLine(shader, ToGLMVec(data.g_DR_glmDirectionFrom), ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColBounce);
+      RenderUtil::DrawLine(shader, ToGLMVec(data.g_DR_glmDirectionFrom), ToGLMVec(data.g_DR_glmDirectionTo), Textures::ColBounce, thickness);
     }
   }
 }
@@ -222,28 +231,5 @@ void HandleGLMUpdates() {
     if (playSoundOnGLMChange && glmSound != nullptr) {
       ma_sound_start(glmSound);
     }
-  }
-}
-
-static void DrawLine(Shader* shader, glm::vec3 A, glm::vec3 B, unsigned int texture)
-{
-  if (glm::distance(A, B) > 0.001f) {
-    glm::vec3 dir = glm::normalize(B - A);
-    float lineLength = glm::length(B - A);
-
-    float thickness = 0.05f;
-
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
-
-    glm::mat4 lineMat = glm::mat4(1.0f);
-    lineMat = glm::translate(lineMat, A);
-    lineMat = lineMat * rotation;
-
-    lineMat = glm::translate(lineMat, glm::vec3(0.0f, 0.0f, -lineLength * 0.5f));
-    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
-
-    shader->setMat4("uModel", lineMat);
-    shader->setTex2D("tex1", texture, 0);
-    glmDirectionCube.draw();
   }
 }

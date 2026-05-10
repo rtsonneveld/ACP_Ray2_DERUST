@@ -126,7 +126,7 @@ void DR_DLG_Inspector_Draw_MS_3dData(HIE_tdstEngineObject* actor)
   ImGui::InputScalar("lDrawMask", ImGuiDataType_S32, &h3dData->lDrawMask);
   ImGui::InputScalar("lLastComputeFrame", ImGuiDataType_S32, &h3dData->lLastComputeFrame);
 
-  // TODO MTH3D_tdstVector stLastEventGlobalPosition;
+  InputVector3("stLastEventGlobalPosition", &h3dData->stLastEventGlobalPosition);
 
   ImGui::InputScalar("ucUserEventFlags", ImGuiDataType_U8, &h3dData->ucUserEventFlags);
   ImGui::InputScalar("ucBrainComputationFrequency", ImGuiDataType_U8, &h3dData->ucBrainComputationFrequency);

@@ -3,6 +3,7 @@
 #include "ui/custominputs.hpp"
 #include "ui/settings.hpp"
 #include "rendering/textures.hpp"
+#include "rendering/renderutil.hpp"
 #include "mod/globals.h"
 #include <ACP_Ray2.h>
 #include <mod/cpa_functions.h>
@@ -106,28 +107,6 @@ void DR_DLG_Waypoints_Draw() {
   ImGui::End();
 }
 
-static void DrawLine(Shader* shader, glm::vec3 A, glm::vec3 B, unsigned int texture, float thickness)
-{
-  if (glm::distance(A, B) > 0.001f) {
-    glm::vec3 dir = glm::normalize(B - A);
-    float lineLength = glm::length(B - A);
-
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
-
-    glm::mat4 lineMat = glm::mat4(1.0f);
-    lineMat = glm::translate(lineMat, A);
-    lineMat = lineMat * rotation;
-
-    lineMat = glm::translate(lineMat, glm::vec3(0.0f, 0.0f, -lineLength * 0.5f));
-    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
-
-    shader->setMat4("uModel", lineMat);
-    shader->setTex2D("tex1", texture, 0);
-    shader->setTex2D("tex2", texture, 0);
-    waypointLine.draw();
-  }
-}
-
 void DrawWaypoint(Scene* scene, Shader* shader, WP_tdstWayPoint waypoint, bool scaleToRadius) {
 
   using glm::vec3;
@@ -178,7 +157,7 @@ void DR_DLG_Waypoints_DrawScene(Scene* scene, Shader* shader) {
           thickness = max(0.05f, arc->m_lWeight * 0.02f);
         }
 
-        DrawLine(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness);
+        RenderUtil::DrawLine(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness);
       }
     }
   }

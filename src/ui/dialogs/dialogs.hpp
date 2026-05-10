@@ -15,6 +15,7 @@
 #include "engineglobals.hpp"
 #include "inputviewer.hpp"
 #include "waypoints.hpp"
+#include "raycasts.hpp"
 
 void DR_DLG_Init(HWND window_r2);
 void DR_DLG_Draw(HWND window_r2);

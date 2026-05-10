@@ -16,6 +16,7 @@ using json = nlohmann::json;
     X(bool, dlg_engineglobals, false) \
     X(bool, dlg_inputviewer, false) \
     X(bool, dlg_waypoints, false) \
+    X(bool, dlg_raycasts, false) \
 /* Options */ \
     X(bool, opt_tryCatchExceptions, true) \
     X(bool, opt_displaySeeking, true) \
@@ -40,9 +41,14 @@ using json = nlohmann::json;
     X(int, opt_tooFarLimitMaxSize, 255) \
     X(float, opt_tooFarLimitHideRange, 0.0f) \
     X(DistanceCheckVisibility, opt_distanceCheckVisibility, DistanceCheckVisibility::FadeOut) \
+/* Waypoints */ \
     X(bool, opt_drawWaypoints, false) \
     X(bool, opt_drawWaypointsRadius, false) \
     X(bool, opt_drawArcs, false) \
+/* Raycast */ \
+    X(bool, opt_drawRaycasts, false) \
+    X(bool, opt_drawRaycastResults, false) \
+    X(unsigned int, opt_raycastLifetime, false) \
 /* Utilities */ \
     X(bool, util_enableGLMRadar, false) \
     X(bool, util_glmRadarEachBookmark, false) \

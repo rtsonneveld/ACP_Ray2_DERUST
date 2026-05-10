@@ -9,6 +9,7 @@
 #include <rendering/shader.hpp>
 #include <rendering/textures.hpp>
 #include <rendering/scene.hpp>
+#include <rendering/renderutil.hpp>
 
 #include "mod/globals.h"
 #include "mod/util.h"
@@ -71,29 +72,6 @@ void DrawRaymanDirection(Shader* shader) {
   shader->setFloat("uAlphaMult", 1.0f);
 }
 
-static void DrawLine(Shader* shader, glm::vec3 A, glm::vec3 B, unsigned int texture)
-{
-  if (glm::distance(A, B) > 0.001f) {
-    glm::vec3 dir = glm::normalize(B - A);
-    float lineLength = glm::length(B - A);
-
-    float thickness = 0.1f;
-
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), dir, glm::vec3(0, 1, 0)));
-
-    glm::mat4 lineMat = glm::mat4(1.0f);
-    lineMat = glm::translate(lineMat, A);
-    lineMat = lineMat * rotation;
-
-    lineMat = glm::translate(lineMat, glm::vec3(0.0f, 0.0f, -lineLength * 0.5f));
-    lineMat = glm::scale(lineMat, glm::vec3(thickness, thickness, lineLength));
-
-    shader->setMat4("uModel", lineMat);
-    shader->setTex2D("tex1", texture, 0);
-    directionArrow.draw();
-  }
-}
-
 void DrawRaymanSlideSpeed(Shader* shader) {
   if (g_DR_rayman == nullptr) return;
   const float lengthMultiplier = 1.0f;
@@ -101,6 +79,6 @@ void DrawRaymanSlideSpeed(Shader* shader) {
   glm::vec3 offset(0.0f, 0.0f, 2.0f);
 
   MTH3D_tdstVector slideSpeed = *(MTH3D_tdstVector*)ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_INTERN_RaySlideSpeed);
-  DrawLine(shader, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos) + offset, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos) + offset + (ToGLMVec(slideSpeed) * lengthMultiplier),
-    Textures::ColUser3);
+  RenderUtil::DrawArrow(shader, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos) + offset, ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos) + offset + (ToGLMVec(slideSpeed) * lengthMultiplier),
+    Textures::White, 0.1f, glm::vec4(1.0f,0.5f,1.0f,0.5f));
 }

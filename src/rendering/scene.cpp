@@ -11,6 +11,7 @@
 #include <ui/dialogs/options.hpp>
 #include <ui/dialogs/utils.hpp>
 #include <ui/dialogs/waypoints.hpp>
+#include <ui/dialogs/raycasts.hpp>
 #include <ui/settings.hpp>
 
 #include "rendering/shaders/basic.hpp"
@@ -315,7 +316,10 @@ void Scene::renderSPO(Shader * shader, HIE_tdstSuperObject* spo, bool activeSect
     shader->setTex2D("tex1", Textures::Sectorborder, 0);
     shader->setVec3("uvScale", scale);
     shader->setBool("useSecondTexture", false);
+    shader->setVec4("uColor", sector->bVirtual ? glm::vec4(0, 1.0f, 0, 1) : glm::vec4(1, 1, 1, 1));
+    shader->setMat4("uModel", sectorMatrix);
     sectorBordersCube.draw(shader);
+    shader->setVec4("uColor", glm::vec4(1,1,1,1));
 
     shader->setVec3("uvScale", glm::vec3(1, 1, 1));
   }
@@ -549,6 +553,7 @@ void Scene::renderPass(bool opaquePass, const glm::mat4& model, const glm::mat4&
 
   DR_DLG_Utils_DrawScene(this, geometryShader);
   DR_DLG_Waypoints_DrawScene(this, geometryShader);
+  DR_DLG_Raycasts_DrawScene(this, geometryShader);
 }
 
 void Scene::setCameraPosition(glm::vec3 from, glm::vec3 to) {

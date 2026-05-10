@@ -46,6 +46,7 @@ extern char g_DR_Cheats_DisableStartingCutscenes;
 extern char g_DR_Cheats_DisableDeathAnimations;
 extern char g_DR_Cheats_ForceDefaultCamera;
 extern char g_DR_Cheats_AutoVoid;
+extern char g_DR_Cheats_LaserBullets;
 extern char g_DR_Cheats_FreezeProgress;
 extern char g_DR_Cheats_DisableRandomOptimisations;
 extern char g_DR_Cheats_Simulate256FramesBetweenSectorReloads;
@@ -57,6 +58,9 @@ char DR_Cheats_GetFlag(int index);
 void DR_Cheats_ToggleFlag(int index);
 void DR_Cheats_SetFlag(int index, char state);
 void DR_Cheats_SavePosition();
+
+typedef struct HIE_tdstSuperObject HIE_tdstSuperObject;
+void DR_Cheats_MakeCharacterReact(HIE_tdstSuperObject* spo);
 
 void DR_Cheats_LoadPosition();
 void DR_Cheats_ResetSavedPosition();

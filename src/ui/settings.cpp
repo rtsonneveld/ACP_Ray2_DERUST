@@ -74,3 +74,8 @@ extern "C" bool DR_Settings_Get_Util_EnableGLMRadar()
 {
   return g_DR_settings.util_enableGLMRadar;
 }
+
+extern "C" unsigned int DR_Settings_Get_RaycastLifetime()
+{
+  return g_DR_settings.opt_raycastLifetime;
+}

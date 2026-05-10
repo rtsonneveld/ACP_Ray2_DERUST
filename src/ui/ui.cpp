@@ -15,6 +15,7 @@
 #include "mod/globals.h"
 #include <time.h>
 #include "derust.h"
+#include <rendering/renderutil.hpp>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -164,6 +165,9 @@ int DR_UI_Init(HWND a_window_r2, HMODULE module)
 		ImGui::RenderPlatformWindowsDefault();
 	}
 	glfwSwapBuffers(window);
+
+	RenderUtil::Init();
+
 	return 0;
 }
 
