@@ -286,7 +286,7 @@ void ShowTextureWindow(GLuint vp_texture, int tex_width, int tex_height) {
 void DR_UI_Update() {
 
 	// Request new data
-	WaitForSingleObject(g_hAFrameIsWaiting, INFINITE);
+	WaitForSingleObject(g_hAFrameIsWaiting, 200);
 
 	glfwPollEvents();
 	if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)

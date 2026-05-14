@@ -263,10 +263,6 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 void MOD_fn_vEngine()
 {
 	DR_Cheats_Apply();
-	if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
-		DR_DistanceChecks_Update();
-		DR_UpdateRaycasts();
-	}
 
 	GLMRadar_Before_fn_vEngine();
 
@@ -277,6 +273,11 @@ void MOD_fn_vEngine()
 		// When seeking, the engine is not paused
 		if (DR_Recording_CurrentState() == DR_IR_State_Seeking) {
 			GAM_g_stEngineStructure->bEngineIsInPaused = FALSE;
+		}
+
+		if (!GAM_g_stEngineStructure->bEngineIsInPaused && !GAM_g_stEngineStructure->bEngineFrozen) {
+			DR_DistanceChecks_Update();
+			DR_UpdateRaycasts();
 		}
 
 		if (DR_Settings_Get_TryCatchExceptions() && FALSE) {

@@ -146,11 +146,11 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
 
           DNM_tdstMecBaseIdCard* idCard = dynamicsBase.pCurrentIdCard;
 
-          ImGui::InputScalar("xGravity", ImGuiDataType_Float, &idCard->m_xGravity);
-          /*ImGui::InputScalar("xSlopeLimit", ImGuiDataType_Float, &dynamicsBase.xSlopeLimit);
-          ImGui::InputScalar("xCosSlope", ImGuiDataType_Float, &dynamicsBase.xCosSlope);
-          ImGui::InputScalar("xSlide", ImGuiDataType_Float, &dynamicsBase.xSlide);
-          ImGui::InputScalar("xRebound", ImGuiDataType_Float, &dynamicsBase.xRebound);*/
+          ImGui::InputScalar("xGravity##xGravityIdCard", ImGuiDataType_Float, &idCard->m_xGravity);
+          ImGui::InputScalar("xSlopeLimit##xSlopeLImitIdCard", ImGuiDataType_Float, &dynamicsBase.xSlopeLimit);
+          ImGui::InputScalar("xCosSlope##xCosSlopeIdCard", ImGuiDataType_Float, &dynamicsBase.xCosSlope);
+          ImGui::InputScalar("xSlide##xSlideIdCard", ImGuiDataType_Float, &dynamicsBase.xSlide);
+          ImGui::InputScalar("xRebound##xReboundIdCard", ImGuiDataType_Float, &dynamicsBase.xRebound);
 
           ImGui::Unindent();
         }
@@ -171,6 +171,7 @@ void DR_DLG_Inspector_Draw_MS_Dynam(HIE_tdstEngineObject* actor)
         ImGui::DragFloat3("stSpeedAnim", (float*)&(dynamicsBase.stSpeedAnim.x));
         ImGui::DragFloat3("stSafeTranslation", (float*)&(dynamicsBase.stSafeTranslation.x));
         ImGui::DragFloat3("stAddTranslation", (float*)&(dynamicsBase.stAddTranslation.x));
+        ImGui::Text("&stAddTranslation 0x%p", (float*)&(dynamics->stDynamicsBase.stAddTranslation.x));
 
         InputCompletePosition("stPreviousMatrix", &dynamicsBase.stPreviousMatrix);
         InputCompletePosition("stCurrentMatrix", &dynamicsBase.stCurrentMatrix);

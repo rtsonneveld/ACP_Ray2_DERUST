@@ -25,6 +25,7 @@
 namespace {
   Mesh glmCube;
   Mesh glmDirectionCube;
+  Mesh glmTeleportSphere;
   glm::vec3 savedGlmPosition;
   bool focusCameraOnGLM = false;
   bool playSoundOnGLMChange = false;
@@ -40,6 +41,14 @@ namespace {
   glm::vec3 lastGlmPos;
 }
 
+void DR_DLG_Utils_Init_GLM() {
+  glmCube = Mesh::createCube(glm::vec3(0.1f, 0.1f, 0.885594f));
+  glmDirectionCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
+  glmTeleportSphere = Mesh::createSphere(1.0f);
+
+  glmSound = AudioSystem::LoadSoundFromResource(IDR_GLMSOUND, false);
+}
+
 glm::vec3* GetGlmPosition() {
   if (g_DR_rayman != nullptr) {
     void* ptr = ACT_DsgVarPtr(g_DR_rayman->hLinkedObject.p_stActor, DV_RAY_INTERN_TmpVector2);
@@ -48,13 +57,6 @@ glm::vec3* GetGlmPosition() {
     }
   }
   return nullptr;
-}
-
-void DR_DLG_Utils_Init_GLM() {
-  glmCube = Mesh::createCube(glm::vec3(0.1f, 0.1f, 0.885594f));
-  glmDirectionCube = Mesh::createCube(glm::vec3(1.0f, 1.0f, 1.0f));
-
-  glmSound = AudioSystem::LoadSoundFromResource(IDR_GLMSOUND, false);
 }
 
 void DR_DLG_Utils_DrawTab_GLM()
@@ -158,6 +160,21 @@ void DrawGLM(Scene* scene, Shader* shader) {
     glm::mat4 mat2 = glm::translate(glm::mat4(1.0f), glmPos);
     shader->setMat4("uModel", mat2);
     glmCube.draw();
+
+    glm::vec3 raymanPos = ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos);
+    glm::vec3 attemptPos = glm::vec3(glmPos.x, glmPos.y, raymanPos.z);
+
+    glm::vec3 midPoint = (raymanPos + attemptPos) * 0.5f;
+    float radius = glm::distance(raymanPos, attemptPos) * 0.5f;
+
+    glm::mat4 sphereMat = glm::translate(glm::mat4(1.0f), midPoint); 
+    sphereMat = glm::scale(sphereMat, glm::vec3(radius));
+
+    shader->setMat4("uModel", sphereMat);
+    shader->setTex2D("tex1", Textures::White, 0);
+    shader->setVec4("uColor", glm::vec4(0.0f,0.5f,0.5f,0.5f));
+    glmTeleportSphere.draw();
+    RenderUtil::DrawLine(shader, raymanPos, attemptPos, Textures::White, 0.1f);
   }
 
   const float thickness = 0.1f;
