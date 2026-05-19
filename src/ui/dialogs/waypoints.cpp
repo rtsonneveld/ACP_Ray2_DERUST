@@ -14,11 +14,13 @@ std::unordered_set<WP_tdstGraph*> knownGraphs;
 std::unordered_set<WP_tdstWayPoint*> knownWaypoints;
 
 Mesh waypointSphere;
+Mesh waypointPyramid;
 Mesh waypointLine;
 Mesh waypointQuad;
 
 void DR_DLG_Waypoints_Init() {
-  waypointSphere = Mesh::createSphere(1.0f, glm::vec3(0, 0, 0));
+  waypointSphere = Mesh::createSphere();
+  waypointPyramid = Mesh::createCone(1.0f, 1.0f, 3, glm::vec3(0, 0, 0));
   waypointLine = Mesh::createCube(glm::vec3(1,1,1), glm::vec3(0, 0, 0));
   waypointQuad = Mesh::createQuad(100.0f, 100.0f);
 }
@@ -127,7 +129,11 @@ void DrawWaypoint(Scene* scene, Shader* shader, WP_tdstWayPoint waypoint, bool s
   shader->setVec3("uvScale", glm::vec3(1,1,1));
   shader->setFloat("uAlphaMult", 0.5f);
 
-  waypointSphere.draw(shader);
+  if (scaleToRadius) {
+    waypointSphere.draw(shader);
+  } else {
+    waypointPyramid.draw(shader);
+  }
 
   shader->setVec3("uvScale", glm::vec3(1.0f));
   shader->setFloat("uAlphaMult", 1.0f);
@@ -157,7 +163,18 @@ void DR_DLG_Waypoints_DrawScene(Scene* scene, Shader* shader) {
           thickness = max(0.05f, arc->m_lWeight * 0.02f);
         }
 
-        RenderUtil::DrawLine(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness);
+        unsigned int x = arc->m_ulCapability;
+        // A simple, fast Jenkins-inspired integer hash to scatter the bits
+        x = ((x >> 16) ^ x) * 0x45d9f3b;
+        x = ((x >> 16) ^ x) * 0x45d9f3b;
+        x = (x >> 16) ^ x;
+
+        // Now split the scrambled bits into RGB
+        float r = static_cast<float>(x & 0xFF) / 255.0f;
+        float g = static_cast<float>((x >> 8) & 0xFF) / 255.0f;
+        float b = static_cast<float>((x >> 16) & 0xFF) / 255.0f;
+
+        RenderUtil::DrawArrow(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness, glm::vec4(r, g, b, 1.0f));
       }
     }
   }

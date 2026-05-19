@@ -34,6 +34,7 @@
 #include <time.h>
 #include <ddraw.h>
 #include "tryblock.h"
+#include "gamemutex.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -251,8 +252,11 @@ DWORD WINAPI DR_UI_ThreadMain(LPVOID p)
 		// Wait until the game loop signals a new frame
 		WaitForSingleObject(g_hFrameEvent, 500);
 
+		EnterCriticalSection(&g_gameMutex);
 		// Now process the UI update
 		DR_UI_Update();
+
+		LeaveCriticalSection(&g_gameMutex);
 	}
 
 	DR_UI_DeInit();
@@ -280,6 +284,8 @@ void MOD_fn_vEngine()
 			DR_UpdateRaycasts();
 		}
 
+    EnterCriticalSection(&g_gameMutex);
+
 		if (DR_Settings_Get_TryCatchExceptions() && FALSE) {
 			__try {
 				GAM_fn_vEngine();
@@ -297,6 +303,8 @@ void MOD_fn_vEngine()
 		else {
 			GAM_fn_vEngine();
 		}
+
+    LeaveCriticalSection(&g_gameMutex);
 
 		GAM_g_stEngineStructure->bEngineIsInPaused = wasPaused; 
 	}
@@ -414,6 +422,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			g_hAFrameIsWaiting = CreateSemaphoreA(NULL, 0, 1, "FRAMEWAITING");
 			g_hFrameDoneCopying = CreateSemaphoreA(NULL, 0, 1, "FRAMECOPIED");
 
+			InitializeCriticalSection(&g_gameMutex);
+
 			g_hUIThread = CreateThread(
 				NULL, 0,
 				(LPTHREAD_START_ROUTINE)DR_UI_ThreadMain,
@@ -436,6 +446,7 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			FHK_fn_lCreateHook((void**)&GAM_fn_vFillDynamicHierarchy, (void*)MOD_fn_vFillDynamicHierarchy);
 			FHK_fn_lCreateHook((void**)&GAM_fn_vMakeCharacterReact, (void*)DR_Cheats_MakeCharacterReact);
 			FHK_fn_lCreateHook((void**)&AI_fn_vComputeCollideResult, (void*)MOD_fn_vComputeCollideResult_RayCastDisplay);
+			FHK_fn_lCreateHook((void**)&INT_fn_bDetectIntersectSegmentWithTriangle, (void*)MOD_fn_bDetectIntersectSegmentWithTriangle_RayCastDisplay);
 
 			// Recording
 			FHK_fn_lCreateHook((void**)&GLD_bFlipDeviceWithSynchro, (void*)DR_Recording_HK_bFlipDeviceWithSynchro);
@@ -463,6 +474,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD dwReason, LPVOID lpReserved )
 			break;
 
 		case DLL_PROCESS_DETACH: 
+
+			DeleteCriticalSection(&g_gameMutex);
 
 			FHK_fn_lDestroyHook((void**)&GAM_fn_WndProc, (void*)MOD_fn_WndProc);
 			FHK_fn_lDestroyHook((void**)&GAM_fn_vEngine, (void*)MOD_fn_vEngine);

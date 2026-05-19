@@ -29,6 +29,7 @@ namespace {
   glm::vec3 savedGlmPosition;
   bool focusCameraOnGLM = false;
   bool playSoundOnGLMChange = false;
+  bool drawTeleportLine = false;
   glm::vec3 glmCameraOffset = glm::vec3(1, 1, 1);
 
   ma_sound* glmSound = nullptr;
@@ -83,6 +84,7 @@ void DR_DLG_Utils_DrawTab_GLM()
 
     ImGui::Checkbox("Play sound on GLM change", &playSoundOnGLMChange);
     ImGui::Checkbox("Auto-focus camera on GLM", &focusCameraOnGLM);
+    ImGui::Checkbox("Draw teleport line", &drawTeleportLine);
     if (focusCameraOnGLM) {
       ImGui::DragFloat3("Offset", &glmCameraOffset.x);
     }
@@ -161,20 +163,41 @@ void DrawGLM(Scene* scene, Shader* shader) {
     shader->setMat4("uModel", mat2);
     glmCube.draw();
 
-    glm::vec3 raymanPos = ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos);
-    glm::vec3 attemptPos = glm::vec3(glmPos.x, glmPos.y, raymanPos.z);
+    if (drawTeleportLine) {
 
-    glm::vec3 midPoint = (raymanPos + attemptPos) * 0.5f;
-    float radius = glm::distance(raymanPos, attemptPos) * 0.5f;
+      glm::vec3 raymanPos = ToGLMVec(g_DR_rayman->p_stGlobalMatrix->stPos);
+      glm::vec3 attemptPos = glm::vec3(glmPos.x, glmPos.y, raymanPos.z);
 
-    glm::mat4 sphereMat = glm::translate(glm::mat4(1.0f), midPoint); 
-    sphereMat = glm::scale(sphereMat, glm::vec3(radius));
+      glm::vec3 midPoint = (raymanPos + attemptPos) * 0.5f;
 
-    shader->setMat4("uModel", sphereMat);
-    shader->setTex2D("tex1", Textures::White, 0);
-    shader->setVec4("uColor", glm::vec4(0.0f,0.5f,0.5f,0.5f));
-    glmTeleportSphere.draw();
-    RenderUtil::DrawLine(shader, raymanPos, attemptPos, Textures::White, 0.1f);
+      POS_tdstCompletePosition targetCompletePosition = *g_DR_rayman->p_stGlobalMatrix;
+      targetCompletePosition.stPos = FromGLMVec(attemptPos);
+
+      // Clear the collision case table
+      *COL_g_lNbElementsInTable = 0;
+
+      COL_fn_vNewStaticCollisionForCharacter(g_DR_rayman,
+        g_DR_rayman->hLinkedObject.p_stActor->hSectInfo->hCurrentSector,
+        g_DR_rayman->p_stGlobalMatrix,
+        &targetCompletePosition);
+
+      BOOL isHit = *COL_g_lNbElementsInTable > 0;
+
+      glm::mat4 sphereMat = glm::translate(glm::mat4(1.0f), midPoint);
+      sphereMat = glm::scale(sphereMat, glm::vec3(0.2f));
+      shader->setMat4("uModel", sphereMat);
+      shader->setTex2D("tex1", Textures::White, 0);
+      shader->setVec4("uColor", glm::vec4(0.0f, 0.5f, 0.5f, 1.0f));
+
+      glmTeleportSphere.draw();
+
+      RenderUtil::DrawLine(shader, raymanPos, attemptPos, Textures::White, 0.1f, isHit ? glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) : glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+      if (isHit) {
+        COL_tdstCollisionCase* colCase = *COL_g_stCollisionCaseReal;
+        RenderUtil::DrawLine(shader, ToGLMVec(colCase->stCollisionPoint), ToGLMVec(colCase->stCollisionPoint) + ToGLMVec(colCase->stCollisionNormal), Textures::White, 0.2f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+      }
+    }
   }
 
   const float thickness = 0.1f;
