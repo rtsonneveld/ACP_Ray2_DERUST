@@ -162,6 +162,136 @@ Mesh Mesh::createCube(glm::vec3 size, glm::vec3 offset)
   return Mesh(vertices, indices, 0.0f);
 }
 
+Mesh Mesh::createCylinder(float radius, float height, unsigned int segments, glm::vec3 offset)
+{
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+
+  if (segments < 3) segments = 3; // Minimum 3 segments for a 3D shape
+
+  float halfHeight = height / 2.0f;
+
+  // --- 1. GENERATE VERTICES (Z-Up) ---
+
+  // Bottom cap center vertex (Index 0)
+  glm::vec3 bottomCenter(0.0f, 0.0f, -halfHeight);
+  bottomCenter += offset;
+  vertices.push_back(bottomCenter.x); vertices.push_back(bottomCenter.y); vertices.push_back(bottomCenter.z);
+
+  // Top cap center vertex (Index 1)
+  glm::vec3 topCenter(0.0f, 0.0f, halfHeight);
+  topCenter += offset;
+  vertices.push_back(topCenter.x); vertices.push_back(topCenter.y); vertices.push_back(topCenter.z);
+
+  // Ring vertices
+  for (unsigned int i = 0; i < segments; ++i) {
+    float angle = (static_cast<float>(i) / segments) * 2.0f * M_PI;
+    float x = radius * cos(angle);
+    float y = radius * sin(angle); // Changed from z to y for XY-plane circle
+
+    // Bottom ring vertex
+    glm::vec3 bPos(x, y, -halfHeight);
+    bPos += offset;
+    vertices.push_back(bPos.x); vertices.push_back(bPos.y); vertices.push_back(bPos.z);
+
+    // Top ring vertex
+    glm::vec3 tPos(x, y, halfHeight);
+    tPos += offset;
+    vertices.push_back(tPos.x); vertices.push_back(tPos.y); vertices.push_back(tPos.z);
+  }
+
+  // --- 2. GENERATE INDICES (Winding Adjusted) ---
+
+  unsigned int bottomCenterIdx = 0;
+  unsigned int topCenterIdx = 1;
+
+  for (unsigned int i = 0; i < segments; ++i) {
+    // Calculate indices for current and next segment
+    unsigned int bCurr = 2 + i * 2;
+    unsigned int tCurr = 3 + i * 2;
+
+    unsigned int bNext = 2 + ((i + 1) % segments) * 2;
+    unsigned int tNext = 3 + ((i + 1) % segments) * 2;
+
+    // Side Wall (Two triangles per segment - adjusted for outward facing normals)
+    // Triangle 1
+    indices.push_back(bCurr);
+    indices.push_back(tNext);
+    indices.push_back(tCurr);
+    // Triangle 2
+    indices.push_back(bCurr);
+    indices.push_back(bNext);
+    indices.push_back(tNext);
+
+    // Bottom Cap 
+    indices.push_back(bottomCenterIdx);
+    indices.push_back(bNext);
+    indices.push_back(bCurr);
+
+    // Top Cap
+    indices.push_back(topCenterIdx);
+    indices.push_back(tCurr);
+    indices.push_back(tNext);
+  }
+
+  return Mesh(vertices, indices, 0.0f);
+}
+
+Mesh Mesh::createCone(float radius, float height, unsigned int segments, glm::vec3 offset)
+{
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+
+  if (segments < 3) segments = 3;
+
+  float halfHeight = height / 2.0f;
+
+  // --- 1. GENERATE VERTICES (Z-Up) ---
+
+  // Bottom cap center vertex (Index 0)
+  glm::vec3 bottomCenter(0.0f, 0.0f, -halfHeight);
+  bottomCenter += offset;
+  vertices.push_back(bottomCenter.x); vertices.push_back(bottomCenter.y); vertices.push_back(bottomCenter.z);
+
+  // Apex top vertex (Index 1)
+  glm::vec3 apex(0.0f, 0.0f, halfHeight);
+  apex += offset;
+  vertices.push_back(apex.x); vertices.push_back(apex.y); vertices.push_back(apex.z);
+
+  // Bottom ring vertices
+  for (unsigned int i = 0; i < segments; ++i) {
+    float angle = (static_cast<float>(i) / segments) * 2.0f * M_PI;
+    float x = radius * cos(angle);
+    float y = radius * sin(angle); // Changed from z to y for XY-plane circle
+
+    glm::vec3 bPos(x, y, -halfHeight);
+    bPos += offset;
+    vertices.push_back(bPos.x); vertices.push_back(bPos.y); vertices.push_back(bPos.z);
+  }
+
+  // --- 2. GENERATE INDICES (Winding Adjusted) ---
+
+  unsigned int bottomCenterIdx = 0;
+  unsigned int apexIdx = 1;
+
+  for (unsigned int i = 0; i < segments; ++i) {
+    unsigned int curr = 2 + i;
+    unsigned int next = 2 + ((i + 1) % segments);
+
+    // Side Wall (Triangle connecting ring to apex - flipped for outward normal)
+    indices.push_back(curr);
+    indices.push_back(next);
+    indices.push_back(apexIdx);
+
+    // Bottom Cap
+    indices.push_back(bottomCenterIdx);
+    indices.push_back(next);
+    indices.push_back(curr);
+  }
+
+  return Mesh(vertices, indices, 0.0f);
+}
+
 Mesh Mesh::createOctahedron(glm::vec3 size, glm::vec3 offset)
 {
   std::vector<float> vertices;

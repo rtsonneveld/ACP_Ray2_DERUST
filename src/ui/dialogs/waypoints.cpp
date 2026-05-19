@@ -18,7 +18,7 @@ Mesh waypointLine;
 Mesh waypointQuad;
 
 void DR_DLG_Waypoints_Init() {
-  waypointSphere = Mesh::createSphere(1.0f, glm::vec3(0, 0, 0));
+  waypointSphere = Mesh::createCone(1.0f, 1.0f, 3, glm::vec3(0, 0, 0));
   waypointLine = Mesh::createCube(glm::vec3(1,1,1), glm::vec3(0, 0, 0));
   waypointQuad = Mesh::createQuad(100.0f, 100.0f);
 }
@@ -157,7 +157,7 @@ void DR_DLG_Waypoints_DrawScene(Scene* scene, Shader* shader) {
           thickness = max(0.05f, arc->m_lWeight * 0.02f);
         }
 
-        RenderUtil::DrawLine(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness);
+        RenderUtil::DrawArrow(shader, ToGLMVec(node->m_hWayPoint->m_stVertex), ToGLMVec(arc->m_hNode->m_hWayPoint->m_stVertex), Textures::White, thickness);
       }
     }
   }
