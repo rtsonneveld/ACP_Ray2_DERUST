@@ -28,6 +28,8 @@ void DR_UpdateRaycasts() {
 void MOD_fn_vComputeCollideResult_RayCastDisplay(HIE_tdstSuperObject* sender) {
 
   AI_fn_vComputeCollideResult(sender);
+  
+  if (!DR_Settings_Get_DrawRaycasts()) return;
 
   DR_Raycast raycast = {
     .eType = DR_RaycastType_CollideResult,
@@ -46,6 +48,9 @@ void MOD_fn_vComputeCollideResult_RayCastDisplay(HIE_tdstSuperObject* sender) {
 
 ACP_tdxBool MOD_fn_bDetectIntersectSegmentWithTriangle_RayCastDisplay(MTH3D_tdstVector* p_stVertexA, MTH3D_tdstVector* p_stVectAB, MTH3D_tdstVector* p_stVertex1, MTH3D_tdstVector* p_stVertex2, MTH3D_tdstVector* p_stVertex3, MTH3D_tdstVector* p_stNormal, MTH_tdxReal xDPlan) {
   BOOL result = INT_fn_bDetectIntersectSegmentWithTriangle(p_stVertexA, p_stVectAB, p_stVertex1, p_stVertex2, p_stVertex3, p_stNormal, xDPlan);
+
+
+  if (!DR_Settings_Get_DrawRaycasts()) return result;
 
   DR_Raycast raycast = {
   .eType = DR_RaycastType_IntersectSegmentTriangle,

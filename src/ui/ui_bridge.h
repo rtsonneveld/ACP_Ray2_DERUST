@@ -26,6 +26,7 @@ bool DR_Settings_Get_TryCatchExceptions();
 bool DR_Settings_Get_DisplaySeeking();
 bool DR_Settings_Get_DisableAutoSave();
 bool DR_Settings_Get_Util_EnableGLMRadar();
+bool DR_Settings_Get_DrawRaycasts();
 unsigned int DR_Settings_Get_RaycastLifetime();
 
 void MOD_fn_vAskToChangeLevel(char const* szLevelName, ACP_tdxBool bSaveGame);
